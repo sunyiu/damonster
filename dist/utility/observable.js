@@ -6,6 +6,7 @@ export default class Observable {
                 return thisArg[target].apply(this, argumentList);
             },
             set: function (target, property, value, receiver) {
+                console.log(map);
                 target[property] = value;
                 console.log("Set %s to %o", property, value);
                 return true;
@@ -25,7 +26,7 @@ export default class Observable {
                 //will it be OK?????
                 //If writable is set to true, the obserable will be lose
                 //How to deal with it?????                               
-                Object.defineProperty(viewModel, p, { value: new Proxy(descriptor.value, Observable.get) });
+                Object.defineProperty(viewModel, p, { value: new Proxy(descriptor.value, handler) });
             }
             else {
                 Object.defineProperty(viewModel, p, {

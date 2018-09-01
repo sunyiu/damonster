@@ -7,6 +7,7 @@ export default class Observable {
                                 return thisArg[target].apply(this, argumentList);
                         },
                         set: function (target, property, value, receiver) {
+                                console.log(map);
                                 target[property] = value;
                                 console.log("Set %s to %o", property, value);
                                 return true;
@@ -32,7 +33,7 @@ export default class Observable {
                                 Object.defineProperty(
                                         viewModel,
                                         p,
-                                        { value: new Proxy(descriptor.value, Observable.get) });
+                                        { value: new Proxy(descriptor.value, handler) });
                         } else {
                                 Object.defineProperty(
                                         viewModel,
