@@ -13,16 +13,16 @@ function shuffle(a) {
 }
 export class DaDeck {
     constructor() {
-        this._cards = [];
+        this.cards = [];
     }
     Empty() {
-        this._cards = [];
+        this.cards.splice(0);
     }
     AddCardsAndShuffle(cards) {
-        this._cards = shuffle(this._cards.concat(cards));
+        this.cards = shuffle(this.cards.concat(cards));
     }
     Deal() {
-        let card = this._cards.pop();
+        let card = this.cards.pop();
         if (card == undefined) {
             throw new Error("End of the Deck reached...");
         }

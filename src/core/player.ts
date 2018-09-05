@@ -8,7 +8,7 @@ export class DaPlayer{
 	}
 	
 	public hand:DaCard[] = [];
-	public hero:DaHeroCard | undefined;
+	public hero:DaHeroCard | undefined = undefined;
 					
 	constructor(name:string){
 		this._name = name;
@@ -19,6 +19,7 @@ export class DaPlayer{
 	}
 	
 	New(){
+		//this.hand.splice(0);
 		this.hand = [];
 		this.hero = undefined;
 	}

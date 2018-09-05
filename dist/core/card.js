@@ -42,7 +42,7 @@ export class DaCard {
         this._type = type;
     }
     tostring() {
-        return 'CARD:: ${this._name} ${this._type}';
+        return `CARD:: "${this._name}"`;
     }
 }
 export class DaHeroCard extends DaCard {

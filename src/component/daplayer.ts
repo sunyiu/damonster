@@ -1,20 +1,27 @@
 'use strict';
 
-export default class DaHand extends HTMLElement {
-    public static get is(): string { return 'da-hand'; }
+export default class DaPlayer extends HTMLElement {
+    public static get is(): string { return 'da-player'; }
 
     public getTemplate(props: any): string {
         return `
             <style>
 			</style>
             <!-- shadow DOM for your element -->
-			<div id="da-hand-container"></div>
+			<div id="da-player-container">
+                <div id="da-hero-container"><span>HERO::</span><span id="hero-context"></span></div>            
+                <div id="da-hand-container"><span>HAND::</span><span id="hand-context"></span></div>
+            </div>
         `;
     }
     
     public static get properties(){
         return{
-            'data-cards':{
+            'data-hand':{
+                type: String,
+                value: ''
+            },
+            'data-hero': {
                 type: String,
                 value: ''
             }
@@ -25,7 +32,7 @@ export default class DaHand extends HTMLElement {
         
         const attributes: string[] = [];
 
-        for (let key in DaHand.properties) {
+        for (let key in DaPlayer.properties) {
             attributes.push(key.toLowerCase());
         }
 
@@ -40,8 +47,8 @@ export default class DaHand extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaHand.properties) {
-            this.props[key] = DaHand.properties[key].value;
+        for (let key in DaPlayer.properties) {
+            this.props[key] = DaPlayer.properties[key].value;
         }        
 
         this.requestRender();
@@ -54,8 +61,12 @@ export default class DaHand extends HTMLElement {
 
         this.props[name] = newValue;
         
-        if (name === 'data-cards' && newValue) {
-            this.shadowRoot.getElementById('da-hand-container').innerHTML = newValue;
+        if (name === 'data-hand' && newValue) {
+            this.shadowRoot.getElementById('hand-context').innerHTML = newValue;
+        }
+        
+        if (name === 'data-hero' && newValue){
+            this.shadowRoot.getElementById('hero-context').innerHTML = newValue;
         }
     }
     
@@ -68,4 +79,4 @@ export default class DaHand extends HTMLElement {
     }
 }
 
-customElements.define(DaHand.is, DaHand);
+customElements.define(DaPlayer.is, DaPlayer);

@@ -4,101 +4,44 @@
     <head>
         <meta charset="utf-8" />
         <title></title>        
-    </head>
-    
+    </head>    
     <body>
-        <da-hand data-cards=""></da-hand>
     </body>
         
     <script type="module">
         import DaMonster from './dist/core/damonster.js';
-        import DaHand from './dist/component/dahand.js';
+        import DaPlayer from './dist/component/daplayer.js';
         
         import Observable from './dist/utility/observable.js';
         
         var map = []; 
         var daMonster = window.daMonster = new DaMonster();
-        
-        
-
-        
-        //data binding to component...
-        //swap whatever variable we needed to proxy so that we can do the binding....
-                                
-        daMonster.players.forEach((p, index) =>{
-                                         
-                                         
-            let handler = {   
-                    apply: function(target, thisArg, argumentsList) {
-                        return thisArg[target].apply(this, argumentList);
-                    },
-                    set: function(target, property, value, receiver) {
-                        target[property] = value;
-                        console.log("Set %s to %o", property, value);                        
-                        return true;
-                    }                                                                 
-                }, 
-            playerView = {
-                    hand: new Proxy([], handler),
-                    hero: undefined,
-                    name: ''
-                },
-                playerProxy = new Proxy(playerView, handler);
-                p._hand = playerProxy.hand;
-                p._name = playerProxy.name;
-                p.proxy = playerProxy;
                 
-                //delete p._hero;
-                p._hero = playerProxy.hero;
-                Object.defineProperty(p, 'hero', {set: (h) => {playerProxy.hero = h; }, get: () => {return playerProxy.hero;}});
-                                
-                                                
-            /*//swap player.name to proxy
-            let name = {name: p.name},
-                nameHandlers = {
-                    apply: function(target, thisArg, argumentsList) {
-                        return thisArg[target].apply(this, argumentList);
-                    },
-                    set: function(target, property, value, receiver) {
-                        target[property] = value;
-                        console.log("Set %s to %o", property, value);                        
-                        return true;
-                    }                                
-                },
-                nameProxy = new Proxy(name, nameHandlers);
-                            
+        //data binding to component...
+        //swap whatever variable we needed to proxy so that we can do the binding....                                
+        daMonster.players.forEach((p, index) =>{
         
-            //swap player.hand to proxy        
-            let hand = [],
-                handHandlers = {
-                    apply: function(target, thisArg, argumentsList) {
-                        return thisArg[target].apply(this, argumentList);
-                    },
-                    set: function(target, property, value, receiver) {
-                        target[property] = value;
-                        console.log("Set %s to %o", property, value);
-                        
-                        let result = ''
-                        target.forEach((c) =>{
-                            result += c.tostring() + ' ';
-                        });
-                        
-                        target.element.setAttribute('data-cards', result);                        
-                        
-                        return true;
-                    }                
-                },
-                handProxy = new Proxy(hand, handHandlers),
-                handElement = new DaHand();
-                handProxy.element = handElement;                                                                                             
+            let daPlayer = new DaPlayer();
             
-            p._hand = handProxy;   
-            //p._name = nameProxy.name;
-
+                
+            Observable.addListener(p, 'hand', (newValue)=>{
+                let cards = ':';
+                p.hand.forEach((c) =>{
+                    cards += (c.tostring() + ' ');
+                });
+                daPlayer.setAttribute('data-hand', cards);
+                //console.log(p.name + ' ' + newValue);
+            });       
             
-            document.body.appendChild(handElement);*/
+            Observable.addListener(p, 'hero', (newValue)=>{ 
+                daPlayer.setAttribute('data-hero', newValue ? newValue.tostring() : 'N/A');            
+            });                          
+                             
+            document.body.appendChild(daPlayer);
                                  
         });
+        
+        daMonster.New();
 
     </script>
 

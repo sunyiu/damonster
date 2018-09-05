@@ -50,7 +50,7 @@ export class DaCard {
 	}
 	
 	tostring():string{
-		return 'CARD:: ${this._name} ${this._type}';  
+		return `CARD:: "${this._name}"`;  
 		
 	}
 }
