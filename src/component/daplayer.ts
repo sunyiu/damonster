@@ -6,6 +6,9 @@ export default class DaPlayer extends HTMLElement {
     public getTemplate(props: any): string {
         return `
             <style>
+                #da-player-container{
+                    font-size: 0.5em;
+                }
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">

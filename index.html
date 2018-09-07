@@ -26,15 +26,18 @@
                 
             Observable.addListener(p, 'hand', (newValue)=>{
                 let cards = ':';
-                p.hand.forEach((c) =>{
-                    cards += (c.tostring() + ' ');
+                p.hand.forEach((c, index) =>{
+                    cards += ( '(' + index + ' :: ' + c.tostring() + '), ');
                 });
                 daPlayer.setAttribute('data-hand', cards);
                 //console.log(p.name + ' ' + newValue);
             });       
             
-            Observable.addListener(p, 'hero', (newValue)=>{ 
-                daPlayer.setAttribute('data-hero', newValue ? newValue.tostring() : 'N/A');            
+            Observable.addListener(p, 'hero', (newValue)=>{                         
+                daPlayer.setAttribute('data-hero', newValue ? newValue.tostring() : 'N/A'); 
+                
+                //remove existing listener and hook to new hero.item                                                
+                           
             });                          
                              
             document.body.appendChild(daPlayer);
