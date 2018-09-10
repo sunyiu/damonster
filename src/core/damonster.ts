@@ -42,10 +42,14 @@ export default class DaMonster {
 			this._monster = monster;
 			this._players.forEach((p)=>{
 				p.doneAction = false;
+				
+				if (p.type == DaPlayerTypes.Npc){
+					p.MonsterInvade(monster);
+				}
 			})
 		
 			//wait for actions
-			console.log('wait for actions');
+			console.log('wait for player actions');
 		});
 		
 
@@ -72,10 +76,10 @@ export default class DaMonster {
 			p.AddEventListener(DaPlayerEvents.PlayAction, (card)=>{
 				console.log('p %s play an action %o', p.name, card);
 				
-				this._players.forEach((pa) =>{
-					if (p !== pa && pa.type == DaPlayerTypes.Npc){
-						//NPC react to action by player
-						//pa.ReactToAction(card);
+				this._players.forEach((npc) =>{
+					if (p !== npc && npc.type == DaPlayerTypes.Npc){
+						//NPC react to action of player
+						npc.ReactOnAction(card);
 					}
 				})									
 			});
@@ -142,7 +146,7 @@ export default class DaMonster {
 			});
 		} else {
 			console.log('player win!!!!!');
-			maxPointPlayer.monsterKill.push(this._monster);
+			maxPointPlayer.monsterKilled.push(this._monster);
 		}
 		
 		this._isBattle = false;

@@ -45,6 +45,17 @@ export class DaPlayer {
 		this._deck = deck;
 	}
 	
+	private getCardsByType(type:DaCardTypes){
+		let result = [];
+		this.hand.forEach((c) =>{
+			if (c.type == type){
+				result.push(c);
+			}
+		})
+		return result;
+	}
+
+	
 	AddEventListener(event: DaPlayerEvents, callback){
 		let callbacks = this._callbacks[event];
 		if (callbacks == undefined){
