@@ -5,7 +5,7 @@ export default class Observable {
                         '__observableObj': obj,
 
                         apply: function (target, thisArg, argumentsList) {
-                                console.log("Apply %o %o %o", target, thisArg, argumentsList);
+                                //console.log("Apply %o %o %o", target, thisArg, argumentsList);
                                 return thisArg[target].apply(this, argumentList);
                         },
                         set: function (target, property, value, receiver) {
@@ -18,7 +18,7 @@ export default class Observable {
                                         //skipping the index one but keeping the length                                                                                
                                         if (Array.isArray(target)){
                                                 let p = receiver['__observableArrayName'];
-                                                console.log('swap property %s --> %o', property, p);
+                                                //console.log('swap property %s --> %o', property, p);
                                                 property = p;
                                         }                                
         
@@ -32,7 +32,7 @@ export default class Observable {
                                         }                                                                                                                                                                                                                                      
                                 }
                                                                                                  
-                                console.log("Set %s to %o", property, value);
+                                //console.log("Set %s to %o", property, value);
                                 return true;
                         }
                 };

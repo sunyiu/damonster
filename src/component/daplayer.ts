@@ -8,12 +8,30 @@ export default class DaPlayer extends HTMLElement {
             <style>
                 #da-player-container{
                     font-size: 0.5em;
+                    padding-bottom: 15px;
+                }
+                .container{
+                    padding-bottom: 10px;
                 }
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
-                <div id="da-hero-container"><span>HERO::</span><span id="hero-context"></span></div>            
-                <div id="da-hand-container"><span>HAND::</span><span id="hand-context"></span></div>
+                <div id="da-hero-container" class="container">
+                    <div><strong>HERO</strong></div>
+                    <div>
+                        <span id="hero-context"></span>
+                        <span>&nbsp;</span>
+                        <span id="hero-item-context"></span>
+                    </div>
+                </div>            
+                <div id="da-hand-container" class="container">
+                    <div><strong>HAND</strong></div>
+                    <div id="hand-context"></div>
+                </div>
+                <div id="da-monster-kill-container" class="container">
+                    <div><strong>Killed</strong></div>
+                    <div id="monster-context"></div>
+                </div>
             </div>
         `;
     }
@@ -27,10 +45,18 @@ export default class DaPlayer extends HTMLElement {
             'data-hero': {
                 type: String,
                 value: ''
+            },
+            'data-hero-items': {
+                type: String,
+                value: ''
+            },
+            'data-monster-killed':{
+                type: String,
+                value: ''
             }
         };
     }
-    
+   
     public static get observedAttributes(): string[] {
         
         const attributes: string[] = [];
@@ -71,6 +97,16 @@ export default class DaPlayer extends HTMLElement {
         if (name === 'data-hero' && newValue){
             this.shadowRoot.getElementById('hero-context').innerHTML = newValue;
         }
+        
+        if (name === 'data-hero-items' && newValue){
+            this.shadowRoot.getElementById('hero-item-context').innerHTML = newValue;
+        }
+        
+        if (name === 'data-monster-killed' && newValue){
+            this.shadowRoot.getElementById('monster-context').innerHTML = newValue;
+        }
+        
+        
     }
     
     private requestRender(): void {
