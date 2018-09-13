@@ -1,31 +1,44 @@
 import { DaCard, DaCardType } from "./card.js";
 
-export enum DaActions{
-	AtomicBomb = "Atomic Bomb",
-	Stop = "Stop",
-	SeeTheFuture = "See The Future",
-	Steal = "Steal",
-	Super = "Super",
-	PerfectCube = "Perfect Cube"	
+export enum DaActions {
+	AtomicBomb,
+	Stop,
+	Radar,
+	Steal,
+	Super,
+	PerfectCube,
+	Swap,
+	Provoke,
+	Attack
 }
 
-export class DaActionCard extends DaCard{
+export class DaActionCard extends DaCard {
+
+
+	static callbacks = [];
+
+	// private _callback = undefined;
+	// get callback() {
+	// 	return this._callback;
+	// }
+	// set callback(value) {
+	// 	this._callback = value;
+	// }
 	
-	
-	private _callback = undefined;
-	get callback(){
-		return this._callback;
-	}
-	set callback(value){
-		this._callback = value;
+	private _action:DaActions;
+
+	constructor(id:number, name:string, action:DaActions) {
+		super(id, name, DaCardType.Action);
+		this._action = action;
 	}
 
-	constructor(id, name){
-		super(id, name, DaCardType.Action);				
-	}
-	
-	
-	Play(player){
-		this.callback.call(null, player);		
+
+	Play(player, args) {
+		let callback = DaActionCard.callbacks[this._action];
+		if (callback == undefined){
+			throw new Error('Card action callback is not defined!!!');						
+		}
+		
+		callback.call(null, player, args);
 	}
 }

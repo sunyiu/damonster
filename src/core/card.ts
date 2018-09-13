@@ -8,24 +8,24 @@ export enum DaCardType {
 
 
 export class DaCard {
-	
-	private _id:number;
-	get id(){
+
+	private _id: number;
+	get id() {
 		return this._id;
-	}	
+	}
 
 	private _name: string;
 	get name() {
 		return this._name;
 	}
-		
+
 	private _type: DaCardType;
 	get type() {
 		return this._type;
 	}
-	
+
 	private _point: number | undefined;
-	get point(){
+	get point() {
 		return this._point;
 	}
 
@@ -35,10 +35,12 @@ export class DaCard {
 		this._type = type;
 		this._point = point;
 	}
-	
-	tostring():string{
-		return `"${this.type}" CARD :: "${this.id}":"${this.name}"`;  
-		
+
+
+	tostring(): string {
+		let point = this._point ? " {p:" + this._point + "}" : "";
+		return this.type + ' CARD ' + "_" + this.id + ":" + this.name + point;
 	}
 }
+
 

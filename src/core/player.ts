@@ -43,18 +43,7 @@ export class DaPlayer {
 	constructor(name: string, deck:DaDeck) {
 		this._name = name;
 		this._deck = deck;
-	}
-	
-	private getCardsByType(type:DaCardTypes){
-		let result = [];
-		this.hand.forEach((c) =>{
-			if (c.type == type){
-				result.push(c);
-			}
-		})
-		return result;
-	}
-
+	}	
 	
 	AddEventListener(event: DaPlayerEvents, callback){
 		let callbacks = this._callbacks[event];
@@ -63,18 +52,6 @@ export class DaPlayer {
 		}else{
 			this._callbacks[event].push(callback);
 		}
-	}
-
-	HasCard(card: DaCard) {
-		let found = undefined;
-		this.hand.some((c, index) => {
-			if (c === card) {
-				found = index;
-				return true;
-			}
-			return false;
-		})
-		return found;
 	}
 
 	New() {
@@ -110,7 +87,7 @@ export class DaPlayer {
 			throw new Error('Cannot set hero if one already exist....');
 		}
 
-		let index = this.HasCard(card);
+		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error("Hero card not found!!!!");
 		}
@@ -128,27 +105,27 @@ export class DaPlayer {
 			throw new Error("No hero exits to equip");
 		}
 
-		let index = this.HasCard(card)
+		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error("Item Card not found!!!");
 		}
-
-		this.hand.splice(index, 1);
+		
 		this.hero.equip(card);
+		this.hand.splice(index, 1);		
 	}
 
-	PlayAction(card: DaActionCard) {
+	PlayAction(card: DaActionCard, ...args) {
 		if (card.type != DaCardType.Action) {
 			throw new Error("Card type is not ACTION!!!");
 		}
 
-		let index = this.HasCard(card);
+		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error('Action Card not found!!!!!');
 		}
 
 		this.hand.splice(index, 1);
-		card.Play(this);
+		card.Play(this, args);
 		
 		let callbacks = this._callbacks[DaPlayerEvents.PlayAction];
 		if (callbacks){

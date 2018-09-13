@@ -3,6 +3,7 @@
     
     <head>
         <meta charset="utf-8" />
+        
         <title></title>        
     </head>    
     <body>
@@ -10,11 +11,13 @@
         
     <script type="module">
         import DaMonster from './dist/core/damonster.js';
+        
+        
         import DaPlayer from './dist/component/daplayer.js';
         
         import Observable from './dist/utility/observable.js';
         
-        var map = []; 
+        //var map = []; 
         var daMonster = window.daMonster = new DaMonster();        
                 
         //data binding to component...
@@ -28,7 +31,7 @@
             Observable.addListener(p, 'hand', (newValue)=>{
                 let cards = '';
                 p.hand.forEach((c, index) =>{
-                    cards += ( '(' + index + ' :: ' + c.tostring() + '), ');
+                    cards += ( '[' + index + '-' + c.tostring() + '], ');
                 });
                 daPlayerComponent.setAttribute('data-hand', cards);
                 //console.log(p.name + ' ' + newValue);
@@ -37,7 +40,7 @@
             Observable.addListener(p, 'monsterKilled', (newValue)=>{
                  let cards = '';
                 p.monsterKilled.forEach((c, index) =>{
-                    cards += ( '(' + index + ' :: ' + c.tostring() + '), ');
+                    cards += ( '[' + index + '-' + c.tostring() + '], ');
                 });
                 daPlayerComponent.setAttribute('data-monster-killed', cards);            
             });       
@@ -52,14 +55,20 @@
                     Observable.addListener(newValue, 'items', (newValue) =>{
                         let items = '';
                         p.hero.items.forEach((i, index) =>{
-                            items += ( '(' + index + ' :: ' + i.tostring() + '), ');
+                            items += ( '[' + index + '-' + i.tostring() + '], ');
                         });
-                        daPlayerComponent.setAttribute('data-hero-items', items);                    
+                        daPlayerComponent.setAttribute('data-hero-items', items);
+                        daPlayerComponent.setAttribute('data-point', p.hero.totalPoint);                    
                     });
+                    
+                    daPlayerComponent.setAttribute('data-point', newValue.totalPoint);
                 }else{
                     daPlayerComponent.setAttribute('data-hero', 'None');
                     daPlayerComponent.setAttribute('data-hero-items', 'None');
-                }                                                
+                    daPlayerComponent.setAttribute('data-point', 0);
+                }    
+                
+                                                            
                            
             });
                                       

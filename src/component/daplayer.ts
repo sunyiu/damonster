@@ -17,7 +17,7 @@ export default class DaPlayer extends HTMLElement {
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
                 <div id="da-hero-container" class="container">
-                    <div><strong>HERO</strong></div>
+                    <div><strong>HERO</strong>&nbsp;&nbsp;<span id="point-context"></span></div>
                     <div>
                         <span id="hero-context"></span>
                         <span>&nbsp;</span>
@@ -43,6 +43,10 @@ export default class DaPlayer extends HTMLElement {
                 value: ''
             },
             'data-hero': {
+                type: String,
+                value: ''
+            },
+            'data-point':{
                 type: String,
                 value: ''
             },
@@ -98,6 +102,10 @@ export default class DaPlayer extends HTMLElement {
             this.shadowRoot.getElementById('hero-context').innerHTML = newValue;
         }
         
+        if (name === 'data-point' && newValue){
+            this.shadowRoot.getElementById('point-context').innerHTML = newValue;
+        }
+        
         if (name === 'data-hero-items' && newValue){
             this.shadowRoot.getElementById('hero-item-context').innerHTML = newValue;
         }
@@ -105,7 +113,7 @@ export default class DaPlayer extends HTMLElement {
         if (name === 'data-monster-killed' && newValue){
             this.shadowRoot.getElementById('monster-context').innerHTML = newValue;
         }
-        
+                        
         
     }
     

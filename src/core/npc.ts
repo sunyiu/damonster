@@ -17,20 +17,18 @@ export class DaNpc extends DaPlayer {
 		if (this.hero == undefined){
 			//look through the hand				
 			//set hero if there is any
-			let heros = this.getCardsByType(DaCardType.Hero);
-			if (heros && heros.length > 0){
-				this.hero = heros[0];
+			let hero = this.hand.find((c) => { return c.type == DaCardType.Hero;});			
+			if (hero){
+				this.hero = hero;
 			}
 		}
 		
 		if (this.hero){
 			//equip item if there is any
-			let items = this.getCardsByType(DaCardType.Item);
-			if (items && items.length > 0){
-				items.forEach((i)=>{
-					this.EquipHero(i);
-				});
-			}			
+			let items = this.hand.filter((c) => {return c.type == DaCardType.Item && c.heroType == this.hero.heroType;});
+			items.forEach((i)=>{
+				this.EquipHero(i);
+			});			
 		}
 		
 		//draw from deck
