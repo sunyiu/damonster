@@ -9,7 +9,9 @@ export enum DaActions {
 	PerfectCube,
 	Swap,
 	Provoke,
-	Attack
+	Attack,
+	
+	SuicideBelt,
 }
 
 export class DaActionCard extends DaCard {

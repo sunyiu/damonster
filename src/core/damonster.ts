@@ -45,7 +45,7 @@ export default class DaMonster {
 	private initDeck() {
 		this._deck = new DaDeck();
 		this._deck.AddEventListener(DaDeckEvents.MonsterFound,(monster) => {
-			
+
 			this.monsterInvade();
 		});
 	}
@@ -74,14 +74,54 @@ export default class DaMonster {
 
 			p.AddEventListener(DaPlayerEvents.PlayAction,(card, args) => {
 				console.log('p %s play an action %o', p.name, card, args);
-								
+
+				if (this._pendingAction && card.action != DaActions.Stop) {
+					throw new Error("Cannot play another action when there is a pending!!!!");
+				}
 				
+				if (!this._pendingAction && card.action == DaActions.Stop){
+					throw new Error("No pending action to stop!!!!");
+				}
+				
+				if (card.action != DaActions.Stop){
+					this._pendingAction = {
+						player: p,
+						card: card,
+						args: args,
+						isStopped: false
+					}
+				}else{
+					this._pendingAction.isStopped = !this._pendingAction.isStopped;
+				}												
+
+				// if (card.action != DaActions.Stop) {
+				// 	this._pendingAction = (isStop) => {
+				// 		return new Promise((resolve, reject) => {
+				// 			resolve(isStop, p, card, args);
+				// 		}).then((isStop, player, card, args) => {
+				// 			if (isStop){
+				// 				console.log("Stop action");
+				// 			}else{
+				// 				card.Play(player, args);
+				// 			}
+				// 		});
+				// 	}
+				// } else {
+				// 	
+				// 	
+				// 	
+				// 	
+				// 	//Stop the Stop????
+				// 	this._pendingAction(false);
+				// 	this._pendingAction = undefined;
+				// }
+
 				this._players.forEach((npc) => {
 					if (p !== npc && npc.type == DaPlayerTypes.Npc) {
 						//NPC react to action of player
 						npc.ReactOnAction(this._pendingAction);
 					}
-				})				
+				})
 			});
 
 			// p.AddEventListener(DaPlayerEvents.DoneAction,() => {
@@ -96,157 +136,101 @@ export default class DaMonster {
 	}
 
 	private initActionCards() {
-
-		let createPendingAction = (callback) => {
-			return (success) => {
-				new Promise((resolve, reject) => {
-					if (success) {
-						resolve();
-					} else {
-						reject();
-					}
-				}).then(callback, () => {
-					console.log("pending action rejected!!!!!");
-				});
-			}
-		}
-		
-								
 		Object.keys(DaActions).filter(key => !isNaN(Number(key))).forEach((index) => {
 
 			switch (parseInt(index)) {
 				case DaActions.AtomicBomb:
 					DaActionCard.callbacks[index] = (player) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log("Action card (Atomic bomb) played");								
-								//monster
-								if (this._monster){
-									player.monsterKilled.push(this._monster);						
-									this._monster = undefined;
-								}						
-								//heros
-								this._players.forEach((p) => {
-									p.hero = undefined;
-								});								
-							}
-						);												
+						console.log("Action card (Atomic bomb) played");								
+						//monster
+						if (this._monster) {
+							player.monsterKilled.push(this._monster);
+							this._monster = undefined;
+						}						
+						//heros
+						this._players.forEach((p) => {
+							p.hero = undefined;
+						});
 					}
 					break;
 
 				case DaActions.Provoke:
 					DaActionCard.callbacks[index] = (player, args) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log('Provoke a monster %o', args[0]);								
-								let monsterCard = args[0];
-								if (!monsterCard) {
-									throw new Error("Monster card not found for provoke");
-								}
-		
-								if (!this._discarded.find((c) => { return c === monsterCard; })) {
-									throw new Error("Monster card is not from the discard pile");
-								}
-		
-								if (monsterCard.type != DaCardType.Monster) {
-									throw new Error("Card type is not monster in provoke");
-								}
+						console.log('Provoke a monster %o', args[0]);
+						let monsterCard = args[0];
+						if (!monsterCard) {
+							throw new Error("Monster card not found for provoke");
+						}
+
+						if (!this._discarded.find((c) => { return c === monsterCard; })) {
+							throw new Error("Monster card is not from the discard pile");
+						}
+
+						if (monsterCard.type != DaCardType.Monster) {
+							throw new Error("Card type is not monster in provoke");
+						}
 								
-								//provoke monster!!!
-								this.monsterInvade(monsterCard);								
-							}
-						);					
+						//provoke monster!!!
+						this.monsterInvade(monsterCard);
 					}
 					break;
 
 				case DaActions.Stop:
-					DaActionCard.callbacks[index] = (player) => {
-						if (this._pendingAction == undefined) {
-							throw new Error("Nothing to stop!!!");
-						}
-						console.log('Stop an action %o', player);						
-						this._pendingAction(false);						
-						this._pendingAction = undefined;
-					}
 					break;
 
-				case DaActions.Radar:				
-					DaActionCard.callbacks[index] = (player) => {						
-						this._pendingAction = createPendingAction(
-							() =>{						
-								console.log('Radar.... %o', player);								
-								return this._deck.NextNCards(3);								
-							}
-						);
+				case DaActions.Radar:
+					DaActionCard.callbacks[index] = (player) => {
+						console.log('Radar.... %o', player);
+						return this._deck.NextNCards(3);
 					}
 					break;
 
 				case DaActions.Steal:
 					DaActionCard.callbacks[index] = (player, args) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log('Steal..... %o', player);								
-								let card = args[0];
-								if (!card){
-									throw new Error('Card not found on steal!!!!');
-								}
-								player.hand.push(cards);
-							}
-						);						
+						console.log('Steal..... %o', player);
+						let card = args[0];
+						if (!card) {
+							throw new Error('Card not found on steal!!!!');
+						}
+						player.hand.push(cards);
 					}
 					break;
 
 				case DaActions.Super:
 					DaActionCard.callbacks[index] = (player) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log('Suuuuuper... %o', player);								
-								player.attack = 10000;
-							}
-						);						
+						console.log('Suuuuuper... %o', player);
+						player.attack = 10000;
 					}
 					break;
 
 				case DaActions.PerfectCube:
 					DaActionCard.callbacks[index] = (player) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log('Perfect cube.... %o', player);								
-								player.defense = 100000;
-							}
-						);
+						console.log('Perfect cube.... %o', player);
+						player.defense = 100000;
 					}
 					break;
 
 				case DaActions.Swap:
 					DaActionCard.callbacks[index] = (player, args) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log("Swap......")
-								let heroCard = args[0];
-								if (!heroCard) {
-									throw new Error("Hero card not found for swap");
-								}
-								if (player.hand.find((c) => { return c === heroCard; })) {
-									throw new Error("Hero card is found in the player hand");
-								}
-								if (heroCard.type != DaCardType.Hero) {
-									throw new Error("Card type is not hero in swap");
-								}
-		
-								player.hero = heroCard;
-							}
-						);
+						console.log("Swap......")
+						let heroCard = args[0];
+						if (!heroCard) {
+							throw new Error("Hero card not found for swap");
+						}
+						if (player.hand.find((c) => { return c === heroCard; })) {
+							throw new Error("Hero card is found in the player hand");
+						}
+						if (heroCard.type != DaCardType.Hero) {
+							throw new Error("Card type is not hero in swap");
+						}
+
+						player.hero = heroCard;
 					}
 					break;
 
 				case DaActions.Attack:
 					DaActionCard.callbacks[index] = (player, args) => {
-						this._pendingAction = createPendingAction(
-							() =>{
-								console.log('Attack action by %o', player);
-							}
-						);
+						console.log('Attack action by %o', player);
 					}
 					break;
 			}
@@ -328,8 +312,11 @@ export default class DaMonster {
 
 	ExeCardAction() {
 		if (this._pendingAction) {
-			this._pendingAction(true);
+			if (!this._pendingAction.isStopped){
+				this._pendingAction.card.Play(this._pendingAction.player, this._pendingAction.args);
+			}
 		}
+		this._pendingAction = undefined;
 	}
 
 

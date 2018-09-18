@@ -119,17 +119,17 @@ export class DaPlayer {
 			throw new Error("Card type is not ACTION!!!");
 		}
 		
-		if (!this._canAction){
-			throw new Error("Cannot play an action card for the moment!!!!");
-		}
+		// if (!this._canAction){
+		// 	throw new Error("Cannot play an action card for the moment!!!!");
+		// }
 
 		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error('Action Card not found!!!!!');
 		}
 
-		//this.hand.splice(index, 1);
-		card.Play(this, args);
+		this.hand.splice(index, 1);
+		//card.Play(this, args); <-- actual play card will be triggered in daMonster
 		
 		let callbacks = this._callbacks[DaPlayerEvents.PlayAction];
 		if (callbacks){
