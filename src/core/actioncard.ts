@@ -26,6 +26,9 @@ export class DaActionCard extends DaCard {
 	// }
 	
 	private _action:DaActions;
+	get action():DaActions{
+		return this._action;
+	}
 
 	constructor(id:number, name:string, action:DaActions) {
 		super(id, name, DaCardType.Action);

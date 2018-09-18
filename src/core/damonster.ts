@@ -29,44 +29,42 @@ export default class DaMonster {
 	private _discarded: DaCard[] = [];
 
 	private _isBattle: boolean = false;
+	private _pendingAction;
 
 	get players() {
 		return this._players;
 	}
 
 
-	constructor() {			
-		//DECK
+	constructor() {
+		this.initDeck();
+		this.initPlayers();
+		this.initActionCards();
+	}
+
+	private initDeck() {
 		this._deck = new DaDeck();
 		this._deck.AddEventListener(DaDeckEvents.MonsterFound,(monster) => {
-			console.log('MONSTER %o invade', monster);
-			this._monster = monster;
-			this._players.forEach((p) => {
-				p.doneAction = false;
-
-				if (p.type == DaPlayerTypes.Npc) {
-					p.MonsterInvade(monster);
-				}
-			})
-		
-			//wait for actions
-			console.log('wait for player actions');
+			
+			this.monsterInvade();
 		});
-		
-		//PLAYER
+	}
+
+	private initPlayers() {
 		let p1 = new DaPlayer("p1", this._deck),
 			p2 = new DaNpc("npc", this._deck);
-		p1.next = p2;
-		p2.next = p1;
 
 		this._players.push(p1, p2);
-		this._players.forEach((p) => {
+		this._players.forEach((p, index) => {
 
 			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck,() => {
 				console.log('p %s done draw from deck', p.name);
 
 				if (this._isStarted) {
-					let nextPlayer = p.next;
+					let nextIndex = index + 1;
+					nextIndex = nextIndex >= this._players.length ? 0 : nextIndex;
+
+					let nextPlayer = this._players[nextIndex];
 
 					if (nextPlayer.type == DaPlayerTypes.Npc) {
 						nextPlayer.Play();
@@ -74,70 +72,200 @@ export default class DaMonster {
 				}
 			});
 
-			p.AddEventListener(DaPlayerEvents.PlayAction,(card) => {
-				console.log('p %s play an action %o', p.name, card);
-
+			p.AddEventListener(DaPlayerEvents.PlayAction,(card, args) => {
+				console.log('p %s play an action %o', p.name, card, args);
+								
+				
 				this._players.forEach((npc) => {
 					if (p !== npc && npc.type == DaPlayerTypes.Npc) {
 						//NPC react to action of player
-						npc.ReactOnAction(card);
+						npc.ReactOnAction(this._pendingAction);
 					}
-				})
+				})				
 			});
 
-			p.AddEventListener(DaPlayerEvents.DoneAction,() => {
-				p.doneAction = true;
-			
-				//check if all done
-				if (this._players.every((p) => { return p.doneAction; })) {
-					this.battle();
-				}
-			});
+			// p.AddEventListener(DaPlayerEvents.DoneAction,() => {
+			// 	p.canAction = false;
+			// 
+			// 	//check if all done
+			// 	if (this._players.every((p) => { return !p.canAction; })) {
+			// 		this.battle();
+			// 	}
+			// });
 		});
-		
-		//ACTION CARDS
-		this.initActionCards();
 	}
 
 	private initActionCards() {
-		Object.keys(DaActions).filter(key => !isNaN(Number(key))).forEach((index)=>{
+
+		let createPendingAction = (callback) => {
+			return (success) => {
+				new Promise((resolve, reject) => {
+					if (success) {
+						resolve();
+					} else {
+						reject();
+					}
+				}).then(callback, () => {
+					console.log("pending action rejected!!!!!");
+				});
+			}
+		}
+		
+								
+		Object.keys(DaActions).filter(key => !isNaN(Number(key))).forEach((index) => {
+
 			switch (parseInt(index)) {
 				case DaActions.AtomicBomb:
 					DaActionCard.callbacks[index] = (player) => {
-						console.log("Action card (Atomic bomb) played");						
-						//monster
-						player.monsterKilled.push(this._monster);
-						this._monster = undefined;						
-						//heros
-						this._players.forEach((p) => {
-							p.hero = undefined;
-						});
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log("Action card (Atomic bomb) played");								
+								//monster
+								if (this._monster){
+									player.monsterKilled.push(this._monster);						
+									this._monster = undefined;
+								}						
+								//heros
+								this._players.forEach((p) => {
+									p.hero = undefined;
+								});								
+							}
+						);												
 					}
 					break;
 
 				case DaActions.Provoke:
-					DaActionCard.callbacks[index] = (player, args) =>{
-						//wait for a monster to pick from discarded...
-						console.log('Provoke a monster %o', args[0]);
-						
-						let monsterCard = args[0];
-						if (!monsterCard){
-							throw new Error("Monster card not found for provoke");
-						}						
-						
-						if (!this._discarded.find((c) => {return c === monsterCard;})){
-							throw new Error("Monster card is not from the discard pile");							
-						}
-						
-						if (monsterCard.type != DaCardType.Monster){
-							throw new Error("Card type is not monster in provoke");
-						}
-						
-						//provoke monster!!!
+					DaActionCard.callbacks[index] = (player, args) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log('Provoke a monster %o', args[0]);								
+								let monsterCard = args[0];
+								if (!monsterCard) {
+									throw new Error("Monster card not found for provoke");
+								}
+		
+								if (!this._discarded.find((c) => { return c === monsterCard; })) {
+									throw new Error("Monster card is not from the discard pile");
+								}
+		
+								if (monsterCard.type != DaCardType.Monster) {
+									throw new Error("Card type is not monster in provoke");
+								}
+								
+								//provoke monster!!!
+								this.monsterInvade(monsterCard);								
+							}
+						);					
 					}
-				break;
-			}			
-		})		
+					break;
+
+				case DaActions.Stop:
+					DaActionCard.callbacks[index] = (player) => {
+						if (this._pendingAction == undefined) {
+							throw new Error("Nothing to stop!!!");
+						}
+						console.log('Stop an action %o', player);						
+						this._pendingAction(false);						
+						this._pendingAction = undefined;
+					}
+					break;
+
+				case DaActions.Radar:				
+					DaActionCard.callbacks[index] = (player) => {						
+						this._pendingAction = createPendingAction(
+							() =>{						
+								console.log('Radar.... %o', player);								
+								return this._deck.NextNCards(3);								
+							}
+						);
+					}
+					break;
+
+				case DaActions.Steal:
+					DaActionCard.callbacks[index] = (player, args) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log('Steal..... %o', player);								
+								let card = args[0];
+								if (!card){
+									throw new Error('Card not found on steal!!!!');
+								}
+								player.hand.push(cards);
+							}
+						);						
+					}
+					break;
+
+				case DaActions.Super:
+					DaActionCard.callbacks[index] = (player) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log('Suuuuuper... %o', player);								
+								player.attack = 10000;
+							}
+						);						
+					}
+					break;
+
+				case DaActions.PerfectCube:
+					DaActionCard.callbacks[index] = (player) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log('Perfect cube.... %o', player);								
+								player.defense = 100000;
+							}
+						);
+					}
+					break;
+
+				case DaActions.Swap:
+					DaActionCard.callbacks[index] = (player, args) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log("Swap......")
+								let heroCard = args[0];
+								if (!heroCard) {
+									throw new Error("Hero card not found for swap");
+								}
+								if (player.hand.find((c) => { return c === heroCard; })) {
+									throw new Error("Hero card is found in the player hand");
+								}
+								if (heroCard.type != DaCardType.Hero) {
+									throw new Error("Card type is not hero in swap");
+								}
+		
+								player.hero = heroCard;
+							}
+						);
+					}
+					break;
+
+				case DaActions.Attack:
+					DaActionCard.callbacks[index] = (player, args) => {
+						this._pendingAction = createPendingAction(
+							() =>{
+								console.log('Attack action by %o', player);
+							}
+						);
+					}
+					break;
+			}
+		})
+	}
+
+	private monsterInvade(monster) {
+		console.log('MONSTER %o invade', monster);
+		this._monster = monster;
+		this._players.forEach((p) => {
+			//p.canAction = true;
+
+			if (p.type == DaPlayerTypes.Npc) {
+				p.MonsterInvade(monster);
+			}
+		})
+		
+		//wait for actions
+		console.log('wait for player actions');
 	}
 
 	private battle() {
@@ -150,7 +278,7 @@ export default class DaMonster {
 		let maxPointPlayer = null;
 		this._players.forEach((p: DaPlayer) => {
 			//TODO::how about equal point????
-			if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint < p.hero.totalPoint)) {
+			if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint + maxPointPlayer.hero.attack < p.hero.totalPoint + p.hero.attack)) {
 				maxPointPlayer = p;
 			}
 		});
@@ -164,8 +292,18 @@ export default class DaMonster {
 			});
 		} else {
 			console.log('player win!!!!!');
+			//check for each player
+			this._players.forEach((p, index) => {
+				if (p.hero && p.hero.totalPoint + p.hero.defense < this._monster.point) {
+					p.hero = undefined;
+				}
+			});
+
 			maxPointPlayer.monsterKilled.push(this._monster);
 		}
+		
+		//reset player attack and defense
+		
 
 		this._monster = undefined;
 		this._isBattle = false;
@@ -186,6 +324,12 @@ export default class DaMonster {
 		})
 		this._deck.AddCardsAndShuffle(cards.monster);
 		this._isStarted = true;
+	}
+
+	ExeCardAction() {
+		if (this._pendingAction) {
+			this._pendingAction(true);
+		}
 	}
 
 

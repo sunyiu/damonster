@@ -24,14 +24,14 @@ export class DaPlayer {
 		return this._name;
 	}
 	
-	private _nextPlayer: DaPlayer | undefined = undefined;
-	get next():DaPlayer{
-		return this._nextPlayer;
-	}
-	set next(value:DaPlayer){
-		this._nextPlayer = value;
-	}
-	
+	// private _canAction:boolean = false;
+	// get canAction():boolean{
+	// 	return this._canAction;
+	// }
+	// set canAction(value:boolean){
+	// 	this._canAction = value;
+	// }
+		
 	private _deck: DaDeck;
 	
 	private _callbacks = [];
@@ -76,7 +76,7 @@ export class DaPlayer {
 			})
 		}
 	}
-
+	
 	SetHero(card: DaHeroCard | undefined) {
 		if (card == undefined) {
 			this.hero = undefined;
@@ -118,31 +118,35 @@ export class DaPlayer {
 		if (card.type != DaCardType.Action) {
 			throw new Error("Card type is not ACTION!!!");
 		}
+		
+		if (!this._canAction){
+			throw new Error("Cannot play an action card for the moment!!!!");
+		}
 
 		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error('Action Card not found!!!!!');
 		}
 
-		this.hand.splice(index, 1);
+		//this.hand.splice(index, 1);
 		card.Play(this, args);
 		
 		let callbacks = this._callbacks[DaPlayerEvents.PlayAction];
 		if (callbacks){
 			callbacks.forEach((c) =>{
-				c.call(null, card);
+				c.call(null, card, args);
 			})
 		}								
 	}
 	
-	DoneAction(){
-		let callbacks = this._callbacks[DaPlayerEvents.DoneAction];
-		if (callbacks){
-			callbacks.forEach((c) =>{
-				c.call(null);
-			})
-		}		
-	}
+	// DoneAction(){
+	// 	let callbacks = this._callbacks[DaPlayerEvents.DoneAction];
+	// 	if (callbacks){
+	// 		callbacks.forEach((c) =>{
+	// 			c.call(null);
+	// 		})
+	// 	}		
+	// }
 }
 
 

@@ -9,6 +9,22 @@ export enum DaHeroTypes {
 export class DaHeroCard extends DaCard {
 
 	public items: DaCard[] = [];
+	
+	private _attack:number;
+	get attack():number{
+		return this._attack;
+	}
+	set attack(value:number){
+		this._attack = value;
+	}
+	
+	private _defense:number;
+	get defense():number{
+		return this._defense;
+	}
+	set defense(value:number){
+		this._defense = value;
+	}
 
 	get totalPoint(): number {
 		let itemPoints: number = 0;

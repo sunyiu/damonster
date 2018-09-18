@@ -18,7 +18,9 @@
         import Observable from './dist/utility/observable.js';
         
         //var map = []; 
-        var daMonster = window.daMonster = new DaMonster();        
+        var daMonster = window.daMonster = new DaMonster();   
+        
+   
                 
         //data binding to component...
         //swap whatever variable we needed to proxy so that we can do the binding....
@@ -78,6 +80,8 @@
         });
         
         daMonster.New();
+        
+        window.p = daMonster.players[0];
 
     </script>
 

@@ -45,8 +45,8 @@ export class DaNpc extends DaPlayer {
 		console.log('npc do nothing on monster invade');
 				
 		//if done... trigger an event in damonster....
-		if (true){
-			super.DoneAction();
-		}
+		// if (true){
+		// 	super.DoneAction();
+		// }
 	}
 }
