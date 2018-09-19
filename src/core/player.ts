@@ -8,9 +8,9 @@ export enum DaPlayerTypes {
 }
 
 export enum DaPlayerEvents{
-	DoneDrawFromDeck = 'D',
-	DoneAction = 'DA',
-	PlayAction = 'A'
+	DoneDrawFromDeck,
+	ReadyBattle,
+	PlayAnAction
 }
 
 export class DaPlayer {
@@ -24,13 +24,13 @@ export class DaPlayer {
 		return this._name;
 	}
 	
-	// private _canAction:boolean = false;
-	// get canAction():boolean{
-	// 	return this._canAction;
-	// }
-	// set canAction(value:boolean){
-	// 	this._canAction = value;
-	// }
+	private _readyBattle:boolean = false;
+	get readyBattle():boolean{
+		return this._readyBattle;
+	}
+	set readyBattle(value:boolean){
+		this._readyBattle = value;
+	}
 		
 	private _deck: DaDeck;
 	
@@ -61,18 +61,17 @@ export class DaPlayer {
 	}
 
 	DrawFromDeck() {
-		let card = this._deck.Deal();
-
-		if (card.type == DaCardType.Monster) {
-			return;			
+		let card = this._deck.Deal(),
+			isMonster = card.type == DaCardType.Monster;
+		
+		if (!isMonster){
+			this.hand.push(card);
 		}
-
-		this.hand.push(card);
 		
 		let callbacks = this._callbacks[DaPlayerEvents.DoneDrawFromDeck];
 		if (callbacks){
 			callbacks.forEach((c) =>{
-				c.call(null);
+				c.call(null, isMonster ? card : undefined);
 			})
 		}
 	}
@@ -114,12 +113,12 @@ export class DaPlayer {
 		this.hand.splice(index, 1);		
 	}
 
-	PlayAction(card: DaActionCard, ...args) {
+	PlayAnAction(card: DaActionCard, ...args) {
 		if (card.type != DaCardType.Action) {
 			throw new Error("Card type is not ACTION!!!");
 		}
 		
-		// if (!this._canAction){
+		// if (!this._readyBattle){
 		// 	throw new Error("Cannot play an action card for the moment!!!!");
 		// }
 
@@ -131,7 +130,7 @@ export class DaPlayer {
 		this.hand.splice(index, 1);
 		//card.Play(this, args); <-- actual play card will be triggered in daMonster
 		
-		let callbacks = this._callbacks[DaPlayerEvents.PlayAction];
+		let callbacks = this._callbacks[DaPlayerEvents.PlayAnAction];
 		if (callbacks){
 			callbacks.forEach((c) =>{
 				c.call(null, card, args);
@@ -139,14 +138,19 @@ export class DaPlayer {
 		}								
 	}
 	
-	// DoneAction(){
-	// 	let callbacks = this._callbacks[DaPlayerEvents.DoneAction];
-	// 	if (callbacks){
-	// 		callbacks.forEach((c) =>{
-	// 			c.call(null);
-	// 		})
-	// 	}		
-	// }
+	tostring(): string{
+		return this._name;
+	}
+	
+	ReadyBattle(){
+		this._readyBattle = true;
+		let callbacks = this._callbacks[DaPlayerEvents.ReadyBattle];
+		if (callbacks){
+			callbacks.forEach((c) =>{
+				c.call(null);
+			})
+		}		
+	}
 }
 
 

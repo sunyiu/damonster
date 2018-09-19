@@ -1,4 +1,5 @@
 import { DaCard, DaCardType } from './card.js'
+import {DaActions} from './actioncard.js'
 import { DaHeroCard } from './herocard.js'
 import {DaDeck} from  './deck.js'
 import {DaPlayerTypes, DaPlayer} from './player.js'
@@ -13,7 +14,8 @@ export class DaNpc extends DaPlayer {
 		super(name, deck); 
 	}
 
-	Play() {		
+	DoARound() {		
+		console.log('NPC doing a round');
 		if (this.hero == undefined){
 			//look through the hand				
 			//set hero if there is any
@@ -35,14 +37,19 @@ export class DaNpc extends DaPlayer {
 		super.DrawFromDeck();
 	}
 	
-	ReactOnAction(card){
-		console.log('npc do nothing on player action');
-		//another player plays an action....
+	ReactOnAction(card, args){
+		let stopCard = this.hand.find((c) => {return c.action == DaActions.Stop;});
+		
+		if (stopCard){
+			super.PlayAnAction(stopCard);
+		}
 	}
 	
 	MonsterInvade(card){
 		//check if action is needed....
 		console.log('npc do nothing on monster invade');
+		
+		this._readyBattle = true;
 				
 		//if done... trigger an event in damonster....
 		// if (true){

@@ -44,13 +44,13 @@ export function GetDefaultCards(): { monster: DaCard[]; hero: DaHeroCard[]; item
 		],
 
 		skill: [
-			new DaActionCard(32, 'Super', DaActions.Super),
-			new DaActionCard(33, 'Super', DaActions.Super),
-			new DaActionCard(34, 'Super', DaActions.Super),
+			new DaActionCard(32, 'Suicide Belt', DaActions.SuicideBelt),
+			new DaActionCard(33, 'Suicide Belt', DaActions.SuicideBelt),
+			new DaActionCard(34, 'Suicide Belt', DaActions.SuicideBelt),
 
-			new DaActionCard(35, 'Perfect Cube', DaActions.PerfectCube),
-			new DaActionCard(36, 'Perfect Cube', DaActions.PerfectCube),
-			new DaActionCard(37, 'Perfect Cube', DaActions.PerfectCube),
+			new DaActionCard(35, 'Mind Reading', DaActions.MindReading),
+			new DaActionCard(36, 'Mind Reading', DaActions.MindReading),
+			new DaActionCard(37, 'Mind Reading', DaActions.MindReading),
 
 			new DaActionCard(38, 'Stop', DaActions.Stop),
 			new DaActionCard(39, 'Stop', DaActions.Stop),

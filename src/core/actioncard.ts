@@ -5,13 +5,13 @@ export enum DaActions {
 	Stop,
 	Radar,
 	Steal,
-	Super,
-	PerfectCube,
+	// Super,
+	// PerfectCube,
 	Swap,
 	Provoke,
-	Attack,
-	
+	Attack,	
 	SuicideBelt,
+	MindReading,
 }
 
 export class DaActionCard extends DaCard {
@@ -44,6 +44,6 @@ export class DaActionCard extends DaCard {
 			throw new Error('Card action callback is not defined!!!');						
 		}
 		
-		callback.call(null, player, args);
+		return callback.call(null, player, args);
 	}
 }
