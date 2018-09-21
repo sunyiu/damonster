@@ -6,36 +6,41 @@
         
         <title></title>        
     </head>    
-    <body>
+    <body>                
     </body>
         
     <script type="module">
+        //core
         import DaMonster from './dist/core/damonster.js';
-        
-        
+
+        //web component                
         import DaPlayer from './dist/component/daplayer.js';
+        import DaCard from './dist/component/dacard.js';
         
+        //utilities
         import Observable from './dist/utility/observable.js';
         
-        //var map = []; 
+ 
         var daMonster = window.daMonster = new DaMonster();   
-        
-   
-                
+                           
         //data binding to component...
-        //swap whatever variable we needed to proxy so that we can do the binding....
-                                                        
+        //swap whatever variable we needed to proxy so that we can do the binding....                                                        
         daMonster.players.forEach((p, index) =>{
         
             let daPlayerComponent = new DaPlayer();
-            
-                
+                            
             Observable.addListener(p, 'hand', (newValue)=>{
-                let cards = '';
+                let cards = [];
                 p.hand.forEach((c, index) =>{
-                    cards += ( '[' + index + '-' + c.tostring() + '], ');
-                });
-                daPlayerComponent.setAttribute('data-hand', cards);
+                    cards.push({
+                        'id': c.id,
+                        'type': c.type,
+                        'heroType': c.heroType,
+                        'point': c.point
+                    });
+                    //cards += ( '[' + index + '-' + c.tostring() + '], ');
+                });                
+                daPlayerComponent.setAttribute('data-hand', JSON.stringify({'cards': cards}));
                 //console.log(p.name + ' ' + newValue);
             });
             
@@ -79,6 +84,7 @@
                                  
         });
         
+       
         daMonster.New();
         
         window.p = daMonster.players[0];

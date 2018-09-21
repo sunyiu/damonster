@@ -1,5 +1,7 @@
 'use strict';
 
+import DaCard from './dacard.js'
+
 export default class DaPlayer extends HTMLElement {
     public static get is(): string { return 'da-player'; }
 
@@ -94,8 +96,37 @@ export default class DaPlayer extends HTMLElement {
 
         this.props[name] = newValue;
         
-        if (name === 'data-hand' && newValue) {
-            this.shadowRoot.getElementById('hand-context').innerHTML = newValue;
+        if (name === 'data-hand' && newValue) {                        
+            let hand = JSON.parse(newValue);
+            
+            //remove discarded card
+            Array.from(this.shadowRoot.getElementById('hand-context').children).forEach((daCard) =>{
+                let id = daCard.getAttribute('id'),
+                    exist = hand.cards.find((c) => {
+                        return id == 'id'+c.id;
+                    });
+                if (!exist){
+                    daCard.remove();
+                }                
+            })
+            
+            //add new card
+            hand.cards.forEach((c) =>{
+                let existingCard = this.shadowRoot.getElementById('hand-context').querySelector('#id' +  c.id);                
+                if (!existingCard){                
+                    let card = new DaCard();
+                    card.setAttribute('id', 'id'+c.id);
+                    card.setAttribute('data-id', c.id);                
+                    if (c.point){
+                        card.setAttribute('data-point', c.point);
+                    }
+                    card.setAttribute('data-card-type', 'card-' + c.type);                    
+                    card.setAttribute('data-hero-type', 'hero-' + c.heroType);                
+                    this.shadowRoot.getElementById('hand-context').appendChild(card);
+                }
+            })
+            
+                                               
         }
         
         if (name === 'data-hero' && newValue){
