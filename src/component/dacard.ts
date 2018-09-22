@@ -14,6 +14,13 @@ export default class DaCard extends HTMLElement {
                     position: relative;
                     background-color: #fff;                
                 }
+                #da-card-container.selected{
+                    border:2px solid red;
+                    margin:2px;
+                }
+                #da-card-container.disabled #da-card-context{
+                    background-color: #7f7f7f !important;
+                }
                 #da-card-container #da-card-context{
                     /*0.7142857142857143 -- card ratio*/                    
                     width: 71px;
@@ -117,7 +124,7 @@ export default class DaCard extends HTMLElement {
         return attributes;
     }
 
-    private props: any = {};    
+    private props: any = {};   
 
     public constructor() {
         super();
@@ -130,6 +137,8 @@ export default class DaCard extends HTMLElement {
         }        
 
         this.requestRender();
+        
+        this.shadowRoot.getElementById('da-card-container').onclick = this.toggleSelect;
     }
     
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
@@ -165,6 +174,13 @@ export default class DaCard extends HTMLElement {
         template.innerHTML = this.getTemplate({});
         
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+    
+    private toggleSelect(e): void{
+        e.currentTarget.classList.toggle('selected');
+        let isSelected = e.currentTarget.classList.contains('selected');        
+        e.currentTarget.dispatchEvent(new CustomEvent('card-toggle', {detail: isSelected, bubbles: true, composed: true}));
+        
     }
 }
 

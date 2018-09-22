@@ -34,12 +34,17 @@ export default class DaPlayer extends HTMLElement {
                     <div><strong>Killed</strong></div>
                     <div id="monster-context"></div>
                 </div>
+                <button id="playBtn">PLAY</button>
             </div>
         `;
     }
     
     public static get properties(){
         return{
+            'data-name':{
+                type: String,
+                value: ''
+            },
             'data-hand':{
                 type: String,
                 value: ''
@@ -74,7 +79,8 @@ export default class DaPlayer extends HTMLElement {
         return attributes;
     }
 
-    private props: any = {};    
+    private props: any = {};
+    private selectedCards = [];     
 
     public constructor() {
         super();
@@ -84,9 +90,12 @@ export default class DaPlayer extends HTMLElement {
         // Initialize declared properties
         for (let key in DaPlayer.properties) {
             this.props[key] = DaPlayer.properties[key].value;
-        }        
+        }                                
 
         this.requestRender();
+
+        this.shadowRoot.getElementById('playBtn').onclick = this.play;
+        
     }
     
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
@@ -121,7 +130,10 @@ export default class DaPlayer extends HTMLElement {
                         card.setAttribute('data-point', c.point);
                     }
                     card.setAttribute('data-card-type', 'card-' + c.type);                    
-                    card.setAttribute('data-hero-type', 'hero-' + c.heroType);                
+                    card.setAttribute('data-hero-type', 'hero-' + c.heroType);       
+                    card.addEventListener('card-toggle', (e)=>{
+                        this.toggleCard(e.currentTarget, e.detail);
+                    });
                     this.shadowRoot.getElementById('hand-context').appendChild(card);
                 }
             })
@@ -155,6 +167,37 @@ export default class DaPlayer extends HTMLElement {
         
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
+    
+    
+    private play(e){
+        console.log('play pressed %o' + e);
+    }
+    
+    private toggleCard(card, isSelected){
+        console.log('%o toggle selection "%s"', card, isSelected);
+        
+        if (isSelected){
+            this.selectedCards.push(card);            
+        }else{
+            this.selectedCards.splice(this.selectedCards.findIndex((c) => {
+                return c === card;
+            }), 1);
+        }
+        
+        if (this.selectedCards.length == 0){
+            let playBtn = this.shadowRoot.getElementById('playBtn'); 
+            playBtn.innerHTML = 'Draw from deck';
+            playBtn.onclick = (e) =>{
+                this.shadowRoot.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
+            }
+        }
+    }
+    
+    // selectTab() {
+    //     const tabs = this.shadowRoot.querySelector('#tabs');
+    //     //composed default is false and it wont bubble top outside shadow DOM        
+    //     tabs.dispatchEvent(new Event('tab-select', {bubbles: true, composed: true}));        
+    // }
 }
 
 customElements.define(DaPlayer.is, DaPlayer);

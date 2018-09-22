@@ -78,6 +78,10 @@
                                                             
                            
             });
+            
+            daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
+                daMonster.players[0].DrawFromDeck();
+            });
                                       
                              
             document.body.appendChild(daPlayerComponent);
