@@ -112,6 +112,10 @@ export default class DaCard extends HTMLElement {
                 type: String,
                 value: ''
             },
+            'data-is-selected': {
+                type: String,
+                value: ''
+            }
         };
     }
    
@@ -138,7 +142,9 @@ export default class DaCard extends HTMLElement {
 
         this.requestRender();
         
-        this.shadowRoot.getElementById('da-card-container').onclick = this.toggleSelect;
+        this.shadowRoot.getElementById('da-card-container').onclick = (e) => {
+            this.toggleSelect(e.currentTarget);
+        };
     }
     
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
@@ -165,6 +171,14 @@ export default class DaCard extends HTMLElement {
         if (name === 'data-point' && newValue){
             this.shadowRoot.getElementById('point-context').innerHTML = newValue;
         }
+        
+        if (name === 'data-is-selected' && newValue){
+            if (newValue == 'true'){
+                this.shadowRoot.getElementById('da-card-container').classList.add('selected');
+            }else{
+                this.shadowRoot.getElementById('da-card-container').classList.remove('selected');
+            }
+        }
                             
     }
     
@@ -176,11 +190,13 @@ export default class DaCard extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
     
-    private toggleSelect(e): void{
-        e.currentTarget.classList.toggle('selected');
-        let isSelected = e.currentTarget.classList.contains('selected');        
-        e.currentTarget.dispatchEvent(new CustomEvent('card-toggle', {detail: isSelected, bubbles: true, composed: true}));
-        
+    private toggleSelect(target): void{
+        //e.currentTarget.classList.toggle('selected');
+        //let isSelected = e.currentTarget.classList.contains('selected');        
+        //e.currentTarget.dispatchEvent(new CustomEvent('card-toggle', {detail: isSelected, bubbles: true, composed: true}));
+        let isSelected = !target.classList.contains('selected');
+        this.setAttribute('data-is-selected', isSelected);        
+        this.dispatchEvent(new CustomEvent('card-toggle', {detail: isSelected, bubbles: true, composed: true}));
     }
 }
 

@@ -21,7 +21,7 @@ export class DaNpc extends DaPlayer {
 			//set hero if there is any
 			let hero = this.hand.find((c) => { return c.type == DaCardType.Hero;});			
 			if (hero){
-				this.hero = hero;
+				super.SetHero(hero);
 			}
 		}
 		

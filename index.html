@@ -53,8 +53,15 @@
             });       
             
             Observable.addListener(p, 'hero', (newValue)=>{                                                                         
-                if (newValue){
-                    daPlayerComponent.setAttribute('data-hero', newValue.tostring());
+                if (newValue){                
+                    let hero = {
+                        'id': newValue.id,
+                        'type': newValue.type,
+                        'heroType': newValue.heroType,
+                        'point': newValue.point
+                    
+                    };
+                    daPlayerComponent.setAttribute('data-hero', JSON.stringify({'card': hero}));
                                                      
                     //remove existing listener and hook to new hero.item??                    
                     
@@ -70,7 +77,7 @@
                     
                     daPlayerComponent.setAttribute('data-point', newValue.totalPoint);
                 }else{
-                    daPlayerComponent.setAttribute('data-hero', 'None');
+                    daPlayerComponent.setAttribute('data-hero', 'none');
                     daPlayerComponent.setAttribute('data-hero-items', 'None');
                     daPlayerComponent.setAttribute('data-point', 0);
                 }    
@@ -80,7 +87,20 @@
             });
             
             daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
-                daMonster.players[0].DrawFromDeck();
+                p.DrawFromDeck();
+            });
+            daPlayerComponent.addEventListener('play-action', (e) =>{
+                let action = e.detail.name,
+                    cardId = e.detail.cardId,
+                    card = p.hand.find((c) => { 
+                        return c.id == cardId;
+                    });
+                    
+                switch(action){
+                    case 'set-hero':
+                        p.SetHero(card);                        
+                    break;
+                }
             });
                                       
                              

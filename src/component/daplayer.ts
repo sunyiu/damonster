@@ -15,6 +15,12 @@ export default class DaPlayer extends HTMLElement {
                 .container{
                     padding-bottom: 10px;
                 }
+                button{
+                    display: inline-block;
+                }
+                button:disabled{
+                    display: none;
+                }
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
@@ -34,7 +40,9 @@ export default class DaPlayer extends HTMLElement {
                     <div><strong>Killed</strong></div>
                     <div id="monster-context"></div>
                 </div>
-                <button id="playBtn">PLAY</button>
+                <button id="playBtn">Draw from deck</button>
+                <button id="actionBtn" disabled>Play selected</button>
+                <button id="readyBattle" disabled></button>
             </div>
         `;
     }
@@ -80,7 +88,7 @@ export default class DaPlayer extends HTMLElement {
     }
 
     private props: any = {};
-    private selectedCards = [];     
+    private currentAction;   
 
     public constructor() {
         super();
@@ -94,7 +102,10 @@ export default class DaPlayer extends HTMLElement {
 
         this.requestRender();
 
-        this.shadowRoot.getElementById('playBtn').onclick = this.play;
+        this.shadowRoot.getElementById('playBtn').onclick = this.drawFromDeck;
+        this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
+            this.playAction(this.currentAction);
+        }
         
     }
     
@@ -142,7 +153,21 @@ export default class DaPlayer extends HTMLElement {
         }
         
         if (name === 'data-hero' && newValue){
-            this.shadowRoot.getElementById('hero-context').innerHTML = newValue;
+            if (newValue == 'none'){
+                Array.from(this.shadowRoot.getElementById('hero-context').children).forEach((c) =>{
+                    c.remove();
+                });
+            }else{                           
+                let hero = JSON.parse(newValue),
+                    daHeroCard = new DaCard();
+                daHeroCard.setAttribute('id', 'id', hero.card.id);
+                daHeroCard.setAttribute('data-id', hero.card.id);                
+                daHeroCard.setAttribute('data-point', hero.card.point);
+                daHeroCard.setAttribute('data-card-type', 'card-' + hero.card.type);                    
+                daHeroCard.setAttribute('data-hero-type', 'hero-' + hero.card.heroType);       
+                
+                this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);
+            }
         }
         
         if (name === 'data-point' && newValue){
@@ -169,29 +194,65 @@ export default class DaPlayer extends HTMLElement {
     }
     
     
-    private play(e){
-        console.log('play pressed %o' + e);
+    private drawFromDeck(){
+        this.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
+    }
+    
+    private playSelectedCard(){
+        
     }
     
     private toggleCard(card, isSelected){
-        console.log('%o toggle selection "%s"', card, isSelected);
+        //console.log('%o toggle selection "%s"', card, isSelected);
         
-        if (isSelected){
-            this.selectedCards.push(card);            
-        }else{
-            this.selectedCards.splice(this.selectedCards.findIndex((c) => {
-                return c === card;
-            }), 1);
-        }
+        //toggle card selectiom
+        this.shadowRoot.getElementById('hand-context').querySelectorAll('da-card').forEach((c) => {
+            if (c === card){
+                return;
+            }            
+            c.setAttribute('data-is-selected', false);
+        });
         
-        if (this.selectedCards.length == 0){
-            let playBtn = this.shadowRoot.getElementById('playBtn'); 
-            playBtn.innerHTML = 'Draw from deck';
-            playBtn.onclick = (e) =>{
-                this.shadowRoot.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
+        let actionBtn = this.shadowRoot.getElementById('actionBtn');
+        if (isSelected){        
+            let cardType = card.getAttribute('data-card-type'),
+                cardId = card.getAttribute('data-id');                
+            
+            switch (cardType){
+                case 'card-h':
+                    actionBtn.innerHTML = 'Set Hero';
+                    this.currentAction = {
+                        name: 'set-hero',
+                        cardId: cardId 
+                    };
+                    break;
+                
+                case 'card-i':
+                    actionBtn.innerHTML = 'Equip Hero';
+                    this.currentAction = {
+                        name: 'equip-hero',
+                        cardId: cardId
+                    };
+                    break;
+                
+                case 'card-a':
+                    actionBtn.innerHTML = 'Play Action';
+                    this.currentAction = {
+                        name: 'play-action',
+                        cardId: cardId
+                    }
+                    break;
+            
             }
+            actionBtn.removeAttribute('disabled');     
+        }else{
+            actionBtn.setAttribute('disabled', 'true');
         }
-    }
+    }   
+    
+    private playAction(action){        
+        this.dispatchEvent(new CustomEvent('play-action', {detail: this.currentAction, bubbles: true, composed: true}));
+    }    
     
     // selectTab() {
     //     const tabs = this.shadowRoot.querySelector('#tabs');

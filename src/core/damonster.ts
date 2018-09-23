@@ -286,9 +286,7 @@ export default class DaMonster {
 			p.New();
 			//there wont be any monster card at this point of time...
 			for (var i = 5; i > 0; i--) {
-				this._players.forEach((p) =>{
-					p.hand.push(this._deck.Deal());
-				})								
+				p.hand.push(this._deck.Deal());								
 			}
 		})
 		this._deck.AddCardsAndShuffle(cards.monster);
