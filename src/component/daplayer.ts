@@ -21,6 +21,13 @@ export default class DaPlayer extends HTMLElement {
                 button:disabled{
                     display: none;
                 }
+                
+                #hand-context, 
+                #hero-context,
+                #hero-item-context {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
@@ -42,7 +49,7 @@ export default class DaPlayer extends HTMLElement {
                 </div>
                 <button id="playBtn">Draw from deck</button>
                 <button id="actionBtn" disabled>Play selected</button>
-                <button id="readyBattle" disabled></button>
+                <button id="readyBattleBtn" disabled>Ready for battle</button>
             </div>
         `;
     }
@@ -70,6 +77,10 @@ export default class DaPlayer extends HTMLElement {
                 value: ''
             },
             'data-monster-killed':{
+                type: String,
+                value: ''
+            },
+            'data-monster-invade':{
                 type: String,
                 value: ''
             }
@@ -104,8 +115,9 @@ export default class DaPlayer extends HTMLElement {
 
         this.shadowRoot.getElementById('playBtn').onclick = this.drawFromDeck;
         this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
-            this.playAction(this.currentAction);
+            this.playAction(e.target, this.currentAction);
         }
+        this.shadowRoot.getElementById('readyBattleBtn').onclick = this.battleReady;
         
     }
     
@@ -140,16 +152,23 @@ export default class DaPlayer extends HTMLElement {
                     if (c.point){
                         card.setAttribute('data-point', c.point);
                     }
-                    card.setAttribute('data-card-type', 'card-' + c.type);                    
-                    card.setAttribute('data-hero-type', 'hero-' + c.heroType);       
+                    card.setAttribute('data-card-type', c.type);
+                    switch (c.type){
+                        case 'h':
+                        case 'i':
+                        card.setAttribute('data-hero', c.heroType);
+                        break;
+                        case 'a':
+                            card.setAttribute('data-action', c.actionType)
+                            break;    
+                    }                           
                     card.addEventListener('card-toggle', (e)=>{
                         this.toggleCard(e.currentTarget, e.detail);
                     });
+                    
                     this.shadowRoot.getElementById('hand-context').appendChild(card);
                 }
-            })
-            
-                                               
+            })                                                           
         }
         
         if (name === 'data-hero' && newValue){
@@ -163,8 +182,8 @@ export default class DaPlayer extends HTMLElement {
                 daHeroCard.setAttribute('id', 'id', hero.card.id);
                 daHeroCard.setAttribute('data-id', hero.card.id);                
                 daHeroCard.setAttribute('data-point', hero.card.point);
-                daHeroCard.setAttribute('data-card-type', 'card-' + hero.card.type);                    
-                daHeroCard.setAttribute('data-hero-type', 'hero-' + hero.card.heroType);       
+                daHeroCard.setAttribute('data-card-type', hero.card.type);                    
+                daHeroCard.setAttribute('data-hero', hero.card.heroType);       
                 
                 this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);
             }
@@ -181,8 +200,15 @@ export default class DaPlayer extends HTMLElement {
         if (name === 'data-monster-killed' && newValue){
             this.shadowRoot.getElementById('monster-context').innerHTML = newValue;
         }
-                        
         
+        if (name == 'data-monster-invade' && newValue){
+            let readyBtn = this.shadowRoot.getElementById('readyBattleBtn');
+            if (newValue == 'true'){                
+                readyBtn.removeAttribute('disabled');
+            }else{
+                readyBtn.setAttribute('disabled', true);                
+            }            
+        }                                
     }
     
     private requestRender(): void {
@@ -198,8 +224,8 @@ export default class DaPlayer extends HTMLElement {
         this.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
     }
     
-    private playSelectedCard(){
-        
+    private battleReady(){
+        this.dispatchEvent(new CustomEvent('battle-ready', {bubbles: true, composed: true}));        
     }
     
     private toggleCard(card, isSelected){
@@ -219,7 +245,7 @@ export default class DaPlayer extends HTMLElement {
                 cardId = card.getAttribute('data-id');                
             
             switch (cardType){
-                case 'card-h':
+                case 'h':
                     actionBtn.innerHTML = 'Set Hero';
                     this.currentAction = {
                         name: 'set-hero',
@@ -227,7 +253,7 @@ export default class DaPlayer extends HTMLElement {
                     };
                     break;
                 
-                case 'card-i':
+                case 'i':
                     actionBtn.innerHTML = 'Equip Hero';
                     this.currentAction = {
                         name: 'equip-hero',
@@ -235,7 +261,7 @@ export default class DaPlayer extends HTMLElement {
                     };
                     break;
                 
-                case 'card-a':
+                case 'a':
                     actionBtn.innerHTML = 'Play Action';
                     this.currentAction = {
                         name: 'play-action',
@@ -246,12 +272,14 @@ export default class DaPlayer extends HTMLElement {
             }
             actionBtn.removeAttribute('disabled');     
         }else{
-            actionBtn.setAttribute('disabled', 'true');
+            actionBtn.setAttribute('disabled', true);
         }
     }   
     
-    private playAction(action){        
+    private playAction(target, action){        
+        target.setAttribute('disabled', true);
         this.dispatchEvent(new CustomEvent('play-action', {detail: this.currentAction, bubbles: true, composed: true}));
+        
     }    
     
     // selectTab() {

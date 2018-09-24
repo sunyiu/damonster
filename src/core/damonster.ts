@@ -9,13 +9,13 @@ import { DaNpc } from "./npc.js"
 export default class DaMonster {
 
 	
-	private _monster: DaCard | undefined;
+	public monster: DaCard | undefined = undefined;
 	private _nextPlayer: DaPlayer | undefined;
 	// get monster(){
-	// 	return this._monster;
+	// 	return this.monster;
 	// }
 	// set monster(value){
-	// 	this._monster = value;
+	// 	this.monster = value;
 	// }
 		
 	private _deck: DaDeck;
@@ -59,7 +59,7 @@ export default class DaMonster {
 				
 				if (monster){
 					console.log('MONSTER %o invade', monster);
-					this._monster = monster;
+					this.monster = monster;
 					this._nextPlayer = nextPlayer;
 					this._players.forEach((p) => {
 						if (p.type == DaPlayerTypes.Npc) {
@@ -124,9 +124,9 @@ export default class DaMonster {
 					DaActionCard.callbacks[index] = (player) => {
 						console.log("Action card (Atomic bomb) played");								
 						//monster
-						if (this._monster) {
-							player.monsterKilled.push(this._monster);
-							this._monster = undefined;
+						if (this.monster) {
+							player.monsterKilled.push(this.monster);
+							this.monster = undefined;
 						}						
 						//heros
 						this._players.forEach((p) => {
@@ -234,7 +234,7 @@ export default class DaMonster {
 
 	private battle() {
 		console.log('BATTLE');
-		if (this._monster) {
+		if (this.monster) {
 			//check monster because monster may be already killed even before the battle by some actions (atomic bomb)
 
 			let maxPointPlayer = null;
@@ -245,10 +245,10 @@ export default class DaMonster {
 				}
 			});
 
-			if (!maxPointPlayer || this._monster.point > maxPointPlayer.hero.totalPoint) {
+			if (!maxPointPlayer || this.monster.point > maxPointPlayer.hero.totalPoint) {
 				//monster win
 				console.log('monster win!!!!');
-				this._discarded.push(this._monster);
+				this._discarded.push(this.monster);
 				this._players.forEach((p: DaPlayer) => {
 					p.hero = undefined;
 				});
@@ -256,12 +256,12 @@ export default class DaMonster {
 				console.log('player win!!!!!');
 				//check for each player
 				this._players.forEach((p, index) => {
-					if (p.hero && p.hero.totalPoint + p.hero.defense < this._monster.point) {
+					if (p.hero && p.hero.totalPoint + p.hero.defense < this.monster.point) {
 						p.hero = undefined;
 					}
 				});
 
-				maxPointPlayer.monsterKilled.push(this._monster);
+				maxPointPlayer.monsterKilled.push(this.monster);
 			}
 		}
 		
@@ -274,7 +274,7 @@ export default class DaMonster {
 			p.readyBattle = false;
 		});						
 		this._nextPlayer = undefined;
-		this._monster = undefined;		
+		this.monster = undefined;		
 	}
 
 	New() {

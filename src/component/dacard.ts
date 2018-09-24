@@ -5,9 +5,8 @@ export default class DaCard extends HTMLElement {
 
     public getTemplate(props: any): string {
         return `
-            <style>            
+            <style>                                            
                 #da-card-container{
-                    display: inline-block;
                     border: 1px solid #ccc;
                     margin: 3px;
                     border-radius: 5px;
@@ -100,7 +99,11 @@ export default class DaCard extends HTMLElement {
                 type: String,
                 value: ''
             },
-            'data-hero-type':{
+            'data-hero':{
+                type: String,
+                value: ''
+            },
+            'data-action': {
                 type: String,
                 value: ''
             },
@@ -152,20 +155,55 @@ export default class DaCard extends HTMLElement {
             return;
         }
 
-        this.props[name] = newValue;     
+        this.props[name] = newValue; 
+                                    
         
         if (name === 'data-card-type' && newValue) {
-            let className = 'card-' + newValue            
-            this.shadowRoot.getElementById('da-card-container').className = 
-                this.shadowRoot.getElementById('da-card-container').className.replace(/card-h|card-i|card-a|card-m/i, '');
-             this.shadowRoot.getElementById('da-card-container').className += (' ' + newValue + ' ');
+            let className = 'card-' + newValue,
+                elem = this.shadowRoot.getElementById('da-card-container');
+            elem.classList.remove('card-h', 'card-i', 'card-a', 'card-m');
+            elem.classList.add(className);             
+        }
+        
+        if (name === 'data-action' && newValue) {
+            let action = '';
+            switch (newValue) {
+                case '0':
+                    action = 'Atomic Bomb';
+                    break
+                case '1':
+                    action = 'Stop';
+                    break
+                case '2':
+                    action = 'Radar';
+                    break
+                case '3':
+                    action = 'Steal';
+                    break;                                        
+                case '4':
+                    action = 'Swap';
+                    break
+                case '5':
+                    action = 'Provoke';
+                    break
+                case '6':
+                    action = 'Attack';
+                    break
+                case '7':
+                    action = 'Suicide Belt';
+                    break;
+                case '8':
+                    action = 'Mind Reading';
+                    break;                    
+            }
+            this.shadowRoot.getElementById('da-card-context').innerHTML = action;
         }               
         
-        if (name === 'data-hero-type' && newValue){
-            let className = 'hero-' + newValue;
-            this.shadowRoot.getElementById('da-card-container').className = 
-                this.shadowRoot.getElementById('da-card-container').className.replace(/hero-k|hero-w|hero-r/i, '');
-             this.shadowRoot.getElementById('da-card-container').className += (' ' + newValue + ' ');            
+        if (name === 'data-hero' && newValue){
+            let className = 'hero-' + newValue,
+                elem = this.shadowRoot.getElementById('da-card-container');
+            elem.classList.remove('hero-k', 'hero-w', 'hero-r');
+            elem.classList.add(className);                         
         }
         
         if (name === 'data-point' && newValue){

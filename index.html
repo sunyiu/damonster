@@ -12,10 +12,12 @@
     <script type="module">
         //core
         import DaMonster from './dist/core/damonster.js';
+        import {DaCardType} from './dist/core/card.js';
 
         //web component                
         import DaPlayer from './dist/component/daplayer.js';
         import DaCard from './dist/component/dacard.js';
+        import DaMonsterComponent from './dist/component/damonster.js';
         
         //utilities
         import Observable from './dist/utility/observable.js';
@@ -35,7 +37,8 @@
                     cards.push({
                         'id': c.id,
                         'type': c.type,
-                        'heroType': c.heroType,
+                        'heroType': (c.type == DaCardType.Hero || c.type == DaCardType.Item ? c.heroType : ''),
+                        'actionType': (c.type == DaCardType.Action ? c.action : ''),
                         'point': c.point
                     });
                     //cards += ( '[' + index + '-' + c.tostring() + '], ');
@@ -100,19 +103,54 @@
                     case 'set-hero':
                         p.SetHero(card);                        
                     break;
+                    
+                    case 'equip-hero':
+                        p.EquipHero(card);
+                    break;
+                    case 'play-action':
+                        let args = e.detail.args;
+                        //check if the card needs a target....
+                        p.PlayAnAction(card, args);
+                    break;
                 }
             });
-                                      
-                             
+            daPlayerComponent.addEventListener('battle-ready', (e) =>{
+                p.ReadyBattle();
+            });
+                                                                   
             document.body.appendChild(daPlayerComponent);
                                  
         });
         
+        
+        let daMonsterComponent = new DaMonsterComponent();
+        Observable.addListener(daMonster, 'monster', (newValue)=>{
+                let players = Array.from(document.body.getElementsByTagName('da-player'));                                                                                 
+                if (newValue){                
+                    let monster = {
+                        'id': newValue.id,
+                        'type': newValue.type,
+                        'point': newValue.point                    
+                    };
+                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': monster}));
+                    players.forEach((p) => {
+                        p.setAttribute('data-monster-invade', true);
+                    });                    
+                }else{
+                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': undefined}));
+                    players.forEach((p) => {
+                        p.setAttribute('data-monster-invade', false);
+                    });                                        
+                }
+        });                                                                                  
+        document.body.appendChild(daMonsterComponent);
+       
+       
        
         daMonster.New();
         
-        window.p = daMonster.players[0];
-        window.n = daMonster.players[1];
+        //window.p = daMonster.players[0];
+        //window.n = daMonster.players[1];
 
     </script>
 
