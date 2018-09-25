@@ -7,10 +7,10 @@ export default class DaCard extends HTMLElement {
         return `
             <style>                                            
                 #da-card-container{
+                    margin: 3px; 
+                    padding: 3px;                   
                     border: 1px solid #ccc;
-                    margin: 3px;
                     border-radius: 5px;
-                    position: relative;
                     background-color: #fff;                
                 }
                 #da-card-container.selected{
@@ -23,8 +23,7 @@ export default class DaCard extends HTMLElement {
                 #da-card-container #da-card-context{
                     /*0.7142857142857143 -- card ratio*/                    
                     width: 71px;
-                    height: 100px;
-                    margin: 3px;
+                    height: 100px;                  
                     background-color: #7F7F7F;
                     border-radius: 3px;
                     position: relative;
@@ -33,8 +32,8 @@ export default class DaCard extends HTMLElement {
                     width: 25px;
                     height: 40px;
                     position: absolute;
-                    top: 5px;
-                    right: 5px;
+                    top: 3px;
+                    right: 3px;
                     background-size: contain;
                     background-repeat: no-repeat;
                     color: black;

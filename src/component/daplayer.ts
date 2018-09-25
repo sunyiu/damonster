@@ -1,3 +1,8 @@
+// @media screen and (device-aspect-ratio: 16/9) { … }
+// @media screen and (device-aspect-ratio: 32/18) { … }
+// @media screen and (device-aspect-ratio: 1280/720) { … }
+// @media screen and (device-aspect-ratio: 2560/1440) { … }
+
 'use strict';
 
 import DaCard from './dacard.js'
@@ -9,47 +14,85 @@ export default class DaPlayer extends HTMLElement {
         return `
             <style>
                 #da-player-container{
-                    font-size: 0.5em;
-                    padding-bottom: 15px;
-                }
-                .container{
-                    padding-bottom: 10px;
-                }
-                button{
-                    display: inline-block;
-                }
-                button:disabled{
-                    display: none;
+                    position: relative;
+                    margin: 10px;
                 }
                 
-                #hand-context, 
-                #hero-context,
-                #hero-item-context {
+                #hand-context{
                     display: flex;
                     flex-wrap: wrap;
+                }                                  
+                
+                #da-hero-container{
+                    position: relative;
+                    left: 0px
                 }
+                #hero-context{
+                    width: 100px;
+                    height: 100px;                    
+                    background-size: contain;
+                    background-repeat: no-repeat;  
+                    background-position-y: bottom;
+                    background-image: url(images/none.png);
+                }
+                #hero-context.k{
+                    background-image: url(images/knight.png);
+                }
+                #hero-context.w{
+                    background-image: url(images/wizard.png);
+                }
+                #hero-context.r{
+                    background-image: url(images/ranger.png);
+                }                
+                
+                #point-container{
+                    position: absolute;
+                    top: 0;
+                    left: 75px;
+                    height: 25px;
+                    width: 25px;
+                    border-radius: 23px;
+                    background-color: rgba(100, 100, 100, 0.75);
+                    color: white;
+                    font-size: 1.35em;                    
+                }
+                #point-container #point-context{
+                    position: absolute;
+                    top: 2px;
+                    left: 8px;
+                }
+                
+                #items-container{
+                    position: absolute;
+                    top: 50px;
+                    left: 150px;                    
+                }
+                
 			</style>
             <!-- shadow DOM for your element -->
-			<div id="da-player-container">
-                <div id="da-hero-container" class="container">
-                    <div><strong>HERO</strong>&nbsp;&nbsp;<span id="point-context"></span></div>
-                    <div>
-                        <span id="hero-context"></span>
-                        <span>&nbsp;</span>
-                        <span id="hero-item-context"></span>
-                    </div>
-                </div>            
-                <div id="da-hand-container" class="container">
-                    <div><strong>HAND</strong></div>
+			<div id="da-player-container">                                                          
+                <div id="da-hero-container">
+                    <div id="hero-context"></div>                                                            
+                </div>
+                <div id="point-container">
+                    <div id="point-context"></div>
+                </div>
+                <div id="items-container">
+                    <div id="items-context"></div>
+                </div>                                
+                
+                <div id="da-monster-kill-container">
+                    <div id="monster-context"></div>
+                </div>                
+                            
+                <div id="da-hand-container"">
                     <div id="hand-context"></div>
                 </div>
-                <div id="da-monster-kill-container" class="container">
-                    <div><strong>Killed</strong></div>
-                    <div id="monster-context"></div>
+                <div id="da-button-bar">                
+                    <button id="playBtn">Draw from deck</button>
+                    <button id="actionBtn" disabled>Play selected</button>
+                    <button id="readyBattleBtn" disabled>Ready for battle</button>
                 </div>
-                <button id="playBtn">Draw from deck</button>
-                <button id="actionBtn" disabled>Play selected</button>
-                <button id="readyBattleBtn" disabled>Ready for battle</button>
             </div>
         `;
     }
@@ -172,20 +215,24 @@ export default class DaPlayer extends HTMLElement {
         }
         
         if (name === 'data-hero' && newValue){
-            if (newValue == 'none'){
-                Array.from(this.shadowRoot.getElementById('hero-context').children).forEach((c) =>{
-                    c.remove();
-                });
-            }else{                           
+            this.shadowRoot.getElementById('da-hero-container').classList.remove('k', 'w', 'r');
+            
+            // if (newValue == 'none'){                   
+            //     Array.from(this.shadowRoot.getElementById('item-context').children).forEach((c) =>{
+            //         c.remove();
+            //     });                
+            //}
+            if (newValue != 'none'){                           
                 let hero = JSON.parse(newValue),
-                    daHeroCard = new DaCard();
-                daHeroCard.setAttribute('id', 'id', hero.card.id);
-                daHeroCard.setAttribute('data-id', hero.card.id);                
-                daHeroCard.setAttribute('data-point', hero.card.point);
-                daHeroCard.setAttribute('data-card-type', hero.card.type);                    
-                daHeroCard.setAttribute('data-hero', hero.card.heroType);       
-                
-                this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);
+                //     daHeroCard = new DaCard();
+                // daHeroCard.setAttribute('id', 'id', hero.card.id);
+                // daHeroCard.setAttribute('data-id', hero.card.id);                
+                // daHeroCard.setAttribute('data-point', hero.card.point);
+                // daHeroCard.setAttribute('data-card-type', hero.card.type);                    
+                // daHeroCard.setAttribute('data-hero', hero.card.heroType);       
+                                
+                //this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);                
+                this.shadowRoot.getElementById('hero-context').classList.add(hero.card.heroType);                
             }
         }
         
@@ -194,7 +241,7 @@ export default class DaPlayer extends HTMLElement {
         }
         
         if (name === 'data-hero-items' && newValue){
-            this.shadowRoot.getElementById('hero-item-context').innerHTML = newValue;
+            this.shadowRoot.getElementById('items-context').innerHTML = newValue;
         }
         
         if (name === 'data-monster-killed' && newValue){
@@ -281,12 +328,7 @@ export default class DaPlayer extends HTMLElement {
         this.dispatchEvent(new CustomEvent('play-action', {detail: this.currentAction, bubbles: true, composed: true}));
         
     }    
-    
-    // selectTab() {
-    //     const tabs = this.shadowRoot.querySelector('#tabs');
-    //     //composed default is false and it wont bubble top outside shadow DOM        
-    //     tabs.dispatchEvent(new Event('tab-select', {bubbles: true, composed: true}));        
-    // }
+
 }
 
 customElements.define(DaPlayer.is, DaPlayer);

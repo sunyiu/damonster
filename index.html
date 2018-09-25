@@ -3,10 +3,22 @@
     
     <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        <title></title>        
+        <title></title>
+        <style>
+            *{
+                padding: 0;
+                margin: 0;
+            }
+            html, body{
+                width: 100%;
+                height: 100%;
+            }
+        </style>        
     </head>    
-    <body>                
+    <body>
+        <damonster id='damonstr'></damonster>                
     </body>
         
     <script type="module">
@@ -30,6 +42,7 @@
         daMonster.players.forEach((p, index) =>{
         
             let daPlayerComponent = new DaPlayer();
+            daPlayerComponent.setAttribute('id', p.name);
                             
             Observable.addListener(p, 'hand', (newValue)=>{
                 let cards = [];
@@ -81,7 +94,7 @@
                     daPlayerComponent.setAttribute('data-point', newValue.totalPoint);
                 }else{
                     daPlayerComponent.setAttribute('data-hero', 'none');
-                    daPlayerComponent.setAttribute('data-hero-items', 'None');
+                    daPlayerComponent.setAttribute('data-hero-items', 'none');
                     daPlayerComponent.setAttribute('data-point', 0);
                 }    
                 
@@ -118,12 +131,10 @@
                 p.ReadyBattle();
             });
                                                                    
-            document.body.appendChild(daPlayerComponent);
-                                 
-        });
-        
-        
-        let daMonsterComponent = new DaMonsterComponent();
+            document.body.getElementsByTagName('damonster')[0].appendChild(daPlayerComponent);
+            
+            if (index == 0){
+   let daMonsterComponent = new DaMonsterComponent();
         Observable.addListener(daMonster, 'monster', (newValue)=>{
                 let players = Array.from(document.body.getElementsByTagName('da-player'));                                                                                 
                 if (newValue){                
@@ -143,7 +154,14 @@
                     });                                        
                 }
         });                                                                                  
-        document.body.appendChild(daMonsterComponent);
+        
+        document.body.getElementsByTagName('damonster')[0].appendChild(daMonsterComponent);                        
+            }
+                                 
+        });
+        
+        
+     
        
        
        

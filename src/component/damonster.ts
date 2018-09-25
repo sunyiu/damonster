@@ -10,6 +10,8 @@ export default class DaMonsterComponent extends HTMLElement {
             <style>
                 #da-monster-container{
                     padding-bottom: 15px;
+                    height: 100px;
+                    background-color: lightgray;
                 }
 			</style>
             <!-- shadow DOM for your element -->
