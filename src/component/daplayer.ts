@@ -114,6 +114,15 @@ export default class DaPlayer extends HTMLElement {
                     display: none;
                 }
                 
+                
+                @media only screen and (max-width: 500px) {                
+                    #hero-context{
+                        width: 50px;
+                        height: 50px;            
+                    }        
+                }
+
+                
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">                                                         

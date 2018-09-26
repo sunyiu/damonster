@@ -29,6 +29,7 @@ export default class DaCard extends HTMLElement {
                     border-radius: 3px;
                     position: relative;
                 }
+                
                 #da-card-container #da-card-context .icon{
                     width: 25px;
                     height: 40px;
@@ -77,9 +78,26 @@ export default class DaCard extends HTMLElement {
                 #da-card-container.card-m #da-card-context{
                     background-color: #3F3F3F;                    
                 }                
-                #da-card-container.card-m #da-card-context .icon{
-                    
+                #da-card-container.card-m #da-card-context .icon{                    
                 }
+                
+                @media only screen and (max-width: 500px) {
+                    #da-card-container{
+                        margin: 2px; 
+                        padding: 2px;                   
+                        border-radius: 2px;                
+                    }
+                    #da-card-container.selected{
+                        border:1px solid red;
+                        margin:1px;
+                    }                    
+                    
+                    #da-card-container #da-card-context{
+                        width: 36px;
+                        height: 50px; 
+                    }
+                }               
+                
                 
 			</style>
             <!-- shadow DOM for your element -->

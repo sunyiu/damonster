@@ -7,8 +7,8 @@ export default class DaMonsterComponent extends HTMLElement {
         return `
             <style>
                 #da-monster-container{
-                    height: 150px;
-                    background-color: lightgray;                                        
+                    background-color: lightgray;
+                    height: 150px;                                        
                 }
                 #da-monster-container #da-monster-context{
                     position: relative;
@@ -37,6 +37,34 @@ export default class DaMonsterComponent extends HTMLElement {
                     text-align: center;
                     border-radius: 10px;
                 }
+                
+                #da-monsters-left-container{
+                    display: flex;
+                }
+                #da-monsters-left-container div{
+                    width: 80px;
+                    height: 80px;
+                    background-size: contain;
+                    background-image: url(images/monster.png);
+                    background-repeat: no-repeat;
+                }
+                
+                @media only screen and (max-width: 500px) {
+                    #da-monster-container{
+                        height: 80px;
+                    }                    
+                    #da-monster-container #da-monster-context #da-monster{
+                        display: block;
+                        width: 50px;
+                        height: 50px;
+                    }                    
+                    #da-monsters-left-container div{
+                        width: 50px;
+                        height: 50px;
+                    }
+                }               
+
+                
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-monster-container">
@@ -51,6 +79,10 @@ export default class DaMonsterComponent extends HTMLElement {
     public static get properties(){
         return{
             'data-card':{
+                type: String,
+                value: ''
+            },
+            'data-available-monsters':{
                 type: String,
                 value: ''
             }
@@ -100,9 +132,24 @@ export default class DaMonsterComponent extends HTMLElement {
                 this.shadowRoot.getElementById('da-monster-point').innerHTML = data.monster.point;
             }else{
                 this.shadowRoot.getElementById('da-monster').classList.add('hidden');
-            }
-            
-        }                                        
+            }            
+        }    
+        
+        if (name === 'data-available-monsters' && newValue){
+            let data = JSON.parse(newValue);
+            if (data.monsters){
+                data.monsters.forEach((m) => {
+                    let existingCard = this.shadowRoot.getElementById('da-monsters-left-container').querySelector('#id' +  m.id);
+                    //check for existing monster
+                    if (!existingCard){
+                        let monster = document.createElement('div');
+                        monster.setAttribute('id', 'id'+m.id);
+                        monster.innerHTML = m.point;
+                        this.shadowRoot.getElementById('da-monsters-left-container').append(monster);
+                    }
+                })                                   
+            }            
+        }                                    
     }
     
     private requestRender(): void {

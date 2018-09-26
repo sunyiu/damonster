@@ -10,6 +10,8 @@ export default class DaMonster {
 
 	
 	public monster: DaCard | undefined = undefined;
+	public availableMonsters: DaCard[] = [];	
+	
 	private _nextPlayer: DaPlayer | undefined;
 	// get monster(){
 	// 	return this.monster;
@@ -20,7 +22,6 @@ export default class DaMonster {
 		
 	private _deck: DaDeck;
 	private _players: DaPlayer[] = [];
-	private _discarded: DaCard[] = [];
 
 	private _pendingAction;
 
@@ -147,7 +148,7 @@ export default class DaMonster {
 							throw new Error("Monster card not found for provoke");
 						}
 
-						if (!this._discarded.find((c) => { return c === monsterCard; })) {
+						if (!this.availableMonsters.find((c) => { return c === monsterCard; })) {
 							throw new Error("Monster card is not from the discard pile");
 						}
 
@@ -252,7 +253,7 @@ export default class DaMonster {
 			if (!maxPointPlayer || this.monster.point > maxPointPlayer.hero.totalPoint) {
 				//monster win
 				console.log('monster win!!!!');
-				this._discarded.push(this.monster);
+				this.availableMonsters.push(this.monster);
 				this._players.forEach((p: DaPlayer) => {
 					p.hero = undefined;
 				});

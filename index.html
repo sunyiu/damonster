@@ -166,6 +166,23 @@
                     daMonsterComponent.setAttribute('data-card', JSON.stringify({'monster': undefined}));
                 }                               
             });
+            
+            Observable.addListener(daMonsterGame, 'availableMonsters', (newValue) =>{
+                if (newValue){
+                    let monsters = [];
+                    daMonsterGame.availableMonsters.forEach((m) =>{
+                        monsters.push({
+                            'id': m.id,
+                            'point': m.point                                                    
+                        });
+                    });
+                    daMonsterComponent.setAttribute('data-available-monsters', JSON.stringify({'monsters': monsters}));
+                }
+            });
+            
+            
+            
+            
             return daMonsterComponent;                
         };
                  
