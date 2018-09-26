@@ -43,7 +43,26 @@ export default class DaPlayer extends HTMLElement {
                 }
                 #hero-context.r{
                     background-image: url(images/ranger.png);
-                }                
+                }
+                #da-hero-container #da-hero-type-icon{
+                    width: 15px;
+                    height: 15px;                    
+                    background-repeat: no-repeat;
+                    background-size: contain;
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                }
+                #da-hero-container #da-hero-type-icon.k{
+                    background-image: url(images/swordIcon_black.png);
+                }
+                #da-hero-container #da-hero-type-icon.w{
+                    background-image: url(images/staffIcon_black.png);
+                }
+                #da-hero-container #da-hero-type-icon.r{
+                    background-image: url(images/arrowIcon_black.png);
+                }
+                                
                 
                 #point-container{
                     position: absolute;
@@ -54,12 +73,11 @@ export default class DaPlayer extends HTMLElement {
                     border-radius: 23px;
                     background-color: rgba(100, 100, 100, 0.75);
                     color: white;
-                    font-size: 1.35em;                    
+                    font-size: 1em;                    
                 }
                 #point-container #point-context{
-                    position: absolute;
-                    top: 2px;
-                    left: 8px;
+                    text-align: center;
+                    padding-top: 3px;
                 }
                 
                 #items-container{
@@ -68,10 +86,19 @@ export default class DaPlayer extends HTMLElement {
                     left: 150px;                    
                 }
                 
+                
+                #da-button-bar{
+                    height: 25px;
+                }
+                #da-button-bar button:disabled{
+                    display: none;
+                }
+                
 			</style>
             <!-- shadow DOM for your element -->
-			<div id="da-player-container">                                                          
+			<div id="da-player-container">                                                         
                 <div id="da-hero-container">
+                    <div id="da-hero-type-icon"></div>                
                     <div id="hero-context"></div>                                                            
                 </div>
                 <div id="point-container">
@@ -83,11 +110,12 @@ export default class DaPlayer extends HTMLElement {
                 
                 <div id="da-monster-kill-container">
                     <div id="monster-context"></div>
-                </div>                
-                            
+                </div>
+                                            
                 <div id="da-hand-container"">
                     <div id="hand-context"></div>
                 </div>
+                
                 <div id="da-button-bar">                
                     <button id="playBtn">Draw from deck</button>
                     <button id="actionBtn" disabled>Play selected</button>
@@ -216,6 +244,7 @@ export default class DaPlayer extends HTMLElement {
         
         if (name === 'data-hero' && newValue){
             this.shadowRoot.getElementById('da-hero-container').classList.remove('k', 'w', 'r');
+            this.shadowRoot.getElementById('da-hero-type-icon').classList.remove('k', 'w', 'r');
             
             // if (newValue == 'none'){                   
             //     Array.from(this.shadowRoot.getElementById('item-context').children).forEach((c) =>{
@@ -232,7 +261,8 @@ export default class DaPlayer extends HTMLElement {
                 // daHeroCard.setAttribute('data-hero', hero.card.heroType);       
                                 
                 //this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);                
-                this.shadowRoot.getElementById('hero-context').classList.add(hero.card.heroType);                
+                this.shadowRoot.getElementById('hero-context').classList.add(hero.card.heroType);   
+                this.shadowRoot.getElementById('da-hero-type-icon').classList.add(hero.card.heroType);                             
             }
         }
         

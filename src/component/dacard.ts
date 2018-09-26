@@ -7,6 +7,7 @@ export default class DaCard extends HTMLElement {
         return `
             <style>                                            
                 #da-card-container{
+                    display: inline-block;
                     margin: 3px; 
                     padding: 3px;                   
                     border: 1px solid #ccc;

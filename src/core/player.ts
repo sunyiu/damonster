@@ -1,4 +1,5 @@
 import { DaCard, DaCardType } from './card.js'
+import {DaActions} from './actioncard.js'
 import { DaHeroCard } from './herocard.js'
 import {DaDeck} from  './deck.js'
 
@@ -18,6 +19,7 @@ export class DaPlayer {
 	public hand: DaCard[] = [];
 	public hero: DaHeroCard | undefined = undefined;
 	public monsterKilled: DaMonster[] = [];
+	public waitForStopAction = false;
 
 	private _name: string;
 	get name(): string {
@@ -125,6 +127,10 @@ export class DaPlayer {
 		let index = this.hand.findIndex((c) => {return c === card;});
 		if (index == undefined) {
 			throw new Error('Action Card not found!!!!!');
+		}
+		
+		if (card.action == DaActions.Stop){
+			this.waitForStopAction = false;
 		}
 
 		this.hand.splice(index, 1);

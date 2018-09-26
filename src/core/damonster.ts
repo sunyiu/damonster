@@ -99,10 +99,21 @@ export default class DaMonster {
 					this._pendingAction.isStopped = !this._pendingAction.isStopped;
 				}												
 
-				this._players.forEach((npc) => {
-					if (p !== npc && npc.type == DaPlayerTypes.Npc) {
+				this._players.forEach((player) => {
+					if (p === player){
+						return;
+					}
+					
+					if (player.type == DaPlayerTypes.Npc) {
 						//NPC react to action of player
-						npc.ReactOnAction(card, args);
+						player.ReactOnAction(card, args);
+					}else{
+						//check for stop card						
+						if (player.hand.find((c) => {
+							c.type == DaCardType.Action && c.action == DaActions.Stop
+						}))
+						player.waitForStopAction = true;
+						
 					}
 				})
 			});
