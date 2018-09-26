@@ -5,13 +5,14 @@ import {DaDeck} from  './deck.js'
 import {DaPlayerTypes, DaPlayer} from './player.js'
 
 export class DaNpc extends DaPlayer {
-	
+					
 	get type():DaPlayerTypes{
 		return DaPlayerTypes.Npc;
 	}
 
 	constructor(name: string, deck:DaDeck) {
 		super(name, deck); 
+		super._isNPC = true;
 	}
 
 	DoARound() {		
@@ -42,7 +43,9 @@ export class DaNpc extends DaPlayer {
 		
 		if (stopCard){
 			super.PlayAnAction(stopCard);
+			return stopCard;
 		}
+		return false;
 	}
 	
 	MonsterInvade(card){

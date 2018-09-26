@@ -19,11 +19,14 @@ export class DaPlayer {
 	public hand: DaCard[] = [];
 	public hero: DaHeroCard | undefined = undefined;
 	public monsterKilled: DaMonster[] = [];
-	public waitForStopAction = false;
 
 	private _name: string;
 	get name(): string {
 		return this._name;
+	}
+	private _isNPC: boolean;
+	get isNPC():boolean{
+		return this._isNPC;
 	}
 	
 	private _readyBattle:boolean = false;
@@ -45,6 +48,7 @@ export class DaPlayer {
 	constructor(name: string, deck:DaDeck) {
 		this._name = name;
 		this._deck = deck;
+		this._isNPC = false;
 	}	
 	
 	AddEventListener(event: DaPlayerEvents, callback){
@@ -129,10 +133,6 @@ export class DaPlayer {
 			throw new Error('Action Card not found!!!!!');
 		}
 		
-		if (card.action == DaActions.Stop){
-			this.waitForStopAction = false;
-		}
-
 		this.hand.splice(index, 1);
 		//card.Play(this, args); <-- actual play card will be triggered in daMonster
 		

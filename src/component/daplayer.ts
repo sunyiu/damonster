@@ -1,8 +1,3 @@
-// @media screen and (device-aspect-ratio: 16/9) { … }
-// @media screen and (device-aspect-ratio: 32/18) { … }
-// @media screen and (device-aspect-ratio: 1280/720) { … }
-// @media screen and (device-aspect-ratio: 2560/1440) { … }
-
 'use strict';
 
 import DaCard from './dacard.js'
@@ -26,7 +21,7 @@ export default class DaPlayer extends HTMLElement {
                 #da-hero-container{
                     position: relative;
                     left: 0px
-                }
+                }                
                 #hero-context{
                     width: 100px;
                     height: 100px;                    
@@ -35,13 +30,13 @@ export default class DaPlayer extends HTMLElement {
                     background-position-y: bottom;
                     background-image: url(images/none.png);
                 }
-                #hero-context.k{
+                #da-hero-container.k #hero-context{
                     background-image: url(images/knight.png);
                 }
-                #hero-context.w{
+                #da-hero-container.w #hero-context{
                     background-image: url(images/wizard.png);
                 }
-                #hero-context.r{
+                #da-hero-container.r #hero-context{
                     background-image: url(images/ranger.png);
                 }
                 #da-hero-container #da-hero-type-icon{
@@ -53,16 +48,22 @@ export default class DaPlayer extends HTMLElement {
                     bottom: 0;
                     left: 0;
                 }
-                #da-hero-container #da-hero-type-icon.k{
+                #da-hero-container.k #da-hero-type-icon{
                     background-image: url(images/swordIcon_black.png);
                 }
-                #da-hero-container #da-hero-type-icon.w{
+                #da-hero-container.w #da-hero-type-icon{
                     background-image: url(images/staffIcon_black.png);
                 }
-                #da-hero-container #da-hero-type-icon.r{
+                #da-hero-container.r #da-hero-type-icon{
                     background-image: url(images/arrowIcon_black.png);
                 }
-                                
+                
+                #items-container #items-context div{                
+                    width: 50px;
+                    height: 50px;
+                    background-image: url(images/swordicon_black.png);
+                    background-size: contain;
+                }                                
                 
                 #point-container{
                     position: absolute;
@@ -204,13 +205,12 @@ export default class DaPlayer extends HTMLElement {
             
             //remove discarded card
             Array.from(this.shadowRoot.getElementById('hand-context').children).forEach((daCard) =>{
-                let id = daCard.getAttribute('id'),
-                    exist = hand.cards.find((c) => {
-                        return id == 'id'+c.id;
-                    });
-                if (!exist){
-                    daCard.remove();
-                }                
+                let id = daCard.getAttribute('id');                
+                    if (hand.cards.every((c) => {
+                        return id != 'id'+c.id;
+                    })){
+                        daCard.remove();                        
+                    }
             })
             
             //add new card
@@ -244,25 +244,9 @@ export default class DaPlayer extends HTMLElement {
         
         if (name === 'data-hero' && newValue){
             this.shadowRoot.getElementById('da-hero-container').classList.remove('k', 'w', 'r');
-            this.shadowRoot.getElementById('da-hero-type-icon').classList.remove('k', 'w', 'r');
-            
-            // if (newValue == 'none'){                   
-            //     Array.from(this.shadowRoot.getElementById('item-context').children).forEach((c) =>{
-            //         c.remove();
-            //     });                
-            //}
-            if (newValue != 'none'){                           
-                let hero = JSON.parse(newValue),
-                //     daHeroCard = new DaCard();
-                // daHeroCard.setAttribute('id', 'id', hero.card.id);
-                // daHeroCard.setAttribute('data-id', hero.card.id);                
-                // daHeroCard.setAttribute('data-point', hero.card.point);
-                // daHeroCard.setAttribute('data-card-type', hero.card.type);                    
-                // daHeroCard.setAttribute('data-hero', hero.card.heroType);       
-                                
-                //this.shadowRoot.getElementById('hero-context').appendChild(daHeroCard);                
-                this.shadowRoot.getElementById('hero-context').classList.add(hero.card.heroType);   
-                this.shadowRoot.getElementById('da-hero-type-icon').classList.add(hero.card.heroType);                             
+            let hero = JSON.parse(newValue);
+            if (hero.card){                                           
+                this.shadowRoot.getElementById('da-hero-container').classList.add(hero.card.heroType);                                
             }
         }
         
@@ -271,7 +255,29 @@ export default class DaPlayer extends HTMLElement {
         }
         
         if (name === 'data-hero-items' && newValue){
-            this.shadowRoot.getElementById('items-context').innerHTML = newValue;
+            let data = JSON.parse(newValue);           
+            if (data.items) {            
+                //remove discarded card
+                Array.from(this.shadowRoot.getElementById('items-context').children).forEach((item) => {
+                    let id = item.getAttribute('id');
+                    if (data.items.every((i) => {
+                        return id != 'id' + i.id;
+                    })) {
+                        item.remove();
+                    }
+                });
+            
+                //add new card
+                data.items.forEach((i) => {
+                    let existingCard = this.shadowRoot.getElementById('items-context').querySelector('#id' + i.id);
+                    if (!existingCard) {
+                        let card = '<div id="' + i.id + '">' + i.point + '</div>';
+                        this.shadowRoot.getElementById('items-context').innerHTML += card;
+                    }
+                })
+            }else{
+                this.shadowRoot.getElementById('items-context').innerHTML = ''                
+            }                                                 
         }
         
         if (name === 'data-monster-killed' && newValue){

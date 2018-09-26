@@ -4,7 +4,6 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        
         <title></title>
         <style>
             *{
@@ -28,18 +27,17 @@
             da-player#npc{
                 right: 0;
             }
-            
-            
-        </style>        
-    </head>    
+        </style>
+    </head>
+    
     <body>
-        <damonster id='damonster'></damonster>                
+        <damonster id='damonster'></damonster>
     </body>
-        
     <script type="module">
         //core
         import DaMonster from './dist/core/damonster.js';
         import {DaCardType} from './dist/core/card.js';
+        import {DaPlayerEvents} from './dist/core/player.js';      
 
         //web component                
         import DaPlayer from './dist/component/daplayer.js';
@@ -48,20 +46,14 @@
         
         //utilities
         import Observable from './dist/utility/observable.js';
-        
- 
-        var daMonster = window.daMonster = new DaMonster();   
-                           
-        //data binding to component...
-        //swap whatever variable we needed to proxy so that we can do the binding....                                                        
-        daMonster.players.forEach((p, index) =>{
-        
+                
+        let bindPlayer = (player, daMonsterGame) => {
             let daPlayerComponent = new DaPlayer();
-            daPlayerComponent.setAttribute('id', p.name);
+            daPlayerComponent.setAttribute('id', player.name);
                             
-            Observable.addListener(p, 'hand', (newValue)=>{
+            Observable.addListener(player,'hand', (newValue)=>{
                 let cards = [];
-                p.hand.forEach((c, index) =>{
+                player.hand.forEach((c, index) =>{
                     cards.push({
                         'id': c.id,
                         'type': c.type,
@@ -72,119 +64,137 @@
                     //cards += ( '[' + index + '-' + c.tostring() + '], ');
                 });                
                 daPlayerComponent.setAttribute('data-hand', JSON.stringify({'cards': cards}));
-                //console.log(p.name + ' ' + newValue);
+                //console.log(player.name + ' ' + newValue);
             });
             
-            Observable.addListener(p, 'monsterKilled', (newValue)=>{
+            Observable.addListener(player,'monsterKilled', (newValue)=>{
                  let cards = '';
-                p.monsterKilled.forEach((c, index) =>{
+                player.monsterKilled.forEach((c, index) =>{
                     cards += ( '[' + index + '-' + c.tostring() + '], ');
                 });
                 daPlayerComponent.setAttribute('data-monster-killed', cards);            
             });       
             
-            Observable.addListener(p, 'hero', (newValue)=>{                                                                         
+            Observable.addListener(player,'hero', (newValue)=>{                                                                         
                 if (newValue){                
                     let hero = {
                         'id': newValue.id,
-                        'type': newValue.type,
+                        //'type': newValue.type,
                         'heroType': newValue.heroType,
-                        'point': newValue.point
-                    
+                        'point': newValue.point                    
                     };
                     daPlayerComponent.setAttribute('data-hero', JSON.stringify({'card': hero}));
+                    daPlayerComponent.setAttribute('data-point', newValue.totalPoint);                    
                                                      
-                    //remove existing listener and hook to new hero.item??                    
-                    
+                    //remove existing listener and hook to new hero.item??                                        
                     //hook to new hero.item                
                     Observable.addListener(newValue, 'items', (newValue) =>{
-                        let items = '';
-                        p.hero.items.forEach((i, index) =>{
-                            items += ( '[' + index + '-' + i.tostring() + '], ');
+                        let items = [];
+                        player.hero.items.forEach((i, index) =>{
+                            items.push({
+                                'id': i.id,
+                                'point': i.point
+                            });                            
                         });
-                        daPlayerComponent.setAttribute('data-hero-items', items);
-                        daPlayerComponent.setAttribute('data-point', p.hero.totalPoint);                    
-                    });
-                    
-                    daPlayerComponent.setAttribute('data-point', newValue.totalPoint);
+                        daPlayerComponent.setAttribute('data-hero-items', JSON.stringify({'items':items}));
+                        daPlayerComponent.setAttribute('data-point', player.hero.totalPoint);                    
+                    });                                        
                 }else{
-                    daPlayerComponent.setAttribute('data-hero', 'none');
-                    daPlayerComponent.setAttribute('data-hero-items', 'none');
+                    daPlayerComponent.setAttribute('data-hero', JSON.stringify({'card':undefined}));
+                    daPlayerComponent.setAttribute('data-hero-items', JSON.stringify({'card':undefined}));
                     daPlayerComponent.setAttribute('data-point', 0);
-                }    
+                }                                                                                                           
+            });
+                        
+            if (!player.isNPC){                        
+                //TOTHINK::IF WE DO THIS DO WE NEED OBSERVATION???
+                player.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
+                    
+                                            
+                });
                 
-                                                            
-                           
-            });
+                daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
+                    player.DrawFromDeck();
+                });
+                daPlayerComponent.addEventListener('play-action', (e) =>{
+                    let action = e.detail.name,
+                        cardId = e.detail.cardId,
+                        card = player.hand.find((c) => { 
+                            return c.id == cardId;
+                        });
+                        
+                    switch(action){
+                        case 'set-hero':
+                            player.SetHero(card);                        
+                        break;
+                        
+                        case 'equip-hero':
+                            player.EquipHero(card);
+                        break;
+                        case 'play-action':
+                            let args = e.detail.args;
+                            //check if the card needs a target....
+                            player.PlayAnAction(card, args);
+                        break;
+                    }
+                });
+                daPlayerComponent.addEventListener('battle-ready', (e) =>{
+                    player.ReadyBattle();
+                });
+                
+                Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
+                    if (newValue){
+                        daPlayerComponent.setAttribute('data-monster-invade', true);
+                    }else{
+                        daPlayerComponent.setAttribute('data-monster-invade', false);
+                    }           
+                });    
+            }        
             
-            daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
-                p.DrawFromDeck();
-            });
-            daPlayerComponent.addEventListener('play-action', (e) =>{
-                let action = e.detail.name,
-                    cardId = e.detail.cardId,
-                    card = p.hand.find((c) => { 
-                        return c.id == cardId;
-                    });
-                    
-                switch(action){
-                    case 'set-hero':
-                        p.SetHero(card);                        
-                    break;
-                    
-                    case 'equip-hero':
-                        p.EquipHero(card);
-                    break;
-                    case 'play-action':
-                        let args = e.detail.args;
-                        //check if the card needs a target....
-                        p.PlayAnAction(card, args);
-                    break;
-                }
-            });
-            daPlayerComponent.addEventListener('battle-ready', (e) =>{
-                p.ReadyBattle();
-            });
-                                                                   
-            document.body.getElementsByTagName('damonster')[0].appendChild(daPlayerComponent);
-            
-            if (index == 0){
-   let daMonsterComponent = new DaMonsterComponent();
-        Observable.addListener(daMonster, 'monster', (newValue)=>{
-                let players = Array.from(document.body.getElementsByTagName('da-player'));                                                                                 
-                if (newValue){                
+            return daPlayerComponent;        
+        };
+        
+        let bindMonster = (daMonsterGame) => {
+            let daMonsterComponent = new DaMonsterComponent();
+            Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
+                if (newValue){
                     let monster = {
                         'id': newValue.id,
                         'type': newValue.type,
                         'point': newValue.point                    
-                    };
+                    };                            
                     daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': monster}));
-                    players.forEach((p) => {
-                        p.setAttribute('data-monster-invade', true);
-                    });                    
                 }else{
                     daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': undefined}));
-                    players.forEach((p) => {
-                        p.setAttribute('data-monster-invade', false);
-                    });                                        
-                }
-        });                                                                                  
-        
-        document.body.getElementsByTagName('damonster')[0].appendChild(daMonsterComponent);                        
+                }                               
+            });
+            return daMonsterComponent;                
+        };
+                 
+        var daMonster = window.daMonster = new DaMonster();   
+                           
+        //data binding to component...
+        //swap whatever variable we needed to proxy so that we can do the binding....    
+        let playerComponent, npcComponent;                                                    
+        daMonster.players.forEach((p, index) =>{
+            if (p.isNPC){
+                npcComponent = bindPlayer(p, daMonster);
+            }else{
+                playerComponent= bindPlayer(p, daMonster);
             }
-                                 
         });
         
+        let monsterComponent = bindMonster(daMonster);
         
-     
-       
-       
+        
+        document.body.querySelector('#damonster').appendChild(npcComponent);
+        document.body.querySelector('#damonster').appendChild(monsterComponent);
+        document.body.querySelector('#damonster').appendChild(playerComponent);
        
         daMonster.New();
         
         //window.p = daMonster.players[0];
         //window.n = daMonster.players[1];
-
     </script>
 
 </html>

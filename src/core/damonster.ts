@@ -107,13 +107,6 @@ export default class DaMonster {
 					if (player.type == DaPlayerTypes.Npc) {
 						//NPC react to action of player
 						player.ReactOnAction(card, args);
-					}else{
-						//check for stop card						
-						if (player.hand.find((c) => {
-							c.type == DaCardType.Action && c.action == DaActions.Stop
-						}))
-						player.waitForStopAction = true;
-						
 					}
 				})
 			});
