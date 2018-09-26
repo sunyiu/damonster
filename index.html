@@ -24,9 +24,6 @@
                 display: block;
                 width: 75%;                
             }
-            da-player#npc{
-                right: 0;
-            }
         </style>
     </head>
     
@@ -68,11 +65,13 @@
             });
             
             Observable.addListener(player,'monsterKilled', (newValue)=>{
-                 let cards = '';
+                let monsters = [];
                 player.monsterKilled.forEach((c, index) =>{
-                    cards += ( '[' + index + '-' + c.tostring() + '], ');
+                    monsters.push({
+                        'id': c.id
+                    });
                 });
-                daPlayerComponent.setAttribute('data-monster-killed', cards);            
+                daPlayerComponent.setAttribute('data-monster-killed',  JSON.stringify({'monsters': monsters}));            
             });       
             
             Observable.addListener(player,'hero', (newValue)=>{                                                                         
@@ -160,12 +159,11 @@
                 if (newValue){
                     let monster = {
                         'id': newValue.id,
-                        'type': newValue.type,
                         'point': newValue.point                    
                     };                            
-                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': monster}));
+                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'monster': monster}));
                 }else{
-                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'card': undefined}));
+                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'monster': undefined}));
                 }                               
             });
             return daMonsterComponent;                

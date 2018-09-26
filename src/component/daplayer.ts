@@ -23,8 +23,8 @@ export default class DaPlayer extends HTMLElement {
                     left: 0px
                 }                
                 #hero-context{
-                    width: 100px;
-                    height: 100px;                    
+                    width: 120px;
+                    height: 120px;                    
                     background-size: contain;
                     background-repeat: no-repeat;  
                     background-position-y: bottom;
@@ -57,14 +57,7 @@ export default class DaPlayer extends HTMLElement {
                 #da-hero-container.r #da-hero-type-icon{
                     background-image: url(images/arrowIcon_black.png);
                 }
-                
-                #items-container #items-context div{                
-                    width: 50px;
-                    height: 50px;
-                    background-image: url(images/swordicon_black.png);
-                    background-size: contain;
-                }                                
-                
+                                                
                 #point-container{
                     position: absolute;
                     top: 0;
@@ -83,10 +76,36 @@ export default class DaPlayer extends HTMLElement {
                 
                 #items-container{
                     position: absolute;
-                    top: 50px;
-                    left: 150px;                    
+                    bottom: 0px;
+                    left: 170px;                    
+                }
+                #items-container #items-context{
+                    display: flex;
                 }
                 
+                #items-container #items-context div{                
+                    width: 50px;
+                    height: 50px;
+                    background-image: url(images/swordicon_black.png);
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    margin-right: 10px;
+                }
+                
+                #da-monster-kill-container{
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                }
+                
+                #da-monster-kill-container #monster-context div{
+                    width: 40px;
+                    height: 40px;
+                    background-image: url(images/monster_die.png);
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    margin-right: 10px;
+                }                                                                
                 
                 #da-button-bar{
                     height: 25px;
@@ -101,16 +120,18 @@ export default class DaPlayer extends HTMLElement {
                 <div id="da-hero-container">
                     <div id="da-hero-type-icon"></div>                
                     <div id="hero-context"></div>                                                            
-                </div>
-                <div id="point-container">
-                    <div id="point-context"></div>
-                </div>
-                <div id="items-container">
-                    <div id="items-context"></div>
-                </div>                                
-                
-                <div id="da-monster-kill-container">
-                    <div id="monster-context"></div>
+
+                    <div id="point-container">
+                        <div id="point-context"></div>
+                    </div>
+                    
+                    <div id="items-container">
+                        <div id="items-context"></div>
+                    </div>
+                                                                                    
+                    <div id="da-monster-kill-container">
+                        <div id="monster-context"></div>
+                    </div>
                 </div>
                                             
                 <div id="da-hand-container"">
@@ -271,17 +292,30 @@ export default class DaPlayer extends HTMLElement {
                 data.items.forEach((i) => {
                     let existingCard = this.shadowRoot.getElementById('items-context').querySelector('#id' + i.id);
                     if (!existingCard) {
-                        let card = '<div id="' + i.id + '">' + i.point + '</div>';
-                        this.shadowRoot.getElementById('items-context').innerHTML += card;
+                        let card =  document.createElement('div');
+                        card.setAttribute('id', i.id);
+                        card.innerHTML = i.point;
+                        this.shadowRoot.getElementById('items-context').append(card);
                     }
                 })
             }else{
-                this.shadowRoot.getElementById('items-context').innerHTML = ''                
+                this.shadowRoot.getElementById('items-context').innerHTML = '';
             }                                                 
         }
         
         if (name === 'data-monster-killed' && newValue){
-            this.shadowRoot.getElementById('monster-context').innerHTML = newValue;
+            let data = JSON.parse(newValue);           
+            if (data.monsters) {                       
+                //add new card
+                data.monsters.forEach((i) => {
+                    let existingCard = this.shadowRoot.getElementById('monster-context').querySelector('#id' + i.id);
+                    if (!existingCard) {
+                        let card = document.createElement('div');
+                        card.setAttribute('id', i.id);                        
+                        this.shadowRoot.getElementById('monster-context').append(card);
+                    }
+                })
+            }                                                 
         }
         
         if (name == 'data-monster-invade' && newValue){

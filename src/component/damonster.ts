@@ -1,7 +1,5 @@
 'use strict';
 
-import DaCard from './dacard.js'
-
 export default class DaMonsterComponent extends HTMLElement {
     public static get is(): string { return 'da-monster'; }
 
@@ -10,12 +8,42 @@ export default class DaMonsterComponent extends HTMLElement {
             <style>
                 #da-monster-container{
                     height: 150px;
-                    background-color: lightgray;
+                    background-color: lightgray;                                        
+                }
+                #da-monster-container #da-monster-context{
+                    position: relative;
+                }
+                #da-monster-container #da-monster-context #da-monster{
+                    display: block;
+                    width: 125px;
+                    height: 125px;
+                    background-size: contain;
+                    background-image: url(images/monster.png);
+                    background-repeat: no-repeat;
+                    position: absolute;
+                    top: 12px;
+                    left: 50%;
+                    margin-left: -62px                                        
+                }
+                #da-monster-container #da-monster-context #da-monster.hidden{
+                    display: none;
+                }
+                #da-monster-container #da-monster-context #da-monster #da-monster-point{
+                    font-size: 30pt;
+                    font-weight: bold;
+                    background-color: rgba(255,255,255,0.75);
+                    display: block;
+                    width: 50px;
+                    text-align: center;
+                    border-radius: 10px;
                 }
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-monster-container">
-                <div id="da-monster-context"></div>
+                <div id="da-monster-context">
+                    <div id="da-monster" class="hidden"><div id="da-monster-point"></div></div>
+                    <div id="da-monsters-left-container"></div>
+                </div>
             </div>
         `;
     }
@@ -64,20 +92,16 @@ export default class DaMonsterComponent extends HTMLElement {
         this.props[name] = newValue;           
         
         if (name === 'data-card' && newValue){
-            Array.from(this.shadowRoot.getElementById('da-monster-context').children).forEach((c) =>{
-                c.remove();
-            });
+            let data = JSON.parse(newValue);
             
-            let monster = JSON.parse(newValue);
-            if (monster.card){
-                let daCard = new DaCard();
-                daCard.setAttribute('id', 'id', monster.card.id);
-                daCard.setAttribute('data-id', monster.card.id);                
-                daCard.setAttribute('data-point', monster.card.point);
-                daCard.setAttribute('data-card-type', monster.card.type);
-                
-                this.shadowRoot.getElementById('da-monster-context').appendChild(daCard);                
+            if (data.monster){
+                let id = data.monster.id;
+                this.shadowRoot.getElementById('da-monster').classList.remove('hidden');
+                this.shadowRoot.getElementById('da-monster-point').innerHTML = data.monster.point;
+            }else{
+                this.shadowRoot.getElementById('da-monster').classList.add('hidden');
             }
+            
         }                                        
     }
     
