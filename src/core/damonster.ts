@@ -107,7 +107,10 @@ export default class DaMonster {
 					
 					if (player.type == DaPlayerTypes.Npc) {
 						//NPC react to action of player
-						player.ReactOnAction(card, args);
+						//reture false if NPC do nothing and the card action will be execute....
+						if (!player.ReactOnAction(card, args)){
+							this.ExeCardAction();
+						}
 					}
 				})
 			});

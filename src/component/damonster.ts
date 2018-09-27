@@ -8,60 +8,62 @@ export default class DaMonsterComponent extends HTMLElement {
             <style>
                 #da-monster-container{
                     background-color: lightgray;
-                    height: 150px;                                        
+                    height: 80px;                                        
                 }
                 #da-monster-container #da-monster-context{
                     position: relative;
                 }
                 #da-monster-container #da-monster-context #da-monster{
                     display: block;
-                    width: 125px;
-                    height: 125px;
+                    width: 60px;
+                    height: 60px;
                     background-size: contain;
                     background-image: url(images/monster.png);
                     background-repeat: no-repeat;
                     position: absolute;
-                    top: 12px;
+                    top: 5px;
                     left: 50%;
-                    margin-left: -62px                                        
+                    margin-left: -30px                                        
                 }
                 #da-monster-container #da-monster-context #da-monster.hidden{
                     display: none;
                 }
                 #da-monster-container #da-monster-context #da-monster #da-monster-point{
-                    font-size: 30pt;
+                    font-size: 8pt;
                     font-weight: bold;
                     background-color: rgba(255,255,255,0.75);
                     display: block;
-                    width: 50px;
                     text-align: center;
                     border-radius: 10px;
+                    padding-top: 50;
+                    width: 25px;
+                    margin-top: 5px;                    
                 }
                 
                 #da-monsters-left-container{
                     display: flex;
+                    padding: 5px;
                 }
-                #da-monsters-left-container div{
-                    width: 80px;
-                    height: 80px;
+                #da-monsters-left-container .da-monster{
+                    position: relative;
+                    width: 35px;
+                    height: 35px;
                     background-size: contain;
                     background-image: url(images/monster.png);
                     background-repeat: no-repeat;
+                    font-size: 10pt;
+                }
+                #da-monsters-left-container .da-monster #da-monster-point{
+                    background-color: rgba(255,255,255, 0.75);
+                    top: 50%;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    padding: 2px;
+                    border-radius: 5px;                    
                 }
                 
-                @media only screen and (max-width: 500px) {
-                    #da-monster-container{
-                        height: 80px;
-                    }                    
-                    #da-monster-container #da-monster-context #da-monster{
-                        display: block;
-                        width: 50px;
-                        height: 50px;
-                    }                    
-                    #da-monsters-left-container div{
-                        width: 50px;
-                        height: 50px;
-                    }
+                @media only screen and (min-width: 500px) {
                 }               
 
                 
@@ -78,14 +80,6 @@ export default class DaMonsterComponent extends HTMLElement {
     
     public static get properties(){
         return{
-            'data-card':{
-                type: String,
-                value: ''
-            },
-            'data-available-monsters':{
-                type: String,
-                value: ''
-            }
         };
     }
    
@@ -121,35 +115,7 @@ export default class DaMonsterComponent extends HTMLElement {
             return;
         }
 
-        this.props[name] = newValue;           
-        
-        if (name === 'data-card' && newValue){
-            let data = JSON.parse(newValue);
-            
-            if (data.monster){
-                let id = data.monster.id;
-                this.shadowRoot.getElementById('da-monster').classList.remove('hidden');
-                this.shadowRoot.getElementById('da-monster-point').innerHTML = data.monster.point;
-            }else{
-                this.shadowRoot.getElementById('da-monster').classList.add('hidden');
-            }            
-        }    
-        
-        if (name === 'data-available-monsters' && newValue){
-            let data = JSON.parse(newValue);
-            if (data.monsters){
-                data.monsters.forEach((m) => {
-                    let existingCard = this.shadowRoot.getElementById('da-monsters-left-container').querySelector('#id' +  m.id);
-                    //check for existing monster
-                    if (!existingCard){
-                        let monster = document.createElement('div');
-                        monster.setAttribute('id', 'id'+m.id);
-                        monster.innerHTML = m.point;
-                        this.shadowRoot.getElementById('da-monsters-left-container').append(monster);
-                    }
-                })                                   
-            }            
-        }                                    
+        this.props[name] = newValue;                   
     }
     
     private requestRender(): void {
@@ -158,6 +124,24 @@ export default class DaMonsterComponent extends HTMLElement {
         template.innerHTML = this.getTemplate({});
         
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+    
+    public setMonster(monster){
+        if (monster){
+            let id = monster.id;
+            this.shadowRoot.getElementById('da-monster').classList.remove('hidden');
+            this.shadowRoot.getElementById('da-monster-point').innerHTML = monster.point;
+        }else{
+            this.shadowRoot.getElementById('da-monster').classList.add('hidden');
+        }                    
+    }
+    
+    public addMonster(monster){
+        let daMonster = document.createElement('div');
+        daMonster.setAttribute('id', 'id'+monster.id);
+        daMonster.classList.add('da-monster')
+        daMonster.innerHTML = '<div id="da-monster-point">' +  monster.point + '</div>';
+        this.shadowRoot.getElementById('da-monsters-left-container').append(daMonster);                
     }             
 }
 

@@ -8,43 +8,39 @@ export default class DaCard extends HTMLElement {
             <style>                                            
                 #da-card-container{
                     display: inline-block;
-                    margin: 3px; 
-                    padding: 3px;                   
+                    margin: 2px; 
+                    padding: 2px;                   
                     border: 1px solid #ccc;
-                    border-radius: 5px;
-                    background-color: #fff;                
+                    border-radius: 2px;
+                    background-color: #fff;
+                    font-size: 10pt;               
                 }
                 #da-card-container.selected{
                     border:2px solid red;
-                    margin:2px;
+                    margin:1px;
+                    padding:1px;
                 }
                 #da-card-container.disabled #da-card-context{
                     background-color: #7f7f7f !important;
                 }
                 #da-card-container #da-card-context{
                     /*0.7142857142857143 -- card ratio*/                    
-                    width: 71px;
-                    height: 100px;                  
+                    width: 36px;
+                    height: 50px;                  
                     background-color: #7F7F7F;
                     border-radius: 3px;
                     position: relative;
                 }
                 
                 #da-card-container #da-card-context .icon{
-                    width: 25px;
-                    height: 40px;
-                    position: absolute;
-                    top: 3px;
-                    right: 3px;
-                    background-size: contain;
-                    background-repeat: no-repeat;
+                    padding: 2px;
                     color: black;
                 }
-                #da-card-container #da-card-context .icon .point{
-                    position: absolute;
-                    bottom: 0;
-                    right: 0;
+                #da-card-container #da-card-context .icon #point-context{
                     font-size: 12px;
+                    text-align: right;
+                    background-size: contain;
+                    background-repeat: no-repeat;                    
                 }
                 
                 #da-card-container.card-h #da-card-context{
@@ -54,17 +50,17 @@ export default class DaCard extends HTMLElement {
                     background-color: #14850E;
                     
                 }
-                #da-card-container.card-i.hero-k #da-card-context .icon,
-                #da-card-container.card-h.hero-k #da-card-context .icon{
+                #da-card-container.card-i.hero-k #da-card-context .icon #point-context,
+                #da-card-container.card-h.hero-k #da-card-context .icon #point-context{
                     background-image: url(images/swordIcon_black.png);                    
                 }
-                #da-card-container.card-i.hero-w #da-card-context .icon,
-                #da-card-container.card-h.hero-w #da-card-context .icon{
+                #da-card-container.card-i.hero-w #da-card-context .icon #point-context,
+                #da-card-container.card-h.hero-w #da-card-context .icon #point-context{
                     background-image: url(images/staffIcon_black.png);
                     
                 }
-                #da-card-container.card-i.hero-r #da-card-context .icon,
-                #da-card-container.card-h.hero-r #da-card-context .icon {
+                #da-card-container.card-i.hero-r #da-card-context .icon #point-context,
+                #da-card-container.card-h.hero-r #da-card-context .icon #point-context {
                     background-image: url(images/arrowIcon_black.png);
                 }
                 
@@ -80,31 +76,14 @@ export default class DaCard extends HTMLElement {
                 }                
                 #da-card-container.card-m #da-card-context .icon{                    
                 }
-                
-                @media only screen and (max-width: 500px) {
-                    #da-card-container{
-                        margin: 2px; 
-                        padding: 2px;                   
-                        border-radius: 2px;                
-                    }
-                    #da-card-container.selected{
-                        border:1px solid red;
-                        margin:1px;
-                    }                    
-                    
-                    #da-card-container #da-card-context{
-                        width: 36px;
-                        height: 50px; 
-                    }
-                }               
-                
+                                                              
                 
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-card-container">
                 <div id="da-card-context" class="">
                     <div class="icon">
-                        <div id="point-context" class="point"></div>
+                        <div id="point-context" class=""></div>
                     </div>
                 </div>
             </div>

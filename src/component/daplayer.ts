@@ -11,6 +11,7 @@ export default class DaPlayer extends HTMLElement {
                 #da-player-container{
                     position: relative;
                     margin: 10px;
+                    padding-bottom: 5px;
                 }
                 
                 #hand-context{
@@ -21,14 +22,18 @@ export default class DaPlayer extends HTMLElement {
                 #da-hero-container{
                     position: relative;
                     left: 0px
+                    padding-bottom: 5px;                    
                 }                
                 #hero-context{
-                    width: 120px;
-                    height: 120px;                    
+                    width: 50px;
+                    height: 50px;                    
+                    margin-left: 10px;
                     background-size: contain;
                     background-repeat: no-repeat;  
                     background-position-y: bottom;
                     background-image: url(images/none.png);
+                    background-color: #aaa;
+                    border-radius: 25px;
                 }
                 #da-hero-container.k #hero-context{
                     background-image: url(images/knight.png);
@@ -40,13 +45,17 @@ export default class DaPlayer extends HTMLElement {
                     background-image: url(images/ranger.png);
                 }
                 #da-hero-container #da-hero-type-icon{
-                    width: 15px;
-                    height: 15px;                    
+                    width: 25px;
+                    height: 25px;                    
                     background-repeat: no-repeat;
-                    background-size: contain;
+                    /*background-size: contain;*/
                     position: absolute;
                     bottom: 0;
-                    left: 0;
+                    left: 50px;
+                    background-color: #aaa;
+                    border-radius: 13px;
+                    background-size: 70%;
+                    background-position: 2px 4px;
                 }
                 #da-hero-container.k #da-hero-type-icon{
                     background-image: url(images/swordIcon_black.png);
@@ -60,14 +69,17 @@ export default class DaPlayer extends HTMLElement {
                                                 
                 #point-container{
                     position: absolute;
-                    top: 0;
-                    left: 75px;
-                    height: 25px;
-                    width: 25px;
-                    border-radius: 23px;
-                    background-color: rgba(100, 100, 100, 0.75);
+                    top: 0px;
+                    left: 0px;
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 10px;
+                    background-color: #aaa;
                     color: white;
-                    font-size: 1em;                    
+                    font-size: 10pt;                    
+                }
+                #point-container.hidden{
+                    display: none;
                 }
                 #point-container #point-context{
                     text-align: center;
@@ -77,19 +89,19 @@ export default class DaPlayer extends HTMLElement {
                 #items-container{
                     position: absolute;
                     bottom: 0px;
-                    left: 170px;                    
+                    left: 85px;                    
                 }
                 #items-container #items-context{
                     display: flex;
                 }
                 
                 #items-container #items-context div{                
-                    width: 50px;
-                    height: 50px;
+                    width: 25px;
+                    height: 25px;
                     background-image: url(images/swordicon_black.png);
                     background-size: contain;
                     background-repeat: no-repeat;
-                    margin-right: 10px;
+                    margin-right: 5px;
                 }
                 
                 #da-monster-kill-container{
@@ -99,12 +111,12 @@ export default class DaPlayer extends HTMLElement {
                 }
                 
                 #da-monster-kill-container #monster-context div{
-                    width: 40px;
-                    height: 40px;
+                    width: 20px;
+                    height: 20px;
                     background-image: url(images/monster_die.png);
                     background-size: contain;
                     background-repeat: no-repeat;
-                    margin-right: 10px;
+                    margin-right: 5px;
                 }                                                                
                 
                 #da-button-bar{
@@ -116,10 +128,6 @@ export default class DaPlayer extends HTMLElement {
                 
                 
                 @media only screen and (max-width: 500px) {                
-                    #hero-context{
-                        width: 50px;
-                        height: 50px;            
-                    }        
                 }
 
                 
@@ -159,30 +167,6 @@ export default class DaPlayer extends HTMLElement {
     public static get properties(){
         return{
             'data-name':{
-                type: String,
-                value: ''
-            },
-            'data-hand':{
-                type: String,
-                value: ''
-            },
-            'data-hero': {
-                type: String,
-                value: ''
-            },
-            'data-point':{
-                type: String,
-                value: ''
-            },
-            'data-hero-items': {
-                type: String,
-                value: ''
-            },
-            'data-monster-killed':{
-                type: String,
-                value: ''
-            },
-            'data-monster-invade':{
                 type: String,
                 value: ''
             }
@@ -228,113 +212,7 @@ export default class DaPlayer extends HTMLElement {
             return;
         }
 
-        this.props[name] = newValue;
-        
-        if (name === 'data-hand' && newValue) {                        
-            let hand = JSON.parse(newValue);
-            
-            //remove discarded card
-            Array.from(this.shadowRoot.getElementById('hand-context').children).forEach((daCard) =>{
-                let id = daCard.getAttribute('id');                
-                    if (hand.cards.every((c) => {
-                        return id != 'id'+c.id;
-                    })){
-                        daCard.remove();                        
-                    }
-            })
-            
-            //add new card
-            hand.cards.forEach((c) =>{
-                let existingCard = this.shadowRoot.getElementById('hand-context').querySelector('#id' +  c.id);                
-                if (!existingCard){                
-                    let card = new DaCard();
-                    card.setAttribute('id', 'id'+c.id);
-                    card.setAttribute('data-id', c.id);                
-                    if (c.point){
-                        card.setAttribute('data-point', c.point);
-                    }
-                    card.setAttribute('data-card-type', c.type);
-                    switch (c.type){
-                        case 'h':
-                        case 'i':
-                        card.setAttribute('data-hero', c.heroType);
-                        break;
-                        case 'a':
-                            card.setAttribute('data-action', c.actionType)
-                            break;    
-                    }                           
-                    card.addEventListener('card-toggle', (e)=>{
-                        this.toggleCard(e.currentTarget, e.detail);
-                    });
-                    
-                    this.shadowRoot.getElementById('hand-context').appendChild(card);
-                }
-            })                                                           
-        }
-        
-        if (name === 'data-hero' && newValue){
-            this.shadowRoot.getElementById('da-hero-container').classList.remove('k', 'w', 'r');
-            let hero = JSON.parse(newValue);
-            if (hero.card){                                           
-                this.shadowRoot.getElementById('da-hero-container').classList.add(hero.card.heroType);                                
-            }
-        }
-        
-        if (name === 'data-point' && newValue){
-            this.shadowRoot.getElementById('point-context').innerHTML = newValue;
-        }
-        
-        if (name === 'data-hero-items' && newValue){
-            let data = JSON.parse(newValue);           
-            if (data.items) {            
-                //remove discarded card
-                Array.from(this.shadowRoot.getElementById('items-context').children).forEach((item) => {
-                    let id = item.getAttribute('id');
-                    if (data.items.every((i) => {
-                        return id != 'id' + i.id;
-                    })) {
-                        item.remove();
-                    }
-                });
-            
-                //add new card
-                data.items.forEach((i) => {
-                    let existingCard = this.shadowRoot.getElementById('items-context').querySelector('#id' + i.id);
-                    if (!existingCard) {
-                        let card =  document.createElement('div');
-                        card.setAttribute('id', i.id);
-                        card.innerHTML = i.point;
-                        this.shadowRoot.getElementById('items-context').append(card);
-                    }
-                })
-            }else{
-                this.shadowRoot.getElementById('items-context').innerHTML = '';
-            }                                                 
-        }
-        
-        if (name === 'data-monster-killed' && newValue){
-            let data = JSON.parse(newValue);           
-            if (data.monsters) {                       
-                //add new card
-                data.monsters.forEach((i) => {
-                    let existingCard = this.shadowRoot.getElementById('monster-context').querySelector('#id' + i.id);
-                    if (!existingCard) {
-                        let card = document.createElement('div');
-                        card.setAttribute('id', i.id);                        
-                        this.shadowRoot.getElementById('monster-context').append(card);
-                    }
-                })
-            }                                                 
-        }
-        
-        if (name == 'data-monster-invade' && newValue){
-            let readyBtn = this.shadowRoot.getElementById('readyBattleBtn');
-            if (newValue == 'true'){                
-                readyBtn.removeAttribute('disabled');
-            }else{
-                readyBtn.setAttribute('disabled', true);                
-            }            
-        }                                
+        this.props[name] = newValue;                                                    
     }
     
     private requestRender(): void {
@@ -406,7 +284,93 @@ export default class DaPlayer extends HTMLElement {
         target.setAttribute('disabled', true);
         this.dispatchEvent(new CustomEvent('play-action', {detail: this.currentAction, bubbles: true, composed: true}));
         
+    }
+    
+    public getHandIds(){
+        return Array.from(this.shadowRoot.getElementById('hand-context').children).map((n) =>{
+            return parseInt(n.getAttribute('id').substring(2));
+        })
+    }
+    public addHand(card){
+        let daCard = new DaCard();
+        daCard.setAttribute('id', 'id'+card.id);
+        daCard.setAttribute('data-id', card.id);                
+        if (card.point){
+            daCard.setAttribute('data-point', card.point);
+        }
+        daCard.setAttribute('data-card-type', card.type);
+        switch (card.type){
+            case 'h':
+            case 'i':
+            daCard.setAttribute('data-hero', card.heroType);
+            break;
+            case 'a':
+                daCard.setAttribute('data-action', card.action)
+                break;    
+        }                           
+        daCard.addEventListener('card-toggle', (e)=>{
+            this.toggleCard(e.currentTarget, e.detail);
+        });
+        
+        this.shadowRoot.getElementById('hand-context').appendChild(daCard);     
+    }
+    public removeHand(id){
+        let existingCard = this.shadowRoot.getElementById('hand-context').querySelector('#id' + id);
+        if (existingCard){
+            existingCard.remove();
+        }
+    }
+    
+    
+    public setHero(hero){
+        this.shadowRoot.getElementById('da-hero-container').classList.remove('k', 'w', 'r');
+        if (hero){
+            this.shadowRoot.getElementById('da-hero-container').classList.add(hero.heroType);                        
+        }        
     }    
+    
+    public addItem(item){
+        let card =  document.createElement('div');
+        card.setAttribute('id', 'id'+item.id);
+        card.innerHTML = item.point;
+        this.shadowRoot.getElementById('items-context').append(card);
+    }
+    
+    public removeItem(item){
+        let existingCard = this.shadowRoot.getElementById('items-context').querySelector('#id' + item.id);
+        if (existingCard){
+            existingCard.remove();
+        }        
+    }
+    public removeAllItems(){
+        Array.from(this.shadowRoot.getElementById('items-context').children).forEach((n) =>{
+            n.remove();
+        });
+    }    
+    public getItemIds(){
+        return Array.from(this.shadowRoot.getElementById('items-context').children).map((n) =>{
+            return parseInt(n.getAttribute('id').substring(2));
+        })
+    }
+    
+    public setPoint(point){
+        this.shadowRoot.getElementById('point-context').innerHTML = point;
+    }
+    
+    public addMonsterKilled(id){
+        let card = document.createElement('div');
+        card.setAttribute('id', id);                        
+        this.shadowRoot.getElementById('monster-context').append(card);
+    }
+    
+    public monsterInvade(isInvade){
+        let readyBtn = this.shadowRoot.getElementById('readyBattleBtn');
+        if (isInvade){                
+            readyBtn.removeAttribute('disabled');
+        }else{
+            readyBtn.setAttribute('disabled', true);                
+        }            
+    }
 
 }
 

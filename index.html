@@ -49,60 +49,63 @@
             daPlayerComponent.setAttribute('id', player.name);
                             
             Observable.addListener(player,'hand', (newValue)=>{
-                let cards = [];
+            
+                let handIds = daPlayerComponent.getHandIds();                        
+                handIds.forEach((id) =>{
+                    if (player.hand.every((i) =>{
+                        return i.id != id;
+                    })){
+                        daPlayerComponent.removeHand(id);
+                    }
+                });
+                
                 player.hand.forEach((c, index) =>{
-                    cards.push({
-                        'id': c.id,
-                        'type': c.type,
-                        'heroType': (c.type == DaCardType.Hero || c.type == DaCardType.Item ? c.heroType : ''),
-                        'actionType': (c.type == DaCardType.Action ? c.action : ''),
-                        'point': c.point
-                    });
-                    //cards += ( '[' + index + '-' + c.tostring() + '], ');
-                });                
-                daPlayerComponent.setAttribute('data-hand', JSON.stringify({'cards': cards}));
-                //console.log(player.name + ' ' + newValue);
+                    if (handIds.every((id) => {
+                        return c.id != id;
+                    })){
+                        daPlayerComponent.addHand(c);
+                    }
+                });
             });
             
             Observable.addListener(player,'monsterKilled', (newValue)=>{
-                let monsters = [];
-                player.monsterKilled.forEach((c, index) =>{
-                    monsters.push({
-                        'id': c.id
-                    });
-                });
-                daPlayerComponent.setAttribute('data-monster-killed',  JSON.stringify({'monsters': monsters}));            
+                daPlayerComponent.addMonsterKilled(newValue.id);
             });       
             
-            Observable.addListener(player,'hero', (newValue)=>{                                                                         
-                if (newValue){                
-                    let hero = {
-                        'id': newValue.id,
-                        //'type': newValue.type,
-                        'heroType': newValue.heroType,
-                        'point': newValue.point                    
-                    };
-                    daPlayerComponent.setAttribute('data-hero', JSON.stringify({'card': hero}));
-                    daPlayerComponent.setAttribute('data-point', newValue.totalPoint);                    
-                                                     
+            Observable.addListener(player,'hero', (newValue)=>{
+                daPlayerComponent.setHero(newValue);                                                                                         
+                
+                if (newValue){                                        
+                    daPlayerComponent.setPoint(newValue.totalPoint);                                            
+                    
                     //remove existing listener and hook to new hero.item??                                        
                     //hook to new hero.item                
-                    Observable.addListener(newValue, 'items', (newValue) =>{
-                        let items = [];
-                        player.hero.items.forEach((i, index) =>{
-                            items.push({
-                                'id': i.id,
-                                'point': i.point
-                            });                            
+                    Observable.addListener(newValue, 'items', (newValue) =>{                    
+                        let itemIds = daPlayerComponent.getItemIds();
+                        
+                        itemIds.forEach((id) =>{
+                            if (player.hero.items.every((i) =>{
+                                return i.id != id;
+                            })){
+                                daPlayerComponent.removeItem(id);
+                            }
                         });
-                        daPlayerComponent.setAttribute('data-hero-items', JSON.stringify({'items':items}));
-                        daPlayerComponent.setAttribute('data-point', player.hero.totalPoint);                    
-                    });                                        
+                        
+                        player.hero.items.forEach((i) =>{
+                            if (itemIds.every((id) => {
+                                return i.id != id;
+                            })){
+                                daPlayerComponent.addItem(i);
+                            }
+                        });
+                        daPlayerComponent.setPoint(player.hero.totalPoint);
+                    });
+                    daPlayerComponent.setPoint(newValue.totalPoint);                                        
                 }else{
-                    daPlayerComponent.setAttribute('data-hero', JSON.stringify({'card':undefined}));
-                    daPlayerComponent.setAttribute('data-hero-items', JSON.stringify({'card':undefined}));
-                    daPlayerComponent.setAttribute('data-point', 0);
-                }                                                                                                           
+                    daPlayerComponent.removeAllItems();
+                    daPlayerComponent.setPoint(0);
+                } 
+                                                                                                                          
             });
                         
             if (!player.isNPC){                        
@@ -141,11 +144,11 @@
                     player.ReadyBattle();
                 });
                 
-                Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
-                    if (newValue){
-                        daPlayerComponent.setAttribute('data-monster-invade', true);
+                Observable.addListener(daMonsterGame, 'monster', (newValue)=>{                
+                    if (newValue){                    
+                        daPlayerComponent.monsterInvade(true);
                     }else{
-                        daPlayerComponent.setAttribute('data-monster-invade', false);
+                        daPlayerComponent.monsterInvade(false);
                     }           
                 });    
             }        
@@ -156,27 +159,12 @@
         let bindMonster = (daMonsterGame) => {
             let daMonsterComponent = new DaMonsterComponent();
             Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
-                if (newValue){
-                    let monster = {
-                        'id': newValue.id,
-                        'point': newValue.point                    
-                    };                            
-                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'monster': monster}));
-                }else{
-                    daMonsterComponent.setAttribute('data-card', JSON.stringify({'monster': undefined}));
-                }                               
+                daMonsterComponent.setMonster(newValue);
             });
             
             Observable.addListener(daMonsterGame, 'availableMonsters', (newValue) =>{
                 if (newValue){
-                    let monsters = [];
-                    daMonsterGame.availableMonsters.forEach((m) =>{
-                        monsters.push({
-                            'id': m.id,
-                            'point': m.point                                                    
-                        });
-                    });
-                    daMonsterComponent.setAttribute('data-available-monsters', JSON.stringify({'monsters': monsters}));
+                    daMonsterComponent.addMonster(daMonsterGame.availableMonsters[daMonsterGame.availableMonsters.length-1]);
                 }
             });
             

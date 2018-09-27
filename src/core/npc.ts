@@ -42,8 +42,8 @@ export class DaNpc extends DaPlayer {
 		let stopCard = this.hand.find((c) => {return c.action == DaActions.Stop;});
 		
 		if (stopCard){
-			super.PlayAnAction(stopCard);
-			return stopCard;
+			super.PlayAnAction(stopCard);			
+			return true;
 		}
 		return false;
 	}
