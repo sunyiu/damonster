@@ -17,12 +17,11 @@
             damonster{
                 position: absolute;
                 top: 50%;
-                margin-top: -334px;
+                margin-top: -250px;
                 width: 100%;
             }
             da-player{
-                display: block;
-                width: 75%;                
+                display: block;                
             }
         </style>
     </head>
@@ -46,6 +45,10 @@
                 
         let bindPlayer = (player, daMonsterGame) => {
             let daPlayerComponent = new DaPlayer();
+            if (player.isNPC){
+                daPlayerComponent.setNPC();
+            }
+            
             daPlayerComponent.setAttribute('id', player.name);
                             
             Observable.addListener(player,'hand', (newValue)=>{

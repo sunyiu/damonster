@@ -5,7 +5,7 @@ export default class DaCard extends HTMLElement {
 
     public getTemplate(props: any): string {
         return `
-            <style>                                            
+            <style>               
                 #da-card-container{
                     display: inline-block;
                     margin: 2px; 
@@ -15,13 +15,14 @@ export default class DaCard extends HTMLElement {
                     background-color: #fff;
                     font-size: 10pt;               
                 }
+                                     
                 #da-card-container.selected{
                     border:2px solid red;
                     margin:1px;
                     padding:1px;
                 }
                 #da-card-container.disabled #da-card-context{
-                    background-color: #7f7f7f !important;
+                    /*background-color: #7f7f7f !important;*/
                 }
                 #da-card-container #da-card-context{
                     /*0.7142857142857143 -- card ratio*/                    
@@ -78,10 +79,23 @@ export default class DaCard extends HTMLElement {
                 }
                                                               
                 
+                
+                #da-card-container.back #da-card-context{
+                    background-color: lightblue;
+                }
+                #da-card-container.back #da-card-context div{
+                    display: none;
+                }
+                
+                #da-card-container.hidden{
+                    display:none;                    
+                }                 
+                                
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-card-container">
                 <div id="da-card-context" class="">
+                    <div id="da-card-action"></div>
                     <div class="icon">
                         <div id="point-context" class=""></div>
                     </div>
@@ -193,7 +207,7 @@ export default class DaCard extends HTMLElement {
                     action = 'Mind Reading';
                     break;                    
             }
-            this.shadowRoot.getElementById('da-card-context').innerHTML = action;
+            this.shadowRoot.getElementById('da-card-action').innerHTML = action;
         }               
         
         if (name === 'data-hero' && newValue){
@@ -232,6 +246,16 @@ export default class DaCard extends HTMLElement {
         let isSelected = !target.classList.contains('selected');
         this.setAttribute('data-is-selected', isSelected);        
         this.dispatchEvent(new CustomEvent('card-toggle', {detail: isSelected, bubbles: true, composed: true}));
+    }
+    
+    public showBack(){
+        this.shadowRoot.getElementById('da-card-container').classList.add('back');
+    }
+    public hide(){
+        this.shadowRoot.getElementById('da-card-container').classList.add('hidden');
+    }
+    public show(){
+        this.shadowRoot.getElementById('da-card-container').classList.remove('hidden');
     }
 }
 

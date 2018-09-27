@@ -11,23 +11,27 @@ export default class DaPlayer extends HTMLElement {
                 #da-player-container{
                     position: relative;
                     margin: 10px;
-                    padding-bottom: 5px;
+                    margin-bottom: 5px;
                 }
+                #da-menu-container{
+                    position: relative;
+                    margin-bottom: 5px;                                        
+                }                
                 
                 #hand-context{
                     display: flex;
-                    flex-wrap: wrap;
-                }                                  
+                    flex-wrap: wrap;                
+                }                   
                 
                 #da-hero-container{
                     position: relative;
-                    left: 0px
-                    padding-bottom: 5px;                    
-                }                
+                }               
+                
                 #hero-context{
                     width: 50px;
                     height: 50px;                    
                     margin-left: 10px;
+                    margin-right: 15px;
                     background-size: contain;
                     background-repeat: no-repeat;  
                     background-position-y: bottom;
@@ -122,6 +126,9 @@ export default class DaPlayer extends HTMLElement {
                 #da-button-bar{
                     height: 25px;
                 }
+                #da-button-bar.hidden{
+                    display: none;
+                }
                 #da-button-bar button:disabled{
                     display: none;
                 }
@@ -133,13 +140,15 @@ export default class DaPlayer extends HTMLElement {
                 
 			</style>
             <!-- shadow DOM for your element -->
-			<div id="da-player-container">                                                         
-                <div id="da-hero-container">
-                    <div id="da-hero-type-icon"></div>                
-                    <div id="hero-context"></div>                                                            
-
-                    <div id="point-container">
-                        <div id="point-context"></div>
+			<div id="da-player-container">
+                <div id="da-menu-container">                                                         
+                    <div id="da-hero-container">
+                        <div id="da-hero-type-icon"></div>                
+                        <div id="hero-context"></div>                                                            
+    
+                        <div id="point-container">
+                            <div id="point-context"></div>
+                        </div>
                     </div>
                     
                     <div id="items-container">
@@ -148,7 +157,7 @@ export default class DaPlayer extends HTMLElement {
                                                                                     
                     <div id="da-monster-kill-container">
                         <div id="monster-context"></div>
-                    </div>
+                    </div>                    
                 </div>
                                             
                 <div id="da-hand-container"">
@@ -185,7 +194,8 @@ export default class DaPlayer extends HTMLElement {
     }
 
     private props: any = {};
-    private currentAction;   
+    private currentAction;
+    private isNPC:boolean = false;   
 
     public constructor() {
         super();
@@ -286,13 +296,23 @@ export default class DaPlayer extends HTMLElement {
         
     }
     
+    public setNPC(){
+        this.isNPC = true;
+        this.shadowRoot.getElementById('da-button-bar').classList.add('hidden');
+    }
+    
     public getHandIds(){
         return Array.from(this.shadowRoot.getElementById('hand-context').children).map((n) =>{
             return parseInt(n.getAttribute('id').substring(2));
         })
     }
     public addHand(card){
-        let daCard = new DaCard();
+        let handContext = this.shadowRoot.getElementById('hand-context'), 
+            daCard = new DaCard();
+        if (this.isNPC){
+            daCard.showBack();
+        }
+                
         daCard.setAttribute('id', 'id'+card.id);
         daCard.setAttribute('data-id', card.id);                
         if (card.point){
@@ -312,13 +332,47 @@ export default class DaPlayer extends HTMLElement {
             this.toggleCard(e.currentTarget, e.detail);
         });
         
-        this.shadowRoot.getElementById('hand-context').appendChild(daCard);     
+        handContext.appendChild(daCard);
+        
+        if (this.isNPC){
+            this.setCardHidden();        
+        }             
     }
     public removeHand(id){
         let existingCard = this.shadowRoot.getElementById('hand-context').querySelector('#id' + id);
         if (existingCard){
             existingCard.remove();
         }
+        
+        if(this.isNPC){
+            this.setCardHidden();
+        }
+    }
+    private setCardHidden(){
+        if (!this.isNPC){
+            return;
+        }
+        
+        let handContext = this.shadowRoot.getElementById('hand-context'),
+            cards = Array.from(this.shadowRoot.getElementById('hand-context').children);
+        
+        if (cards.length < 1){
+            return
+        }
+        
+        let cardWidth = cards[0].offsetWidth,
+            maxNumberOfCards = Math.floor(this.offsetWidth / cardWidth) - 1;
+            
+        cards.forEach((c, index) =>{
+            if (index < maxNumberOfCards){
+                cards[index].show();
+            }else{
+                cards[index].hide();
+            }
+        });
+        if (cards.length > maxNumberOfCards){
+            //add ...
+        }                                
     }
     
     
