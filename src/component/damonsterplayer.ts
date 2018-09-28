@@ -1,9 +1,9 @@
 'use strict';
 
-import DaCard from './dacard.js'
+import DaMonsterCard from './damonstercard.js'
 
-export default class DaPlayer extends HTMLElement {
-    public static get is(): string { return 'da-player'; }
+export default class DaMonsterPlayer extends HTMLElement {
+    public static get is(): string { return 'da-monster-player'; }
 
     public getTemplate(props: any): string {
         return `
@@ -184,7 +184,7 @@ export default class DaPlayer extends HTMLElement {
         
         const attributes: string[] = [];
 
-        for (let key in DaPlayer.properties) {
+        for (let key in DaMonsterPlayer.properties) {
             attributes.push(key.toLowerCase());
         }
 
@@ -207,8 +207,8 @@ export default class DaPlayer extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaPlayer.properties) {
-            this.props[key] = DaPlayer.properties[key].value;
+        for (let key in DaMonsterPlayer.properties) {
+            this.props[key] = DaMonsterPlayer.properties[key].value;
         }                                
 
         this.requestRender();                                
@@ -362,31 +362,31 @@ export default class DaPlayer extends HTMLElement {
     }
     public addHand(card){
         let handContext = this.shadowRoot.getElementById('hand-context'), 
-            daCard = new DaCard();
+            daMonsterCard = new DaMonsterCard();
         if (this.isNPC){
-            daCard.showBack();
+            daMonsterCard.showBack();
         }
                 
-        daCard.setAttribute('id', 'id'+card.id);
-        daCard.setAttribute('data-id', card.id);                
+        daMonsterCard.setAttribute('id', 'id'+card.id);
+        daMonsterCard.setAttribute('data-id', card.id);                
         if (card.point){
-            daCard.setAttribute('data-point', card.point);
+            daMonsterCard.setAttribute('data-point', card.point);
         }
-        daCard.setAttribute('data-card-type', card.type);
+        daMonsterCard.setAttribute('data-card-type', card.type);
         switch (card.type){
             case 'h':
             case 'i':
-            daCard.setAttribute('data-hero', card.heroType);
+            daMonsterCard.setAttribute('data-hero', card.heroType);
             break;
             case 'a':
-                daCard.setAttribute('data-action', card.action)
+                daMonsterCard.setAttribute('data-action', card.action)
                 break;    
         }                           
-        daCard.addEventListener('card-toggle', (e)=>{
+        daMonsterCard.addEventListener('card-toggle', (e)=>{
             this.toggleCard(e.currentTarget, e.detail);
         });
         
-        handContext.appendChild(daCard);
+        handContext.appendChild(daMonsterCard);
         
         if (this.isNPC){
             this.setCardHidden();        
@@ -415,7 +415,7 @@ export default class DaPlayer extends HTMLElement {
         }
         
         let cardWidth = cards[0].offsetWidth,
-            maxNumberOfCards = Math.floor(this.offsetWidth / cardWidth) - 1;
+            maxNumberOfCards = Math.floor(document.body.offsetWidth / cardWidth) - 1;
             
         cards.forEach((c, index) =>{
             if (index < maxNumberOfCards){
@@ -485,4 +485,4 @@ export default class DaPlayer extends HTMLElement {
     // }
 }
 
-customElements.define(DaPlayer.is, DaPlayer);
+customElements.define(DaMonsterPlayer.is, DaMonsterPlayer);

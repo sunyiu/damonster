@@ -39,7 +39,7 @@ export class DaNpc extends DaPlayer {
 				return c.type == DaCardType.Action && c.action == DaActions.AtomicBomb;
 			});
 		
-		if (opponent.hero && opponent.hero.totalPoint > 0 && atomicBomb){
+		if (opponent.hero && opponent.hero.totalPoint > 0 && atomicBomb && !this.hero){
 			this.PlayAnAction(atomicBomb);
 		}else{		
 			//draw from deck

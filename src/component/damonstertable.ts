@@ -1,7 +1,7 @@
 'use strict';
 
-export default class DaMonsterComponent extends HTMLElement {
-    public static get is(): string { return 'da-monster'; }
+export default class DaMonsterTable extends HTMLElement {
+    public static get is(): string { return 'da-monster-table'; }
 
     public getTemplate(props: any): string {
         return `
@@ -89,7 +89,7 @@ export default class DaMonsterComponent extends HTMLElement {
         
         const attributes: string[] = [];
 
-        for (let key in DaMonsterComponent.properties) {
+        for (let key in DaMonsterTable.properties) {
             attributes.push(key.toLowerCase());
         }
 
@@ -105,8 +105,8 @@ export default class DaMonsterComponent extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaMonsterComponent.properties) {
-            this.props[key] = DaMonsterComponent.properties[key].value;
+        for (let key in DaMonsterTable.properties) {
+            this.props[key] = DaMonsterTable.properties[key].value;
         }                                
 
         this.requestRender();        
@@ -170,4 +170,4 @@ export default class DaMonsterComponent extends HTMLElement {
     }                 
 }
 
-customElements.define(DaMonsterComponent.is, DaMonsterComponent);
+customElements.define(DaMonsterTable.is, DaMonsterTable);

@@ -4,217 +4,27 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
         <title></title>
         <style>
             *{
                 padding: 0;
                 margin: 0;
             }
-            html, body{
-                width: 100%;
-                height: 100%;
-            }
-            damonster{
-                position: absolute;
-                top: 50%;
-                margin-top: -250px;
-                width: 100%;
-            }
-            da-player{
-                display: block;                
-            }
+            
         </style>
     </head>
     
     <body>
-        <damonster id='damonster'></damonster>
+        <div id="damonster-container"></div>
     </body>
+    
     <script type="module">
-        //core
-        import DaMonster from './dist/core/damonster.js';
-        import {DaCardType} from './dist/core/card.js';
-        import {DaPlayerEvents} from './dist/core/player.js';      
-
-        //web component                
-        import DaPlayer from './dist/component/daplayer.js';
-        import DaCard from './dist/component/dacard.js';
-        import DaMonsterComponent from './dist/component/damonster.js';
+        import DaMonsterGame from './dist/damonster.js';
         
-        //utilities
-        import Observable from './dist/utility/observable.js';
-                
-        let bindPlayer = (player, daMonsterGame) => {
-            let daPlayerComponent = new DaPlayer();
-            if (player.isNPC){
-                daPlayerComponent.setNPC();
-            }
-            
-            daPlayerComponent.setAttribute('id', player.name);
-                            
-            Observable.addListener(player,'hand', (newValue)=>{
-            
-                let handIds = daPlayerComponent.getHandIds();                        
-                handIds.forEach((id) =>{
-                    if (player.hand.every((i) =>{
-                        return i.id != id;
-                    })){
-                        daPlayerComponent.removeHand(id);
-                    }
-                });
-                
-                player.hand.forEach((c, index) =>{
-                    if (handIds.every((id) => {
-                        return c.id != id;
-                    })){
-                        daPlayerComponent.addHand(c);
-                    }
-                });
-            });
-            
-            Observable.addListener(player,'monsterKilled', (newValue)=>{
-                daPlayerComponent.addMonsterKilled(newValue.id);
-            });       
-            
-            Observable.addListener(player,'hero', (newValue)=>{
-                daPlayerComponent.setHero(newValue);                                                                                         
-                
-                if (newValue){                                        
-                    daPlayerComponent.setPoint(newValue.totalPoint);                                            
-                    
-                    //remove existing listener and hook to new hero.item??                                        
-                    //hook to new hero.item                
-                    Observable.addListener(newValue, 'items', (newValue) =>{                    
-                        let itemIds = daPlayerComponent.getItemIds();
-                        
-                        itemIds.forEach((id) =>{
-                            if (player.hero.items.every((i) =>{
-                                return i.id != id;
-                            })){
-                                daPlayerComponent.removeItem(id);
-                            }
-                        });
-                        
-                        player.hero.items.forEach((i) =>{
-                            if (itemIds.every((id) => {
-                                return i.id != id;
-                            })){
-                                daPlayerComponent.addItem(i);
-                            }
-                        });
-                        daPlayerComponent.setPoint(player.hero.totalPoint);
-                    });
-                    daPlayerComponent.setPoint(newValue.totalPoint);                                        
-                }else{
-                    daPlayerComponent.removeAllItems();
-                    daPlayerComponent.setPoint(0);
-                } 
-                                                                                                                          
-            });
-                        
-            if (!player.isNPC){
-                daMonsterGame.players.forEach((opponent) =>{
-                    if (opponent === player){
-                        return;
-                    }
-                    opponent.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
-                        daPlayerComponent.responseAction();                                            
-                    });
-                });
-                
-
-                
-                daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
-                    player.DrawFromDeck();
-                });
-                daPlayerComponent.addEventListener('play-card', (e) =>{
-                    let action = e.detail.action,
-                        cardId = e.detail.cardId,
-                        card = player.hand.find((c) => { 
-                            return c.id == cardId;
-                        });
-                        
-                    switch(action){
-                        case 'set-hero':
-                            player.SetHero(card);                        
-                        break;
-                        
-                        case 'equip-hero':
-                            player.EquipHero(card);
-                        break;
-                        case 'play-action':
-                            let args = e.detail.args;
-                            //check if the card needs a target....
-                            player.PlayAnAction(card, args);
-                        break;
-                    }
-                });
-                daPlayerComponent.addEventListener('skip-action', (e) =>{
-                    daMonsterGame.ExeCardAction();
-                });
-                
-
-                
-            }        
-            
-            return daPlayerComponent;        
-        };
-        
-        let bindMonster = (daMonsterGame) => {
-            let daMonsterComponent = new DaMonsterComponent();
-            Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
-                daMonsterComponent.addAction(newValue);
-            });
-            
-            Observable.addListener(daMonsterGame, 'availableMonsters', (newValue) =>{
-                if (newValue){
-                    daMonsterComponent.addMonster(daMonsterGame.availableMonsters[daMonsterGame.availableMonsters.length-1]);
-                }
-            });
-            
-            //TODO::refactor!!!!
-            daMonsterGame.DoneActionCallback = () =>{
-                //pass undefine to empty all action cards...
-                daMonsterComponent.addAction();
-            };
-            
-            daMonsterGame.players.forEach((player) =>{
-                player.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
-                    daMonsterComponent.addAction(card);                                                                
-                });
-            }); 
-            
-            daMonsterComponent.addEventListener('battle', (e) =>{
-                daMonsterGame.Battle();
-            });
-                                    
-            
-            return daMonsterComponent;                
-        };
+        let game = new DaMonsterGame(document.body.querySelector('#damonster-container'));
                  
-        var daMonster = window.daMonster = new DaMonster();   
-                           
-        //data binding to component...
-        //swap whatever variable we needed to proxy so that we can do the binding....    
-        let playerComponent, npcComponent;                                                    
-        daMonster.players.forEach((p, index) =>{
-            if (p.isNPC){
-                npcComponent = bindPlayer(p, daMonster);
-            }else{
-                playerComponent= bindPlayer(p, daMonster);
-            }
-        });
-        
-        let monsterComponent = bindMonster(daMonster);
-        
-        
-        document.body.querySelector('#damonster').appendChild(npcComponent);
-        document.body.querySelector('#damonster').appendChild(monsterComponent);
-        document.body.querySelector('#damonster').appendChild(playerComponent);
-       
-        daMonster.New();
-        
-        //window.p = daMonster.players[0];
-        //window.n = daMonster.players[1];
+        document.documentElement.requestFullscreen();
     </script>
 
 </html>

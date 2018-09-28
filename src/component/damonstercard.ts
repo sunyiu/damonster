@@ -1,7 +1,7 @@
 'use strict';
 
-export default class DaCard extends HTMLElement {
-    public static get is(): string { return 'da-card'; }
+export default class DaMonsterCard extends HTMLElement {
+    public static get is(): string { return 'da-monster-card'; }
 
     public getTemplate(props: any): string {
         return `
@@ -136,7 +136,7 @@ export default class DaCard extends HTMLElement {
     public static get observedAttributes(): string[] {        
         const attributes: string[] = [];
 
-        for (let key in DaCard.properties) {
+        for (let key in DaMonsterCard.properties) {
             attributes.push(key.toLowerCase());
         }
         return attributes;
@@ -150,8 +150,8 @@ export default class DaCard extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaCard.properties) {
-            this.props[key] = DaCard.properties[key].value;
+        for (let key in DaMonsterCard.properties) {
+            this.props[key] = DaMonsterCard.properties[key].value;
         }        
 
         this.requestRender();
@@ -259,4 +259,4 @@ export default class DaCard extends HTMLElement {
     }
 }
 
-customElements.define(DaCard.is, DaCard);
+customElements.define(DaMonsterCard.is, DaMonsterCard);
