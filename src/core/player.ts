@@ -28,15 +28,7 @@ export class DaPlayer {
 	get isNPC():boolean{
 		return this._isNPC;
 	}
-	
-	private _readyBattle:boolean = false;
-	get readyBattle():boolean{
-		return this._readyBattle;
-	}
-	set readyBattle(value:boolean){
-		this._readyBattle = value;
-	}
-		
+
 	private _deck: DaDeck;
 	
 	private _callbacks = [];
@@ -146,17 +138,7 @@ export class DaPlayer {
 	
 	tostring(): string{
 		return this._name;
-	}
-	
-	ReadyBattle(){
-		this._readyBattle = true;
-		let callbacks = this._callbacks[DaPlayerEvents.ReadyBattle];
-		if (callbacks){
-			callbacks.forEach((c) =>{
-				c.call(null);
-			})
-		}		
-	}
+	}	
 }
 
 

@@ -10,7 +10,9 @@ export default class DaMonster {
 
 	
 	public monster: DaCard | undefined = undefined;
-	public availableMonsters: DaCard[] = [];	
+	public availableMonsters: DaCard[] = [];
+	
+	public DoneActionCallback;	
 	
 	private _nextPlayer: DaPlayer | undefined;
 	// get monster(){
@@ -52,27 +54,18 @@ export default class DaMonster {
 
 			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck,(monster) => {
 				console.log('%s done draw from deck', p.name);
-
+				
 				let nextIndex = index + 1;
 				nextIndex = nextIndex >= this._players.length ? 0 : nextIndex;
-
 				let nextPlayer = this._players[nextIndex];
-				
+									
 				if (monster){
 					console.log('MONSTER %o invade', monster);
-					this.monster = monster;
-					this._nextPlayer = nextPlayer;
-					this._players.forEach((p) => {
-						if (p.type == DaPlayerTypes.Npc) {
-							p.MonsterInvade(monster);
-						}
-					});
-		
-					//wait for actions
-					console.log('wait for player actions');
+					this.monster = monster;									
+					this._nextPlayer = nextPlayer;										
 				}else{							
 					if (nextPlayer.type == DaPlayerTypes.Npc) {
-						nextPlayer.DoARound();
+						nextPlayer.DoARound(this._players);
 					}
 				}
 			});
@@ -99,28 +92,20 @@ export default class DaMonster {
 				}else{
 					this._pendingAction.isStopped = !this._pendingAction.isStopped;
 				}												
-
-				this._players.forEach((player) => {
-					if (p === player){
+			});
+			
+			if (p.type == DaPlayerTypes.Npc){
+				this._players.forEach((opponent) => {
+					if (opponent === p){
 						return;
-					}
-					
-					if (player.type == DaPlayerTypes.Npc) {
-						//NPC react to action of player
-						//reture false if NPC do nothing and the card action will be execute....
-						if (!player.ReactOnAction(card, args)){
+					}					
+					opponent.AddEventListener(DaPlayerEvents.PlayAnAction, (card, args) =>{
+						if (!p.ReactOnAction(card, args)){
 							this.ExeCardAction();
 						}
-					}
-				})
-			});
-
-			p.AddEventListener(DaPlayerEvents.ReadyBattle,() => {			
-				//check if all done, then trigger battle
-				if (this._players.every((p) => { return p.readyBattle; })) {
-					this.battle();
-				}
-			});
+					});
+				});
+			}
 		});
 	}
 
@@ -240,47 +225,44 @@ export default class DaMonster {
 		})
 	}
 
-	private battle() {
+	Battle() {
 		console.log('BATTLE');
-		if (this.monster) {
-			//check monster because monster may be already killed even before the battle by some actions (atomic bomb)
+		if (!this.monster){
+			throw new Error("No monster to BATTLE!!!");
+		}
 
-			let maxPointPlayer = null;
+		let maxPointPlayer = null;
+		this._players.forEach((p: DaPlayer) => {
+			//TODO::how about equal point????
+			if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint + maxPointPlayer.hero.attack < p.hero.totalPoint + p.hero.attack)) {
+				maxPointPlayer = p;
+			}
+		});
+
+		if (!maxPointPlayer || this.monster.point > maxPointPlayer.hero.totalPoint) {
+			//monster win
+			console.log('monster win!!!!');
+			this.availableMonsters.push(this.monster);
 			this._players.forEach((p: DaPlayer) => {
-				//TODO::how about equal point????
-				if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint + maxPointPlayer.hero.attack < p.hero.totalPoint + p.hero.attack)) {
-					maxPointPlayer = p;
+				p.hero = undefined;
+			});
+		} else {
+			console.log('player win!!!!!');
+			//check for each player
+			this._players.forEach((p, index) => {
+				if (p.hero && p.hero.totalPoint + p.hero.defense < this.monster.point) {
+					p.hero = undefined;
 				}
 			});
 
-			if (!maxPointPlayer || this.monster.point > maxPointPlayer.hero.totalPoint) {
-				//monster win
-				console.log('monster win!!!!');
-				this.availableMonsters.push(this.monster);
-				this._players.forEach((p: DaPlayer) => {
-					p.hero = undefined;
-				});
-			} else {
-				console.log('player win!!!!!');
-				//check for each player
-				this._players.forEach((p, index) => {
-					if (p.hero && p.hero.totalPoint + p.hero.defense < this.monster.point) {
-						p.hero = undefined;
-					}
-				});
-
-				maxPointPlayer.monsterKilled.push(this.monster);
-			}
+			maxPointPlayer.monsterKilled.push(this.monster);
 		}
 		
 		if (this._nextPlayer.type == DaPlayerTypes.Npc){
-			this._nextPlayer.DoARound();
+			this._nextPlayer.DoARound(this._players);
 		}
 		
 		//reset 
-		this._players.forEach((p) => {
-			p.readyBattle = false;
-		});						
 		this._nextPlayer = undefined;
 		this.monster = undefined;		
 	}
@@ -304,13 +286,21 @@ export default class DaMonster {
 		if (this._pendingAction) {
 			if (!this._pendingAction.isStopped){
 				let result = this._pendingAction.card.Play(this._pendingAction.player, this._pendingAction.args);
-				this._pendingAction = undefined;
-				return result;
 			}
+			
+			if (this._pendingAction.player.isNPC){
+				let npc = this._pendingAction.player 
+				this._pendingAction = undefined;
+				npc.DoARound(this._players);
+			}else{
+				this._pendingAction = undefined;
+			}
+			
+			if (this.DoneActionCallback){
+				this.DoneActionCallback.call();
+			}
+							
 		}
-		
-		this._pendingAction = undefined;
-		return;
 	}
 
 

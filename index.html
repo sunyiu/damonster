@@ -111,18 +111,23 @@
                                                                                                                           
             });
                         
-            if (!player.isNPC){                        
-                //TOTHINK::IF WE DO THIS DO WE NEED OBSERVATION???
-                player.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
-                    
-                                            
+            if (!player.isNPC){
+                daMonsterGame.players.forEach((opponent) =>{
+                    if (opponent === player){
+                        return;
+                    }
+                    opponent.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
+                        daPlayerComponent.responseAction();                                            
+                    });
                 });
+                
+
                 
                 daPlayerComponent.addEventListener('draw-from-deck', (e) =>{
                     player.DrawFromDeck();
                 });
-                daPlayerComponent.addEventListener('play-action', (e) =>{
-                    let action = e.detail.name,
+                daPlayerComponent.addEventListener('play-card', (e) =>{
+                    let action = e.detail.action,
                         cardId = e.detail.cardId,
                         card = player.hand.find((c) => { 
                             return c.id == cardId;
@@ -143,17 +148,12 @@
                         break;
                     }
                 });
-                daPlayerComponent.addEventListener('battle-ready', (e) =>{
-                    player.ReadyBattle();
+                daPlayerComponent.addEventListener('skip-action', (e) =>{
+                    daMonsterGame.ExeCardAction();
                 });
                 
-                Observable.addListener(daMonsterGame, 'monster', (newValue)=>{                
-                    if (newValue){                    
-                        daPlayerComponent.monsterInvade(true);
-                    }else{
-                        daPlayerComponent.monsterInvade(false);
-                    }           
-                });    
+
+                
             }        
             
             return daPlayerComponent;        
@@ -162,7 +162,7 @@
         let bindMonster = (daMonsterGame) => {
             let daMonsterComponent = new DaMonsterComponent();
             Observable.addListener(daMonsterGame, 'monster', (newValue)=>{
-                daMonsterComponent.setMonster(newValue);
+                daMonsterComponent.addAction(newValue);
             });
             
             Observable.addListener(daMonsterGame, 'availableMonsters', (newValue) =>{
@@ -171,8 +171,22 @@
                 }
             });
             
+            //TODO::refactor!!!!
+            daMonsterGame.DoneActionCallback = () =>{
+                //pass undefine to empty all action cards...
+                daMonsterComponent.addAction();
+            };
             
+            daMonsterGame.players.forEach((player) =>{
+                player.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
+                    daMonsterComponent.addAction(card);                                                                
+                });
+            }); 
             
+            daMonsterComponent.addEventListener('battle', (e) =>{
+                daMonsterGame.Battle();
+            });
+                                    
             
             return daMonsterComponent;                
         };

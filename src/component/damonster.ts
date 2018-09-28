@@ -10,10 +10,11 @@ export default class DaMonsterComponent extends HTMLElement {
                     background-color: lightgray;
                     height: 80px;                                        
                 }
-                #da-monster-container #da-monster-context{
+                #da-monster-container #da-action-context{
                     position: relative;
+                    display: flex;
                 }
-                #da-monster-container #da-monster-context #da-monster{
+                #da-monster-container #da-action-context .da-monster{
                     display: block;
                     width: 60px;
                     height: 60px;
@@ -25,10 +26,7 @@ export default class DaMonsterComponent extends HTMLElement {
                     left: 50%;
                     margin-left: -30px                                        
                 }
-                #da-monster-container #da-monster-context #da-monster.hidden{
-                    display: none;
-                }
-                #da-monster-container #da-monster-context #da-monster #da-monster-point{
+                #da-monster-container #da-action-context .da-monster .da-monster-point{
                     font-size: 8pt;
                     font-weight: bold;
                     background-color: rgba(255,255,255,0.75);
@@ -38,6 +36,11 @@ export default class DaMonsterComponent extends HTMLElement {
                     padding-top: 50;
                     width: 25px;
                     margin-top: 5px;                    
+                }
+                #da-monster-container #da-action-context .action{
+                    width: 60px;
+                    height: 60px;
+                    background-color: red;
                 }
                 
                 #da-monsters-left-container{
@@ -53,7 +56,7 @@ export default class DaMonsterComponent extends HTMLElement {
                     background-repeat: no-repeat;
                     font-size: 10pt;
                 }
-                #da-monsters-left-container .da-monster #da-monster-point{
+                #da-monsters-left-container .da-monster .da-monster-point{
                     background-color: rgba(255,255,255, 0.75);
                     top: 50%;
                     position: absolute;
@@ -70,10 +73,9 @@ export default class DaMonsterComponent extends HTMLElement {
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-monster-container">
-                <div id="da-monster-context">
-                    <div id="da-monster" class="hidden"><div id="da-monster-point"></div></div>
-                    <div id="da-monsters-left-container"></div>
+                <div id="da-action-context">                    
                 </div>
+                <div id="da-monsters-left-container"></div>
             </div>
         `;
     }
@@ -126,13 +128,36 @@ export default class DaMonsterComponent extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
     
-    public setMonster(monster){
-        if (monster){
-            let id = monster.id;
-            this.shadowRoot.getElementById('da-monster').classList.remove('hidden');
-            this.shadowRoot.getElementById('da-monster-point').innerHTML = monster.point;
+    public addAction(card){
+        if (card){
+            if (card.type == 'm'){
+                //add monster
+                let monsterCard = document.createElement('div');                               
+                monsterCard.classList.add('da-monster');
+                monsterCard.setAttribute('id', 'id'+card.id);
+                let cardPoint = document.createElement('div');
+                cardPoint.innerHTML = card.point;
+                cardPoint.classList.add('da-monster-point');
+                monsterCard.appendChild(cardPoint);
+
+                this.shadowRoot.getElementById('da-action-context').appendChild(monsterCard);
+                
+                setTimeout(() =>{
+                    this.dispatchEvent(new Event('battle', {dbubbles: true, composed: true}));
+                }, 500);
+                                
+            }else{
+                //add action card....
+                let actionCard = document.createElement('div');
+                actionCard.innerHTML = card.action;
+                actionCard.classList.add('action');
+                this.shadowRoot.getElementById('da-action-context').appendChild(actionCard);                
+            }                        
         }else{
-            this.shadowRoot.getElementById('da-monster').classList.add('hidden');
+            let context = this.shadowRoot.getElementById('da-action-context');
+            while (context.firstChild) {
+                context.removeChild(context.firstChild);
+            }
         }                    
     }
     
@@ -141,8 +166,8 @@ export default class DaMonsterComponent extends HTMLElement {
         daMonster.setAttribute('id', 'id'+monster.id);
         daMonster.classList.add('da-monster')
         daMonster.innerHTML = '<div id="da-monster-point">' +  monster.point + '</div>';
-        this.shadowRoot.getElementById('da-monsters-left-container').append(daMonster);                
-    }             
+        this.shadowRoot.getElementById('da-monsters-left-container').append(daMonster);                                
+    }                 
 }
 
 customElements.define(DaMonsterComponent.is, DaMonsterComponent);

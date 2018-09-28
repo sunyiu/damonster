@@ -164,10 +164,8 @@ export default class DaPlayer extends HTMLElement {
                     <div id="hand-context"></div>
                 </div>
                 
-                <div id="da-button-bar">                
-                    <button id="playBtn">Draw from deck</button>
-                    <button id="actionBtn" disabled>Play selected</button>
-                    <button id="readyBattleBtn" disabled>Ready for battle</button>
+                <div id="da-button-bar">    
+                    <button id="actionBtn">Draw from deck</button>            
                 </div>
             </div>
         `;
@@ -194,7 +192,13 @@ export default class DaPlayer extends HTMLElement {
     }
 
     private props: any = {};
-    private currentAction;
+    private currentRound = {
+        'mode': 'draw',
+        'cardType': undefined,
+        'cardId': undefined,
+        'actionNumber': undefined,
+        'args': undefined
+    };
     private isNPC:boolean = false;   
 
     public constructor() {
@@ -207,13 +211,78 @@ export default class DaPlayer extends HTMLElement {
             this.props[key] = DaPlayer.properties[key].value;
         }                                
 
-        this.requestRender();
-
-        this.shadowRoot.getElementById('playBtn').onclick = this.drawFromDeck;
+        this.requestRender();                                
+                
         this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
-            this.playAction(e.target, this.currentAction);
+            
+            e.currentTarget.innerHTML = 'Draw from deck';
+                        
+            //have to reset this before dispatch event because event may fire and change the mode and btn innerHTML....
+            let round = { ...this.currentRound},
+                detail = {
+                    action: undefined,
+                    cardId: round.cardId,                
+                    args: round.args                    
+                }
+            
+            //reset            
+            this.currentRound.mode = 'draw';
+            this.currentRound.cardId = undefined;
+            this.currentRound.cardType = undefined;
+            this.currentRound.actionNumber = undefined;
+            this.currentRound.args = undefined; 
+            
+            switch(round.mode){
+                case 'draw':
+                        //play an action (action can be equip or set hero)
+                        //check for action if need additional card
+
+                        switch (round.cardType){
+                            case 'h':
+                                detail.action = 'set-hero';
+                                this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));                                                                                                                                              
+                            break;
+                            
+                            case 'i':
+                                detail.action = 'equip-hero';
+                                this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));                                                                                                                                                                                                           
+                            break;
+                            
+                            case 'a':
+                                // switch (this.currentRound.actionNumber){
+                                //     case '3':
+                                //     case '5':
+                                //     case '7':
+                                //     //additional card is needed                                
+                                //     return;
+                                // };
+                                detail.action = 'play-action';
+                                this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));
+                                                                                                                                                                                                           
+                            break;
+                            
+                            case undefined:
+                                this.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
+                            break;                            
+                        }                        
+                break;        
+                                                                        
+                case 'action':
+                    if (!round.cardType){
+                        //skip and done action
+                        this.dispatchEvent(new CustomEvent('skip-action', {bubbles: true, composed: true}));
+                    }else{
+                        //play an action (stop or defense action only)
+                        detail.action = 'play-action';
+                        this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));                                                                                                                     
+                    }
+                    
+                break;                                 
+            }
+
+            //reset
+                        
         }
-        this.shadowRoot.getElementById('readyBattleBtn').onclick = this.battleReady;
         
     }
     
@@ -232,16 +301,7 @@ export default class DaPlayer extends HTMLElement {
         
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
-    
-    
-    private drawFromDeck(){
-        this.dispatchEvent(new CustomEvent('draw-from-deck', {bubbles: true, composed: true}));
-    }
-    
-    private battleReady(){
-        this.dispatchEvent(new CustomEvent('battle-ready', {bubbles: true, composed: true}));        
-    }
-    
+                
     private toggleCard(card, isSelected){
         //console.log('%o toggle selection "%s"', card, isSelected);
         
@@ -256,45 +316,39 @@ export default class DaPlayer extends HTMLElement {
         let actionBtn = this.shadowRoot.getElementById('actionBtn');
         if (isSelected){        
             let cardType = card.getAttribute('data-card-type'),
-                cardId = card.getAttribute('data-id');                
-            
+                cardId = card.getAttribute('data-id');
+                                           
             switch (cardType){
                 case 'h':
                     actionBtn.innerHTML = 'Set Hero';
-                    this.currentAction = {
-                        name: 'set-hero',
-                        cardId: cardId 
-                    };
+                    this.currentRound.cardType = cardType;
+                    this.currentRound.cardId = cardId;
                     break;
                 
                 case 'i':
                     actionBtn.innerHTML = 'Equip Hero';
-                    this.currentAction = {
-                        name: 'equip-hero',
-                        cardId: cardId
-                    };
+                    this.currentRound.cardType = cardType;
+                    this.currentRound.cardId = cardId;
                     break;
                 
                 case 'a':
                     actionBtn.innerHTML = 'Play Action';
-                    this.currentAction = {
-                        name: 'play-action',
-                        cardId: cardId
-                    }
+                    this.currentRound.cardType = cardType;
+                    this.currentRound.cardId = cardId;
+                    this.currentRound.actionNumber = card.getAttribute('data-action');                    
                     break;
             
-            }
-            actionBtn.removeAttribute('disabled');     
+            }    
         }else{
-            actionBtn.setAttribute('disabled', true);
+            this.currentRound.cardType = undefined;
+            this.currentRound.cardId = undefined;
+            if (this.currentRound.mode == 'draw'){
+                actionBtn.innerHTML = 'Draw from deck';
+            }else{
+                actionBtn.innerHTML = 'Skip';                
+            }            
         }
     }   
-    
-    private playAction(target, action){        
-        target.setAttribute('disabled', true);
-        this.dispatchEvent(new CustomEvent('play-action', {detail: this.currentAction, bubbles: true, composed: true}));
-        
-    }
     
     public setNPC(){
         this.isNPC = true;
@@ -417,15 +471,18 @@ export default class DaPlayer extends HTMLElement {
         this.shadowRoot.getElementById('monster-context').append(card);
     }
     
-    public monsterInvade(isInvade){
-        let readyBtn = this.shadowRoot.getElementById('readyBattleBtn');
-        if (isInvade){                
-            readyBtn.removeAttribute('disabled');
-        }else{
-            readyBtn.setAttribute('disabled', true);                
-        }            
+    public responseAction(){
+        this.currentRound.mode = 'action';
+        let actionBtn = this.shadowRoot.getElementById('actionBtn');     
+        actionBtn.innerHTML = 'Skip';   
     }
-
+    
+    // public endAction(){
+    //     this.currentRound.mode = 'draw';
+    //     let actionBtn = this.shadowRoot.getElementById('actionBtn'); 
+    //     actionBtn.classList.add('hidden');
+    //     actionBtn.innerHTML = 'Draw from deck';
+    // }
 }
 
 customElements.define(DaPlayer.is, DaPlayer);

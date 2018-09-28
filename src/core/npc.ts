@@ -15,7 +15,7 @@ export class DaNpc extends DaPlayer {
 		super._isNPC = true;
 	}
 
-	DoARound() {		
+	DoARound(allPlayers) {		
 		console.log('NPC doing a round');
 		if (this.hero == undefined){
 			//look through the hand				
@@ -34,8 +34,17 @@ export class DaNpc extends DaPlayer {
 			});			
 		}
 		
-		//draw from deck
-		super.DrawFromDeck();
+		let opponent = allPlayers.find((p) => {return !p.isNPC;}),	
+			atomicBomb = this.hand.find((c) => {
+				return c.type == DaCardType.Action && c.action == DaActions.AtomicBomb;
+			});
+		
+		if (opponent.hero && opponent.hero.totalPoint > 0 && atomicBomb){
+			this.PlayAnAction(atomicBomb);
+		}else{		
+			//draw from deck
+			super.DrawFromDeck();
+		}
 	}
 	
 	ReactOnAction(card, args){
@@ -46,17 +55,5 @@ export class DaNpc extends DaPlayer {
 			return true;
 		}
 		return false;
-	}
-	
-	MonsterInvade(card){
-		//check if action is needed....
-		console.log('npc do nothing on monster invade');
-		
-		this._readyBattle = true;
-				
-		//if done... trigger an event in damonster....
-		// if (true){
-		// 	super.DoneAction();
-		// }
-	}
+	}	
 }
