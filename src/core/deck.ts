@@ -5,72 +5,78 @@ import { DaActions, DaActionCard } from "./actioncard.js"
 export function GetDefaultCards(): { monster: DaCard[]; hero: DaHeroCard[]; item: DaCard[]; skill: DaActionCard[] } {
 	return {
 		monster: [
-			new DaCard(1, "m1", DaCardType.Monster, 4),
-			new DaCard(2, "m2", DaCardType.Monster, 10),
-			new DaCard(3, "m3", DaCardType.Monster, 25),
-			new DaCard(4, "m4", DaCardType.Monster, 50),
-			new DaCard(5, "m5", DaCardType.Monster, 100),
-			new DaCard(6, "m6", DaCardType.Monster, 200),
-			new DaCard(7, "m7", DaCardType.Monster, 500)
+			new DaCard(1, "m1", DaCardType.Monster, 2),
+			new DaCard(2, "m2", DaCardType.Monster, 5),
+			new DaCard(3, "m3", DaCardType.Monster, 5),
+			new DaCard(4, "m4", DaCardType.Monster, 10),
+			new DaCard(5, "m5", DaCardType.Monster, 10),
+			new DaCard(6, "m6", DaCardType.Monster, 15),
+			new DaCard(7, "m7", DaCardType.Monster, 15)
 		],
 		hero: [
 			new DaHeroCard(8, "k1", 5, DaHeroTypes.Knight),
 			new DaHeroCard(9, "k2", 5, DaHeroTypes.Knight),
 			new DaHeroCard(10, "k3", 5, DaHeroTypes.Knight),
-			new DaHeroCard(11, "w4", 5, DaHeroTypes.Wizard),
+			new DaHeroCard(11, "k4", 5, DaHeroTypes.Knight),
 			new DaHeroCard(12, "w5", 5, DaHeroTypes.Wizard),
 			new DaHeroCard(13, "w6", 5, DaHeroTypes.Wizard),
-			new DaHeroCard(14, "r7", 5, DaHeroTypes.Ranger),
-			new DaHeroCard(15, "r8", 5, DaHeroTypes.Ranger),
+			new DaHeroCard(14, "w7", 5, DaHeroTypes.Wizard),
+			new DaHeroCard(15, "w8", 5, DaHeroTypes.Wizard),
 			new DaHeroCard(16, "r9", 5, DaHeroTypes.Ranger),
+			new DaHeroCard(17, "r10", 5, DaHeroTypes.Ranger),
+			new DaHeroCard(18, "r11", 5, DaHeroTypes.Ranger),
+			new DaHeroCard(19, "r12", 5, DaHeroTypes.Ranger),
 		],
 		item: [
 			new DaItemCard(17, "ki1", 5, DaHeroTypes.Knight),
-			new DaItemCard(18, "ki2", 15, DaHeroTypes.Knight),
-			new DaItemCard(19, "ki3", 25, DaHeroTypes.Knight),
-			new DaItemCard(20, "ki4", 50, DaHeroTypes.Knight),
-			new DaItemCard(21, "ki5", 100, DaHeroTypes.Knight),
+			new DaItemCard(18, "ki2", 5, DaHeroTypes.Knight),
+			new DaItemCard(19, "ki3", 5, DaHeroTypes.Knight),
+			new DaItemCard(20, "ki4", 5, DaHeroTypes.Knight),
 			new DaItemCard(22, "wi6", 5, DaHeroTypes.Wizard),
-			new DaItemCard(23, "wi7", 15, DaHeroTypes.Wizard),
-			new DaItemCard(24, "wi8", 25, DaHeroTypes.Wizard),
-			new DaItemCard(25, "wi9", 50, DaHeroTypes.Wizard),
-			new DaItemCard(26, "wi10", 100, DaHeroTypes.Wizard),
+			new DaItemCard(23, "wi7", 5, DaHeroTypes.Wizard),
+			new DaItemCard(24, "wi8", 5, DaHeroTypes.Wizard),
+			new DaItemCard(25, "wi9", 5, DaHeroTypes.Wizard),
 			new DaItemCard(27, "ri11", 5, DaHeroTypes.Ranger),
-			new DaItemCard(28, "ri12", 15, DaHeroTypes.Ranger),
-			new DaItemCard(29, "ri13", 25, DaHeroTypes.Ranger),
-			new DaItemCard(30, "ri14", 50, DaHeroTypes.Ranger),
-			new DaItemCard(31, "ri15", 100, DaHeroTypes.Ranger),
+			new DaItemCard(28, "ri12", 5, DaHeroTypes.Ranger),
+			new DaItemCard(29, "ri13", 5, DaHeroTypes.Ranger),
+			new DaItemCard(30, "ri14", 5, DaHeroTypes.Ranger),
 
 		],
 
 		skill: [
-			new DaActionCard(32, 'Suicide Belt', DaActions.SuicideBelt),
-			new DaActionCard(33, 'Suicide Belt', DaActions.SuicideBelt),
-			new DaActionCard(34, 'Suicide Belt', DaActions.SuicideBelt),
+			// new DaActionCard(32, 'Suicide Belt', DaActions.SuicideBelt),
+			// new DaActionCard(33, 'Suicide Belt', DaActions.SuicideBelt),
+			// new DaActionCard(34, 'Suicide Belt', DaActions.SuicideBelt),
 
-			new DaActionCard(35, 'Mind Reading', DaActions.MindReading),
-			new DaActionCard(36, 'Mind Reading', DaActions.MindReading),
-			new DaActionCard(37, 'Mind Reading', DaActions.MindReading),
+			new DaActionCard(32, 'Atomic Bomb', DaActions.AtomicBomb),
+			new DaActionCard(33, 'Atomic Bomb', DaActions.AtomicBomb),
+			new DaActionCard(34, 'Atomic Bomb', DaActions.AtomicBomb),
 
-			new DaActionCard(38, 'Stop', DaActions.Stop),
-			new DaActionCard(39, 'Stop', DaActions.Stop),
-			new DaActionCard(40, 'Stop', DaActions.Stop),
+			// new DaActionCard(35, 'Mind Reading', DaActions.MindReading),
+			// new DaActionCard(36, 'Mind Reading', DaActions.MindReading),
+			// new DaActionCard(37, 'Mind Reading', DaActions.MindReading),
 
-			new DaActionCard(41, 'Atomic Bomb', DaActions.AtomicBomb),
-			new DaActionCard(42, 'Atomic Bomb', DaActions.AtomicBomb),
+			new DaActionCard(35, 'Stop', DaActions.Stop),
+			new DaActionCard(36, 'Stop', DaActions.Stop),
+			new DaActionCard(37, 'Stop', DaActions.Stop),
 
-			new DaActionCard(43, 'Radar', DaActions.Radar),
-			new DaActionCard(44, 'Radar', DaActions.Radar),
+			new DaActionCard(38, 'Radar', DaActions.Radar),
+			new DaActionCard(39, 'Radar', DaActions.Radar),
+			new DaActionCard(40, 'Radar', DaActions.Radar),
 
-			new DaActionCard(45, 'Steal', DaActions.Steal),
-			new DaActionCard(46, 'Steal', DaActions.Steal),
+			new DaActionCard(41, 'Steal', DaActions.Steal),
+			new DaActionCard(42, 'Steal', DaActions.Steal),
+			new DaActionCard(43, 'Steal', DaActions.Steal),
 
-			new DaActionCard(47, 'Swap', DaActions.Swap),
-			new DaActionCard(48, 'Swap', DaActions.Swap),
+			new DaActionCard(44, 'Retreat', DaActions.Retreat),
+			new DaActionCard(45, 'Retreat', DaActions.Retreat),
+			new DaActionCard(46, 'Retreat', DaActions.Retreat),			
 
+			new DaActionCard(47, 'Provoke', DaActions.Provoke),
+			new DaActionCard(48, 'Provoke', DaActions.Provoke),
 			new DaActionCard(49, 'Provoke', DaActions.Provoke),
-			new DaActionCard(50, 'Provoke', DaActions.Provoke),
 
+			new DaActionCard(50, 'Attack', DaActions.Attack),
 			new DaActionCard(51, 'Attack', DaActions.Attack),
 			new DaActionCard(52, 'Attack', DaActions.Attack),
 
@@ -83,7 +89,7 @@ export function GetDefaultCards(): { monster: DaCard[]; hero: DaHeroCard[]; item
  * Shuffles array in place. ES6 version
  * @param {Array} a items An array containing the items.
  */
-//Note however, that swapping variables with destructuring assignment causes significant performance loss, as of October 2017.
+//Note however, that Retreatping variables with destructuring assignment causes significant performance loss, as of October 2017.
 function shuffle(a: any) {
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

@@ -176,6 +176,10 @@ export default class DaMonsterPlayer extends HTMLElement {
             'data-name':{
                 type: String,
                 value: ''
+            },
+            'data-is-active': {
+                type: String,
+                value: ''
             }
         };
     }
@@ -188,6 +192,12 @@ export default class DaMonsterPlayer extends HTMLElement {
             attributes.push(key.toLowerCase());
         }
 
+        if (name === 'data-is-active' && newValue) {
+            if (newValue = 'true'){
+                console.log('turn changed');
+            }
+        }
+        
         return attributes;
     }
 
@@ -220,6 +230,7 @@ export default class DaMonsterPlayer extends HTMLElement {
             //have to reset this before dispatch event because event may fire and change the mode and btn innerHTML....
             let round = { ...this.currentRound},
                 detail = {
+                    isNPC: this.isNPC,
                     action: undefined,
                     cardId: round.cardId,                
                     args: round.args                    
@@ -244,21 +255,23 @@ export default class DaMonsterPlayer extends HTMLElement {
                             break;
                             
                             case 'i':
-                                detail.action = 'equip-hero';
+                                detail.action = 'equip-hero';                                
                                 this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));                                                                                                                                                                                                           
                             break;
                             
                             case 'a':
-                                // switch (this.currentRound.actionNumber){
-                                //     case '3':
-                                //     case '5':
-                                //     case '7':
-                                //     //additional card is needed                                
-                                //     return;
-                                // };
-                                detail.action = 'play-action';
-                                this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));
-                                                                                                                                                                                                           
+                                switch(round.actionNumber){
+                                    case '5':       //provoke
+                                        this.dispatchEvent(new CustomEvent('provoke-arg', {detail: detail, bubbles: true, composed: true}));
+                                    break;
+                                    
+                                    default:
+                                    //wait for response...
+                                        detail.action = 'play-action'
+                                        e.currentTarget.innerHTML = 'WAIT!!!';                                                                                                    
+                                        this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));
+                                    break;                                 
+                                }                                                                
                             break;
                             
                             case undefined:
@@ -274,7 +287,13 @@ export default class DaMonsterPlayer extends HTMLElement {
                     }else{
                         //play an action (stop or defense action only)
                         detail.action = 'play-action';
-                        this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true}));                                                                                                                     
+                        
+                        //wait for response...
+                        e.currentTarget.innerHTML = 'WAIT!!!';
+                                                
+                        this.dispatchEvent(new CustomEvent('play-card', {detail: detail, bubbles: true, composed: true})); 
+                        
+                                                                                                                                            
                     }
                     
                 break;                                 
@@ -291,9 +310,12 @@ export default class DaMonsterPlayer extends HTMLElement {
             return;
         }
 
-        this.props[name] = newValue;                                                    
+        this.props[name] = newValue;
+        
+        if (name === 'data-is-active' && newValue) {
+        }                                                    
     }
-    
+        
     private requestRender(): void {
         const template: HTMLTemplateElement = <HTMLTemplateElement>document.createElement('template');
         
@@ -364,7 +386,7 @@ export default class DaMonsterPlayer extends HTMLElement {
         let handContext = this.shadowRoot.getElementById('hand-context'), 
             daMonsterCard = new DaMonsterCard();
         if (this.isNPC){
-            daMonsterCard.showBack();
+            //daMonsterCard.showBack();
         }
                 
         daMonsterCard.setAttribute('id', 'id'+card.id);
@@ -403,6 +425,9 @@ export default class DaMonsterPlayer extends HTMLElement {
         }
     }
     private setCardHidden(){
+        
+        return;
+        
         if (!this.isNPC){
             return;
         }
@@ -471,18 +496,31 @@ export default class DaMonsterPlayer extends HTMLElement {
         this.shadowRoot.getElementById('monster-context').append(card);
     }
     
-    public responseAction(){
-        this.currentRound.mode = 'action';
-        let actionBtn = this.shadowRoot.getElementById('actionBtn');     
-        actionBtn.innerHTML = 'Skip';   
-    }
+    public startAction(){
+        if (!this.isNPC){
+            this.currentRound.mode = 'action';
+            let actionBtn = this.shadowRoot.getElementById('actionBtn');     
+            actionBtn.innerHTML = 'Skip';
+        }else{
+            setTimeout(() =>{
+                this.dispatchEvent(new CustomEvent('react-action', {bubbles: true, composed: true}));    
+            }, 500);
+        }   
+    }  
     
-    // public endAction(){
-    //     this.currentRound.mode = 'draw';
-    //     let actionBtn = this.shadowRoot.getElementById('actionBtn'); 
-    //     actionBtn.classList.add('hidden');
-    //     actionBtn.innerHTML = 'Draw from deck';
-    // }
+    public endAction(){
+        this.currentRound.mode = 'draw';
+        let actionBtn = this.shadowRoot.getElementById('actionBtn');     
+        actionBtn.innerHTML = 'Draw from deck';        
+    } 
+    
+    public pickAvailableMonster(){
+        let promise = new Promise((resolve, reject)=>{
+            
+            
+            
+        })
+    } 
 }
 
 customElements.define(DaMonsterPlayer.is, DaMonsterPlayer);

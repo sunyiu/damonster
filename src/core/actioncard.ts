@@ -7,7 +7,7 @@ export enum DaActions {
 	Steal,
 	// Super,
 	// PerfectCube,
-	Swap,
+	Retreat,
 	Provoke,
 	Attack,	
 	SuicideBelt,

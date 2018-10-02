@@ -10,8 +10,8 @@ export enum DaPlayerTypes {
 
 export enum DaPlayerEvents{
 	DoneDrawFromDeck,
-	ReadyBattle,
-	PlayAnAction
+	PlayAnAction,
+	EndAnAction,
 }
 
 export class DaPlayer {
@@ -28,6 +28,14 @@ export class DaPlayer {
 	get isNPC():boolean{
 		return this._isNPC;
 	}
+	
+	private _isActionDone: boolean;
+	get isActionDone() {
+		return this._isActionDone;
+	}
+	set isActionDone(value){
+		this._isActionDone = value;
+	}
 
 	private _deck: DaDeck;
 	
@@ -41,6 +49,7 @@ export class DaPlayer {
 		this._name = name;
 		this._deck = deck;
 		this._isNPC = false;
+		this._isActionDone = false;
 	}	
 	
 	AddEventListener(event: DaPlayerEvents, callback){
@@ -127,11 +136,24 @@ export class DaPlayer {
 		
 		this.hand.splice(index, 1);
 		//card.Play(this, args); <-- actual play card will be triggered in daMonster
+		this._isActionDone = true;
+		
 		
 		let callbacks = this._callbacks[DaPlayerEvents.PlayAnAction];
 		if (callbacks){
 			callbacks.forEach((c) =>{
 				c.call(null, card, args);
+			})
+		}								
+	}
+		
+	SkipAction(){
+		this._isActionDone = true;
+
+		let callbacks = this._callbacks[DaPlayerEvents.EndAnAction];
+		if (callbacks){
+			callbacks.forEach((c) =>{
+				c.call(null, this);
 			})
 		}								
 	}

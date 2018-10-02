@@ -16,24 +16,26 @@ export default class DaMonsterGame {
 
     private daMonster: DaMonster;
     private player: DaPlayer;
-    private npc: DaPlayer;
+    private npc: DaPlayer; 
 
     private playerComponent: DaMonsterPlayer;
     private npcComponent: DaMonsterPlayer;
     private tableComponent: DaMonsterTable;
-    
+
     constructor(container) {
         this.daMonster = window.daMonster = new DaMonster();
-        this.player = this.daMonster.players.find((p) => { return !p.isNPC; });
-        this.npc = this.daMonster.players.find((p) => { return p.isNPC; });
+        this.player = this.daMonster.players.find((p) => { return !p.isNPC;});
+        this.npc = this.daMonster.players.find((p) => {return p.isNPC;});
                                                    
         //data binding to component...
         //swap whatever variable we needed to proxy so that we can do the binding....
-        this.playerComponent = this.bindPlayer(this.player);
-        this.npcComponent = this.bindPlayer(this.npc);
+        this.playerComponent = new DaMonsterPlayer();
+        this.npcComponent = new DaMonsterPlayer();
+        this.tableComponent = new DaMonsterTable();
 
-
-        this.tableComponent = this.bindTable();
+        this.bindPlayer(this.player, this.playerComponent);
+        this.bindPlayer(this.npc, this.npcComponent);
+        this.bindDaMonster(this.daMonster);
 
 
         container.appendChild(this.npcComponent);
@@ -43,22 +45,66 @@ export default class DaMonsterGame {
         this.daMonster.New();
     }
 
-    private bindPlayer(player) {
-        let playerComponent = new DaMonsterPlayer();
+    private bindDaMonster(daMonster) {
+        Observable.addListener(daMonster, 'tableCard',(newValue) => {
+            this.tableComponent.addAction(newValue);
+        });
+
+        Observable.addListener(daMonster, 'availableMonsters',(newValue) => {
+            this.tableComponent.setAvailableMonsters(this.daMonster.availableMonsters);
+        });
+
+        Observable.addListener(daMonster, 'currentPlayer',(newValue) => {
+            this.npcComponent.setAttribute('data-is-active', newValue.isNPC);
+            this.playerComponent.setAttribute('data-is-active', !newValue.isNPC);
+
+            if (newValue.isNPC) {
+                setTimeout(() => {
+                    this.npc.DoARound(daMonster.players, daMonster.availableMonsters);
+                })
+            }
+        });
+
+        Observable.addListener(daMonster, 'playedActions',(newValue) => {
+            if (daMonster.playedActions.length == 0){                
+                this.tableComponent.addAction();
+                this.npcComponent.endAction();
+                this.playerComponent.endAction();
+                
+                if (this.npcComponent.getAttribute('data-is-active') == 'true'){
+                    this.npc.DoARound(daMonster.players, daMonster.availableMonsters);
+                }
+            }else{
+                let action = daMonster.playedActions[daMonster.playedActions.length - 1];
+                this.tableComponent.addAction(action.card);
+
+                if (!action.player.isNPC){
+                    this.npcComponent.startAction();
+                }else{
+                    this.playerComponent.startAction();
+                }
+            }
+        });
+
+        this.tableComponent.addEventListener('battle',(e) => {
+            this.daMonster.Battle();
+        });
+
+    }
+
+    private bindPlayer(player, component) {
+        component.setAttribute('id', player.name);
         if (player.isNPC) {
-            playerComponent.setNPC();
+            component.setNPC();
         }
 
-        playerComponent.setAttribute('id', player.name);
-
         Observable.addListener(player, 'hand',(newValue) => {
-
-            let handIds = playerComponent.getHandIds();
+            let handIds = component.getHandIds();
             handIds.forEach((id) => {
                 if (player.hand.every((i) => {
                     return i.id != id;
                 })) {
-                    playerComponent.removeHand(id);
+                    component.removeHand(id);
                 }
             });
 
@@ -66,31 +112,31 @@ export default class DaMonsterGame {
                 if (handIds.every((id) => {
                     return c.id != id;
                 })) {
-                    playerComponent.addHand(c);
+                    component.addHand(c);
                 }
             });
         });
 
         Observable.addListener(player, 'monsterKilled',(newValue) => {
-            playerComponent.addMonsterKilled(newValue.id);
+            component.addMonsterKilled(newValue.id);
         });
 
         Observable.addListener(player, 'hero',(newValue) => {
-            playerComponent.setHero(newValue);
+            component.setHero(newValue);
 
             if (newValue) {
-                playerComponent.setPoint(newValue.totalPoint);                                            
+                component.setPoint(newValue.totalPoint);                                            
                     
                 //remove existing listener and hook to new hero.item??                                        
                 //hook to new hero.item                
                 Observable.addListener(newValue, 'items',(newValue) => {
-                    let itemIds = playerComponent.getItemIds();
+                    let itemIds = component.getItemIds();
 
                     itemIds.forEach((id) => {
                         if (player.hero.items.every((i) => {
                             return i.id != id;
                         })) {
-                            playerComponent.removeItem(id);
+                            component.removeItem(id);
                         }
                     });
 
@@ -98,97 +144,70 @@ export default class DaMonsterGame {
                         if (itemIds.every((id) => {
                             return i.id != id;
                         })) {
-                            playerComponent.addItem(i);
+                            component.addItem(i);
                         }
                     });
-                    playerComponent.setPoint(player.hero.totalPoint);
+                    component.setPoint(player.hero.totalPoint);
                 });
-                playerComponent.setPoint(newValue.totalPoint);
+                component.setPoint(newValue.totalPoint);
             } else {
-                playerComponent.removeAllItems();
-                playerComponent.setPoint(0);
+                component.removeAllItems();
+                component.setPoint(0);
             }
-
         });
-
-        if (!player.isNPC) {
-            this.daMonster.players.forEach((opponent) => {
-                if (opponent === player) {
-                    return;
-                }
-                opponent.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
-                    playerComponent.responseAction();
+        
+        component.addEventListener('provoke-arg', (e) =>{
+            let detail = e.detail,
+                cardId = e.detail.cardId,
+                card = player.hand.find((c) => {
+                    return c.id == cardId;
                 });
-            });
+            
+            if(detail.isNPC){
+                
+            }else{
+                this.tableComponent.pickAvailableMonster().then((id) =>{
+                    let player = this.daMonster.players.find((p) => {return !p.isNPC;});
+                    player.PlayAnAction(card, id);                    
+                })
+            }
+            
+        })
 
 
-
-            playerComponent.addEventListener('draw-from-deck',(e) => {
-                player.DrawFromDeck();
-            });
-            playerComponent.addEventListener('play-card',(e) => {
-                let action = e.detail.action,
-                    cardId = e.detail.cardId,
-                    card = player.hand.find((c) => {
-                        return c.id == cardId;
-                    });
-
-                switch (action) {
-                    case 'set-hero':
-                        player.SetHero(card);
-                        break;
-
-                    case 'equip-hero':
-                        player.EquipHero(card);
-                        break;
-                    case 'play-action':
-                        let args = e.detail.args;
-                        //check if the card needs a target....
-                        player.PlayAnAction(card, args);
-                        break;
-                }
-            });
-            playerComponent.addEventListener('skip-action',(e) => {
-                this.daMonster.ExeCardAction();
-            });
-
-
-
-        }
-
-        return playerComponent;
-    }
-
-    private bindTable() {
-        let monsterTable = new DaMonsterTable();
-        Observable.addListener(this.daMonster, 'monster',(newValue) => {
-            monsterTable.addAction(newValue);
+        component.addEventListener('draw-from-deck',(e) => {
+            player.DrawFromDeck();
         });
+        component.addEventListener('play-card',(e) => {
+            let action = e.detail.action,
+                cardId = e.detail.cardId,
+                card = player.hand.find((c) => {
+                    return c.id == cardId;
+                });
 
-        Observable.addListener(this.daMonster, 'availableMonsters',(newValue) => {
-            if (newValue) {
-                monsterTable.addMonster(this.daMonster.availableMonsters[this.daMonster.availableMonsters.length - 1]);
+            switch (action) {
+                case 'set-hero':
+                    player.SetHero(card);
+                    break;
+
+                case 'equip-hero':
+                    player.EquipHero(card);
+                    break;
+                case 'play-action':
+                    let args = e.detail.args;
+                    //check if the card needs a target....
+                    player.PlayAnAction(card, args);
+                    break;
             }
         });
-            
-        //TODO::refactor!!!!
-        this.daMonster.DoneActionCallback = () => {
-            //pass undefine to empty all action cards...
-            monsterTable.addAction();
-        };
-
-        this.daMonster.players.forEach((player) => {
-            player.AddEventListener(DaPlayerEvents.PlayAnAction,(card, args) => {
-                monsterTable.addAction(card);
-            });
+        component.addEventListener('skip-action',(e) => {
+            this.daMonster.ExeCardAction();
         });
 
-        monsterTable.addEventListener('battle',(e) => {
-            this.daMonster.Battle();
+        component.addEventListener('react-action',(e) => {
+            player.ReactOnAction();
         });
 
-
-        return monsterTable;
-    }
+    }            
 
 }
