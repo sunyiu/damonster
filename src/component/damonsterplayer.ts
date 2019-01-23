@@ -371,12 +371,7 @@ export default class DaMonsterPlayer extends HTMLElement {
             }            
         }
     }   
-    
-    public setNPC(){
-        this.isNPC = true;
-        this.shadowRoot.getElementById('da-button-bar').classList.add('hidden');
-    }
-    
+        
     public getHandIds(){
         return Array.from(this.shadowRoot.getElementById('hand-context').children).map((n) =>{
             return parseInt(n.getAttribute('id').substring(2));
@@ -384,7 +379,7 @@ export default class DaMonsterPlayer extends HTMLElement {
     }
     public addHand(card){
         let handContext = this.shadowRoot.getElementById('hand-context'), 
-            daMonsterCard = new DaMonsterCard();
+            daCard = new DaMonsterCard();
         if (this.isNPC){
             //daMonsterCard.showBack();
         }
@@ -424,35 +419,6 @@ export default class DaMonsterPlayer extends HTMLElement {
             this.setCardHidden();
         }
     }
-    private setCardHidden(){
-        
-        return;
-        
-        if (!this.isNPC){
-            return;
-        }
-        
-        let handContext = this.shadowRoot.getElementById('hand-context'),
-            cards = Array.from(this.shadowRoot.getElementById('hand-context').children);
-        
-        if (cards.length < 1){
-            return
-        }
-        
-        let cardWidth = cards[0].offsetWidth,
-            maxNumberOfCards = Math.floor(document.body.offsetWidth / cardWidth) - 1;
-            
-        cards.forEach((c, index) =>{
-            if (index < maxNumberOfCards){
-                cards[index].show();
-            }else{
-                cards[index].hide();
-            }
-        });
-        if (cards.length > maxNumberOfCards){
-            //add ...
-        }                                
-    }
     
     
     public setHero(hero){
@@ -460,7 +426,45 @@ export default class DaMonsterPlayer extends HTMLElement {
         if (hero){
             this.shadowRoot.getElementById('da-hero-container').classList.add(hero.heroType);                        
         }        
-    }    
+    }
+    
+    public setHand(card){
+         let context = this.shadowRoot.getElementById('hand-context'),
+            ids = Array.from(context.children).map((c) => {return parseInt(c.getAttribute('data-id'));}),
+            index = ids.findIndex((id) => { return id == card.id;});
+        
+        if (index > 0){
+            //remove card
+            let card = context.children[index];
+            context.removeChild(card);
+        }else{
+            //add card
+            let daMonsterCard = new DaMonsterCard();
+            daMonsterCard.setAttribute('id', 'id' + card.id);
+            daMonsterCard.setAttribute('data-id', card.id);
+            if (card.point) {
+                daMonsterCard.setAttribute('data-point', card.point);
+            }
+            daMonsterCard.setAttribute('data-card-type', card.type);
+            switch (card.type) {
+                case 'h':
+                case 'i':
+                    daMonsterCard.setAttribute('data-hero', card.heroType);
+                    break;
+                case 'a':
+                    daMonsterCard.setAttribute('data-action', card.action)
+                    break;
+            }
+            
+            daMonsterCard.addEventListener('card-toggle', (e)=>{
+                this.toggleCard(e.currentTarget, e.detail);
+            });
+                                                                                        
+            context.appendChild(daMonsterCard);                                                                                    
+        }
+    }
+    
+        
     
     public addItem(item){
         let card =  document.createElement('div');
@@ -496,7 +500,7 @@ export default class DaMonsterPlayer extends HTMLElement {
         this.shadowRoot.getElementById('monster-context').append(card);
     }
     
-    public startAction(){
+    public reactAction(){
         if (!this.isNPC){
             this.currentRound.mode = 'action';
             let actionBtn = this.shadowRoot.getElementById('actionBtn');     

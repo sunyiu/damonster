@@ -11,26 +11,28 @@ export default class Observable {
                         set: function (target, property, value, receiver) {
                                 
                                 target[property] = value;
-                                                                                                                     
-                                if (isNaN(property)){
-                                        //skip the callback becase it is an array index
-                                        //and set will be called twice (index and length)
-                                        //skipping the index one but keeping the length                                                                                
-                                        if (Array.isArray(target)){
-                                                let p = receiver['__observableArrayName'];
-                                                //console.log('swap property %s --> %o', property, p);
-                                                property = p;
-                                        }                                
-        
-                                        let map = this['__observableObj']['__observable']['eventMap'],
-                                            callbacks = map[property];
-        
-                                        if (callbacks){
-                                                callbacks.forEach((c) =>{
-                                                        c.call(null, value);
-                                                });
-                                        }                                                                                                                                                                                                                                      
+
+                                //skip the callback becase it is an array index
+                                //and set will be called twice (index and length)
+                                //skipping the length but keeping the index                                                                                                                
+                                if (Array.isArray(target) && isNaN(property)){
+                                        return true;
                                 }
+                                                                                                                     
+                                if (Array.isArray(target)){
+                                        let p = receiver['__observableArrayName'];
+                                        //console.log('swap property %s --> %o', property, p);
+                                        property = p;
+                                }                                
+
+                                let map = this['__observableObj']['__observable']['eventMap'],
+                                    callbacks = map[property];
+
+                                if (callbacks){
+                                        callbacks.forEach((c) =>{
+                                                c.call(null, value);
+                                        });
+                                }                                                                                                                                                                                                                                      
                                                                                                  
                                 //console.log("Set %s to %o", property, value);
                                 return true;

@@ -128,7 +128,7 @@ export default class DaMonsterTable extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
 
-    public addAction(card) {
+    public setTable(card) {
         if (!card) {
             let context = this.shadowRoot.getElementById('da-action-context');
             while (context.firstChild) {
@@ -156,7 +156,7 @@ export default class DaMonsterTable extends HTMLElement {
         }
 
         if (card.type == 'm') {
-            //add monster
+            //Monster invade.....
             let monsterCard = document.createElement('div');
             monsterCard.classList.add('da-monster');
             monsterCard.setAttribute('id', 'id' + card.id);
@@ -169,7 +169,7 @@ export default class DaMonsterTable extends HTMLElement {
 
             setTimeout(() => {
                 this.dispatchEvent(new Event('battle', { dbubbles: true, composed: true }));
-            }, 500);
+            }, 2000);
 
         }
 
@@ -180,14 +180,6 @@ export default class DaMonsterTable extends HTMLElement {
             actionCard.classList.add('action');
             this.shadowRoot.getElementById('da-action-context').appendChild(actionCard);
         }
-    }
-
-    private addMonster(monster) {
-        let daMonster = document.createElement('div');
-        daMonster.setAttribute('id', 'id' + monster.id);
-        daMonster.classList.add('da-monster')
-        daMonster.innerHTML = '<div id="da-monster-point">' + monster.point + '</div>';
-        this.shadowRoot.getElementById('da-monsters-left-container').append(daMonster);
     }
     
     public setAvailableMonsters(monsters){

@@ -5,7 +5,7 @@ import { DaDeck } from  './deck.js'
 import { DaPlayerTypes, DaPlayer } from './player.js'
 
 export class DaNpc extends DaPlayer {
-
+	
 	get type(): DaPlayerTypes {
 		return DaPlayerTypes.Npc;
 	}
@@ -104,7 +104,7 @@ export class DaNpc extends DaPlayer {
 		}
 
 		if (actions[DaActions.Steal]) {
-			this.PlayAnAction(actions[DaActions.Steal]);
+			this.PlayAnAction(actions[DaActions.Steal], 0);
 			return;
 		}
 
@@ -115,21 +115,22 @@ export class DaNpc extends DaPlayer {
 			//set hero if there is any
 			let hero = this.hand.find((c) => { return c.type == DaCardType.Hero; });
 			if (hero) {
-				super.SetHero(hero);
+				super.SetHero(hero.id);
+				return;
 			}
 		}
 
 		if (this.hero) {
 			//equip item if there is any
-			let items = this.hand.filter((c) => { return c.type == DaCardType.Item && c.heroType == this.hero.heroType; });
-			items.forEach((i) => {
-				this.EquipHero(i);
-			});
+			let item = this.hand.find((c) => { return c.type == DaCardType.Item && c.heroType == this.hero.heroType; });
+			if (item){
+				this.EquipHero(item.id);
+				return;
+			}
 		}
 					
-		
 		//draw from deck
-		super.DrawFromDeck();
+		super.DrawFromDeck();		
 	}
 
 	ReactOnAction(card, args) {
