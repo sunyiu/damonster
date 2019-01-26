@@ -31,16 +31,30 @@ export default class DaMonsterPlayer extends HTMLElement {
                 }
                 
                 
+                button.hide{
+                    display: none;
+                }
+                
+                #monster-container div.monster{
+                    display: block;
+                    width: 60px;
+                    height: 60px;
+                    background-size: contain;
+                    background-image: url(images/monster.png);
+                    background-repeat: no-repeat;
+                }
+                
 
 
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
                 <div id="hand-container"></div>
+                <div id="monster-container"></div>
                 <div id="btns">
-                    <button id="playBtn">PLAY</button>
-                    <button id="battleBtn">FIGHT</button>
-                    <button id="actionBtn">DONE</button>
+                    <button id="playBtn" class="hide">PLAY</button>
+                    <button id="battleBtn" class="hide">FIGHT</button>
+                    <button id="actionBtn" class="hide">DONE</button>
                 </div>
             </div>
         `;
@@ -114,6 +128,24 @@ export default class DaMonsterPlayer extends HTMLElement {
     public get hero(){
         return this._hero;
     }
+    
+    public set isActionOn(value){
+        let btn = this.shadowRoot.getElementById('actionBtn');
+        if (value){
+            btn.classList.remove('hide');
+        }else{
+            btn.classList.add('hide');
+        }
+    }
+    
+    public set isBattleOn(value){
+        let btn = this.shadowRoot.getElementById('battleBtn');
+        if (value){
+            btn.classList.remove('hide');
+        }else{
+            btn.classList.add('hide');
+        }
+    }
 
     private init(isNPC) {
         this._isNPC = isNPC;
@@ -129,8 +161,8 @@ export default class DaMonsterPlayer extends HTMLElement {
             this.shadowRoot.getElementById('playBtn').onclick = (e) => {
             let container = this.shadowRoot.getElementById('hand-container'),
                 card = Array.from(container.children).find((c) =>{
-                return c.isSelected;
-            });
+                    return c.isSelected;
+                });
             
             if (!card){
                 console.log('NOTHING is selected!!!!');
@@ -167,31 +199,35 @@ export default class DaMonsterPlayer extends HTMLElement {
         }                   
     }
 
-    private toggleCard(card, isSelected) {
+    private toggleCard(card) {
         //deselect other
         let container = this.shadowRoot.getElementById('hand-container');
         Array.from(container.children).forEach((c) => {
             let id = parseInt(c.getAttribute('data-id'));
             if (id != card.id) {
                 c.isSelected = false;
+            }else{
+                c.isSelected = !c.isSelected;
+                let playBtn = this.shadowRoot.getElementById('playBtn');
+                if (c.isSelected){
+                     playBtn.classList.remove('hide');
+                }else{
+                    playBtn.classList.add('hide');
+                }
             }
         })
-
-        if (!isSelected) {
-            //disable btn.. nothing selected
-            
-        }
     }
 
     public InitHand(cards) {
         cards.forEach((card) => {
             let container = this.shadowRoot.getElementById('hand-container');
-               
-            card.addEventListener('card-toggle',(e) => {
-                this.toggleCard(card, e.detail);
-            });
-
-            container.appendChild(card);
+            
+            if (!this._isNPC){               
+                card.addEventListener(DaCardEvents.Clicked,(e) => {
+                    this.toggleCard(card);
+                });    
+            }
+            container.appendChild(card);            
         })
     }
             
@@ -216,29 +252,12 @@ export default class DaMonsterPlayer extends HTMLElement {
         container.prepend(daCard); 
         
         return daCard.add().then(() =>{
-            daCard.addEventListener(DaCardEvents.Toggle,(e) => {
-                this.toggleCard(daCard);
-            });                             
+            if (!this._isNPC){
+                daCard.addEventListener(DaCardEvents.Clicked,(e) => {
+                    this.toggleCard(daCard);
+                });               
+            }              
         });                                                 
-        
-        // return this._animation = new Promise((resolve, reject) =>{                                
-        //         let animation = daCard.animate(
-        //             [   {'marginTop': '-15px'}, 
-        //                 {'marginTop': 0}
-        //             ], 
-        //             {   duration: 500, 
-        //                 iterations: 1,
-        //                 //startDelay: 1000,
-        //                 //endDelay: 500
-        //             }
-        //         );                
-        //         animation.onfinish = (e) =>{
-        //             daCard.addEventListener(DaCardEvents.Toggle,(e) => {
-        //                 this.toggleCard(daCard);
-        //             });                
-        //             resolve();                        
-        //         };
-        //     });
     }
 
 
@@ -254,7 +273,26 @@ export default class DaMonsterPlayer extends HTMLElement {
         
         return daCard.remove().then(() =>{
             container.removeChild(daCard);
+            return daCard;
         });         
+    }   
+    
+    public EndAction(){
+                let playBtn = this.shadowRoot.getElementById('playBtn');
+                if (c.isSelected){
+                     playBtn.classList.remove('hide');
+                }else{
+                    playBtn.classList.add('hide');
+                }
+        
+    }
+    
+    public KillAMonster(){
+        let container = this.shadowRoot.getElementById('monster-container'),
+            monster = document.createElement('div');
+            monster.classList.add('monster');
+        container.append(monster);
+        return Promise.resolve();
     }
    
     // public EquipHero(point) {
@@ -288,11 +326,7 @@ export default class DaMonsterPlayer extends HTMLElement {
     //     //         };                            
     //     //     });            
     //     // });
-    // }
-    
-    public Battle(){
-        
-    }
+    // }    
 }
 
 customElements.define(DaMonsterPlayer.is, DaMonsterPlayer);

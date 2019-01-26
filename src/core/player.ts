@@ -140,7 +140,7 @@ export class DaPlayer {
 		let callbacks = this._callbacks[DaPlayerEvents.EquipHero];
 		if (callbacks) {
 			callbacks.forEach((c) => {
-				c.call(null, id);
+				c.call(null, card);
 			})
 		}		
 	}

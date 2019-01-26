@@ -42,6 +42,8 @@ export default class DaMonsterDeck extends HTMLElement {
 			<div id="da-monster-deck-container">                            
                 <div id="card-container">                
                 </div>
+                <div id="available-monster-container">
+                </div>
             </div>
         `;
     }
@@ -80,7 +82,7 @@ export default class DaMonsterDeck extends HTMLElement {
             daCard = new DaMonsterCard();
         container.appendChild(daCard);
         
-        daCard.addEventListener(DaCardEvents.Toggle,(e) => {
+        daCard.addEventListener(DaCardEvents.Clicked,(e) => {
             this.dispatchEvent(new CustomEvent(DaDeckEvents.Draw, {detail: null, bubbles: true, composed: true}));
         });                
     }
@@ -148,6 +150,28 @@ export default class DaMonsterDeck extends HTMLElement {
                 })                        
             }, 100);
         });                                             
+    }
+    
+    public RemoveTop(){
+        let cardContainer = this.shadowRoot.getElementById('card-container');
+        
+        cardContainer.removeChild(cardContainer.lastChild);
+        
+        return Promise.resolve();        
+        // while (cardContainer.firstChild) {
+        //         cardContainer.removeChild(cardContainer.firstChild);
+        //     }                    
+    }
+    
+    public AddAVailableMonster(id, point){
+        let cardContainer = this.shadowRoot.getElementById('card-container'),        
+            monsterContainer =  this.shadowRoot.getElementById('available-monster-container'),
+            daCard = cardContainer.lastChild;
+        
+        cardContainer.removeChild(daCard);
+        monsterContainer.append(daCard);
+        
+        return Promise.resolve();                
     }
 }
 

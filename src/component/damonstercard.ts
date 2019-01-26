@@ -1,7 +1,7 @@
 'use strict';
 
 export enum DaCardEvents {
-    Toggle = 'toggle'
+    Clicked = 'clicked'
 }
 
 
@@ -71,6 +71,10 @@ export default class DaMonsterCard extends HTMLElement {
                     background-color: #7F7F7F;
                     border-radius: 3px;
                     position: relative;
+                    
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;                    
                 }                
                 .front .context{
                     background-color: lightblue;
@@ -92,7 +96,6 @@ export default class DaMonsterCard extends HTMLElement {
                 }                
                 .back.card-i .context{
                     background-color: #14850E;
-                    
                 }
                 .back.card-i.hero-k .context .icon #point-context,
                 .back.card-h.hero-k .context .icon #point-context{
@@ -108,12 +111,65 @@ export default class DaMonsterCard extends HTMLElement {
                     background-image: url(images/arrowIcon_black.png);
                 }
                 
+                .back.card-i.hero-k .context{
+                    background-image: url(images/swordIcon.png);
+                }
+                .back.card-i.hero-w .context{
+                    background-image: url(images/staffIcon.png);
+                }
+                .back.card-i.hero-r .context{
+                    background-image: url(images/arrowIcon.png);
+                }                                
+                
+                
                 .back.card-a .context{
                     background-color: #A21515;
                 }                
                 .back.card-a .context .icon{
                     
                 }
+                
+                /*
+                   AtomicBomb - 0,
+                	Stop - 1,
+                	Radar - 2,
+                	Steal - 3,
+                	// Super,
+                	// PerfectCube,
+                	Retreat - 4,
+                	Provoke - 5,
+                	Attack - 6,	
+                	SuicideBelt - 7,
+                	MindReading - 8,
+                */             
+                .back.card-a.action-0 .context{
+                    background-image: url(images/bomb.png);
+                }
+                .back.card-a.action-1 .context{
+                    background-image: url(images/stop.png);
+                }
+                .back.card-a.action-2 .context{
+                    background-image: url(images/radar.png);
+                }                
+                .back.card-a.action-3 .context{
+                    background-image: url(images/steal.png);                    
+                }
+                .back.card-a.action-4 .context{
+                    background-image: url(images/swap.png);
+                }
+                .back.card-a.action-5 .context{
+                    background-image: url(images/provoke.png);
+                }
+                .back.card-a.action-6 .context{
+                    background-image: url(images/attack.png);
+                }
+                .back.card-a.action-7 .context{
+                    background-image: url(images/suicidebelt.png);
+                }
+                .back.card-a.action-8 .context{
+                    background-image: url(images/mindreading.png);
+                }                                                                                
+                
                 
                 .back.card-m .context{
                     background-color: #3F3F3F;                    
@@ -130,6 +186,8 @@ export default class DaMonsterCard extends HTMLElement {
                 #da-card-container.disabled .context{
                     /*background-color: #7f7f7f !important;*/
                 }
+                
+                
                                                                                                                               
                 #da-card-container.hidden{
                     display:none;                    
@@ -192,7 +250,6 @@ export default class DaMonsterCard extends HTMLElement {
                 </div>            
     			<div class="card-container back">
                     <div class="context">
-                        <div id="da-card-action"></div>
                         <div class="icon">
                             <div id="point-context" class=""></div>
                         </div>
@@ -245,11 +302,11 @@ export default class DaMonsterCard extends HTMLElement {
     }
     public set isSelected(value){
         let elem = this.shadowRoot.getElementById('da-card-container');                        
-        // if (value){
-        //     elem.classList.add('selected');
-        // }else{
-        //     elem.classList.remove('selected');            
-        // }
+        if (value){
+            elem.classList.add('selected');
+        }else{
+            elem.classList.remove('selected');            
+        }
         this._isSelected = value;                
     }
         
@@ -288,8 +345,7 @@ export default class DaMonsterCard extends HTMLElement {
                                                                
         let container = this.shadowRoot.getElementById('da-card-container');        
         container.onclick = (e) => {
-            this.isSelected = !this.isSelected;
-            this.dispatchEvent(new CustomEvent(DaCardEvents.Toggle, {detail: this._isSelected, bubbles: true, composed: true}));
+            this.dispatchEvent(new CustomEvent(DaCardEvents.Clicked, {detail: null, bubbles: true, composed: true}));
         };
     }    
     
@@ -324,6 +380,7 @@ export default class DaMonsterCard extends HTMLElement {
                 break;
             case 'a':
                 this.setAttribute('data-action', action)
+                elem.classList.add('action-' + action);
                 break;    
         }
                                 
@@ -339,39 +396,7 @@ export default class DaMonsterCard extends HTMLElement {
         //elem.classList.remove('card-h', 'card-i', 'card-a', 'card-m');
         elem.classList.add('card-' + cardType);             
                 
-        if (action) {
-            let action = '';
-            switch (action) {
-                case '0':
-                    action = 'Atomic Bomb';
-                    break
-                case '1':
-                    action = 'Stop';
-                    break
-                case '2':
-                    action = 'Radar';
-                    break
-                case '3':
-                    action = 'Steal';
-                    break;                                        
-                case '4':
-                    action = 'Swap';
-                    break
-                case '5':
-                    action = 'Provoke';
-                    break
-                case '6':
-                    action = 'Attack';
-                    break
-                case '7':
-                    action = 'Suicide Belt';
-                    break;
-                case '8':
-                    action = 'Mind Reading';
-                    break;                    
-            }
-            this.shadowRoot.getElementById('da-card-action').innerHTML = action;
-        }        
+     
     }
         
     public flip(){
@@ -400,6 +425,7 @@ export default class DaMonsterCard extends HTMLElement {
             let card = this.shadowRoot.getElementById('da-card-container'),
             callback = (e) =>{
                 card.removeEventListener('webkitAnimationEnd', callback);
+                card.classList.remove('remove');  
                 //this.hide();                
                 resolve();                
             }

@@ -8,6 +8,7 @@ export default class DaMonsterPlayerHero extends HTMLElement {
             <style>
                 #da-hero-container{
                     position: relative;
+                    display: flex;
                 }
             
                 hero-container{
@@ -125,7 +126,8 @@ export default class DaMonsterPlayerHero extends HTMLElement {
                         <div id="da-hero-type-icon"></div>                
                         <div id="hero-context"></div>                                                                
                         <div id="point-container"><div id="point-context"></div></div>
-                    </div>                    
+                    </div>
+                    <div id="item-container"></div>                    
                 </div>
         `;
     }
@@ -146,14 +148,14 @@ export default class DaMonsterPlayerHero extends HTMLElement {
         return attributes;
     }
     
-    private _point: number;
-    public get point():number{
-        return this._point;
-    }
-    private _heroType: string;
-    public get heroType():string{
-        return this._heroType;
-    }
+    // private _point: number;
+    // public get point():number{
+    //     return this._point;
+    // }
+    // private _heroType: string;
+    // public get heroType():string{
+    //     return this._heroType;
+    // }
     
     public constructor() {
         super();
@@ -185,37 +187,48 @@ export default class DaMonsterPlayerHero extends HTMLElement {
     }
     
     //------------------------------------------------------------        
-    public Equip(point){
-        let container = this.shadowRoot.getElementById('point-container');
-        this._point += point;
-        
-        container.innerHTML = this._point;        
+    public Equip(card){        
+        let itemContainer = this.shadowRoot.getElementById('item-container');
+                            
+        let pointContainer = this.shadowRoot.getElementById('point-container'),
+            point = isNaN(pointContainer.innerHTML) ? 0 : parseInt(pointContainer.innerHTML);
+            pointContainer.innerHTML = point + card.point;
+            
+        itemContainer.append(card);
+            
+        return Promise.resolve();        
+                                        
     }
     
     public Set(heroType, point){                
-        let daHero = this.shadowRoot.getElementById('hero-container');
+        let heroContainer = this.shadowRoot.getElementById('hero-container'),
+            itemContainer = this.shadowRoot.getElementById('item-container'),
+            pointContainer = this.shadowRoot.getElementById('point-container'),
+
         
         if (!heroType){
-            daHero.className = '';
-            this._point = 0;
+            heroContainer.className = '';
+            pointContainer.innerHTML = '';
+
+            while (itemContainer.firstChild) {
+                itemContainer.removeChild(itemContainer.firstChild);
+            }            
             return;            
         }   
-          
-        this._point = point;                           
-        daHero.classList.add(heroType);
+                                    
+        heroContainer.classList.add(heroType);
+        pointContainer.innerHTML = point;         
         
-        return new Promise((resolve, reject) =>{
-            setTimeout(() => {                         
-                let hero = this.shadowRoot.getElementById('hero-context'),
-                callback = (e) =>{
-                    hero.removeEventListener('webkitAnimationEnd', callback);
-                    hero.classList.remove('set');
-                    resolve();                
-                }
-                    
-                hero.addEventListener('webkitAnimationEnd', callback);
-                hero.classList.add('set');
-            }, 100);
+        return new Promise((resolve, reject) =>{                        
+            let hero = this.shadowRoot.getElementById('hero-context'),
+            callback = (e) =>{
+                hero.removeEventListener('webkitAnimationEnd', callback);
+                hero.classList.remove('set');
+                resolve();                
+            }
+                
+            hero.addEventListener('webkitAnimationEnd', callback);
+            hero.classList.add('set');
         });                 
     }                
 }

@@ -76,7 +76,7 @@ export class DaNpc extends DaPlayer {
 				(this.hero.totalPoint < opponent.hero.totalPoint && maxHero && maxHero.point > opponent.hero.totalPoint)
 			)){
 			this.PlayAnAction(actions[DaActions.Attack]);
-			
+			return;
 		}
 
 

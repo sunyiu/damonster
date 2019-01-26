@@ -49,45 +49,70 @@ export default class DaMonsterGame {
                  return this.playerHeroSet(player.isNPC ? this.npc : this.player, hero);  
              });              
         });
-        this.game.AddEventListener(DaMonsterEvents.EquipItem, (player, cardId) =>{
+        this.game.AddEventListener(DaMonsterEvents.EquipHero, (player, item) =>{
             this.animation = this.animation.then(() =>{
-                    
+                return this.playerEquipHero(player.isNPC ? this.npc : this.player, item);
             });
         });
         this.game.AddEventListener(DaMonsterEvents.MonsterInvade, (monster) =>{
             this.animation = this.animation.then(() =>{
                     return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, DeckServeDirection.Flip);
+            }).then(() =>{
+                
+                this.player.isBattleOn = true;
+                return Promise.resolve();
             });
+        });
+        this.game.AddEventListener(DaMonsterEvents.BattleDone, (isPlayerWin, winner) =>{
+            this.player.isBattleOn = false;
+            if (isPlayerWin){
+                let player = winner.isNPC ? this.npc : this.player;
+                this.animation = this.animation.then(() =>{
+                    return this.deck.RemoveTop();
+                }).then(() =>{
+                    return player.KillAMonster();
+                })                
+
+                
+            }else{
+                this.animation = this.animation.then(() => {
+                    return this.deck.AddAVailableMonster(winner.id, winner.point);
+                });
+            }            
         });
         this.game.AddEventListener(DaMonsterEvents.ActionStart, (player, card) =>{
             if (player.isNPC){
                 let daCard = this.npc.GetCardById(card.id);
                 this.animation = this.animation.then(() =>{
                     return daCard.flip();                                                                        
-                });                
+                }).then(() =>{
+                    this.player.isActionOn = true;
+                    return Promise.resolve();
+                });                                                
             }
         });              
         this.game.AddEventListener(DaMonsterEvents.ActionExec, (action, result) =>{
-           if (!action.isStopped){
+            this.player.isActionOn = false;
+            if (!action.isStopped){
                console.log('COM::action %o', action);
-               if (action.card.name == 'Steal'){
+                if (action.card.name == 'Steal'){
                    //let index = action.args[0];
                    this.animation = this.animation.then(() =>{
                         let promises = [],
                             daCard = new DaMonsterCard(),
+                            actionCard = action.card,
                             player = action.player.isNPC ? this.npc : this.player,
                             target = action.player.isNPC ? this.player : this.npc;
                         daCard.Set(result.id, result.point, result.cardType, result.heroType, result.action);
                         promises.push(player.AddHand(daCard));
+                        promises.push(player.RemoveHand(actionCard.id));
                         promises.push(target.RemoveHand(result.id));
-                        return Promise.all(promises);
-                        
-                   })
-               }
+                        return Promise.all(promises);                        
+                   });
+                }               
+            }else{
                
-           }else{
-               
-           }
+            }
         });
               
 
@@ -121,14 +146,19 @@ export default class DaMonsterGame {
                 return daCard;
             })
         );        
-              
+
+        this.player.addEventListener(DaPlayerComEvents.SetHero, (e)=>{
+            this.game.players[0].SetHero(e.detail.card.id);
+        });              
         this.player.addEventListener(DaPlayerComEvents.EquipHero, (e)=>{
-            //this.game.players[0].EquipHero(e.detail.card.id);
+            this.game.players[0].EquipHero(e.detail.card.id);
         });
         this.player.addEventListener(DaPlayerComEvents.DoBattle, (e) => {
+            this.player.isBattle = false;
             this.game.Battle();
         })
         this.player.addEventListener(DaPlayerComEvents.DoneAction, (e) => {
+            this.player.isActionOn = false;
             this.game.player.SkipAction();
         })        
                                 
@@ -162,6 +192,12 @@ export default class DaMonsterGame {
         });            
     }
     
+    private playerEquipHero(player, card){
+        return player.RemoveHand(card.id).then((card) =>{
+            return player.hero.Equip(card);
+        });                    
+    }
+    
     // private playerHandChange(player, card){
     //     let daCard = player.GetCardById(card.id);
     //     
@@ -188,34 +224,5 @@ export default class DaMonsterGame {
             .then((daCard)=>{
                 return player.AddHand(daCard);
             });                    
-    }
-    
-    private playerSyncHand(player, hand){
-        let promises = [];
-        
-        hand.forEach((c) =>{
-            let daCard = player.GetCardById(c.id);
-            if (!daCard){
-                //add card
-                let daCard = new DaMonsterCard();
-                daCard.Set(c.id, c.point, c.cardType, c.heroType, c.action)
-                promises.push(player.AddHand(daCard));
-            }                                    
-        });
-        
-        let removeIds = [];
-        player.GetHandIds().forEach((id)=>{
-            let daCard = hand.find((c) => {return c.id == id});
-            if (!daCard){
-                //remove card
-                removeIds.push(id);
-            }
-        })                
-        removeIds.forEach((id) =>{
-            console.log('com:: remove hand ' + id);
-            promises.push(player.RemoveHand(id));
-        })
-        
-        return Promise.all(promises);
-    }
+    }    
  }

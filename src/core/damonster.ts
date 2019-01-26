@@ -8,6 +8,7 @@ import { DaNpc } from "./npc.js"
 
 export enum DaMonsterEvents {
 	MonsterInvade,
+	BattleDone,
 	DrawFromDeck,
 	SetHero,
 	EquipHero,
@@ -119,11 +120,11 @@ export default class DaMonster {
 				}
 			});
 
-			p.AddEventListener(DaPlayerEvents.EquipHero,(cardId) => {
+			p.AddEventListener(DaPlayerEvents.EquipHero,(card) => {
 				let callbacks = this._callbacks[DaMonsterEvents.EquipHero];
 				if (callbacks) {
 					callbacks.forEach((c) => {
-						c.call(null, p, cardId);
+						c.call(null, p, card);
 					})
 				}
 								
@@ -334,7 +335,9 @@ export default class DaMonster {
 			throw new Error("No monster to BATTLE!!!");
 		}
 
-		let maxPointPlayer = null;
+		let maxPointPlayer = null,
+			winner = null,
+			isPlayerWin = false;
 		this._players.forEach((p: DaPlayer) => {
 			//TODO::how about equal point????
 			if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint < p.hero.totalPoint)) {
@@ -349,17 +352,31 @@ export default class DaMonster {
 			this._players.forEach((p: DaPlayer) => {
 				p.hero = undefined;
 			});
+			winner = this.monsterCard;
 		} else {
 			console.log('player win!!!!!');
 			//check for each player
+			winner = maxPointPlayer;
+			isPlayerWin = true;
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
+		
+		let callbacks = this._callbacks[DaMonsterEvents.BattleDone];
+		if (callbacks) {
+			callbacks.forEach((c) => {
+				c.call(null, isPlayerWin, winner);
+			})
+		}			
 				
 		this.monsterCard = undefined;
 		if (!this._isProvokeBattle){
-			//this.NextPlayer();
-		}
-				
+			this.NextPlayer();
+		}else{
+			let activePlayer = this._players.find((p) => {return p.isActive;});
+			if (activePlayer.isNPC){
+				activePlayer.DoARound(this._players, this.availableMonsters);
+			}												
+		}				
 	}
 
 	New() {
@@ -374,7 +391,7 @@ export default class DaMonster {
 				p.hand.push(this._deck.Deal());								
 			}
 		})
-		this._deck.AddCardsAndShuffle(cards.monster);
+		this._deck.AddCardsAndShuffle(cards.monster);		
 		
 		this._players[0].isActive = true;		
 	}
