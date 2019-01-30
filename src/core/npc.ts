@@ -56,16 +56,16 @@ export class DaNpc extends DaPlayer {
 
 		if (actions[DaActions.AtomicBomb]) {
 			if (!this.hero && opponent.hero) {
-				this.PlayAnAction(actions[DaActions.AtomicBomb]);
+				this.PlayAnAction(actions[DaActions.AtomicBomb].id);
 				return;
 			}
 
 			if (this.hero && opponent.hero && opponent.hero.totalPoint > this.hero.totalPoint) {
 				if (actions[DaActions.Retreat] && (!maxHero || maxHero.point < this.hero.totalPoint)) {
-					this.PlayAnAction(actions[DaActions.Retreat]);
+					this.PlayAnAction(actions[DaActions.Retreat].id);
 					return;
 				} else {
-					this.PlayAnAction(actions[DaActions.AtomicBomb]);
+					this.PlayAnAction(actions[DaActions.AtomicBomb].id);
 					return;
 				}
 			}
@@ -75,13 +75,13 @@ export class DaNpc extends DaPlayer {
 				(this.hero && opponent.hero && this.hero.totalPoint > opponent.hero.totalPoint) ||
 				(this.hero.totalPoint < opponent.hero.totalPoint && maxHero && maxHero.point > opponent.hero.totalPoint)
 			)){
-			this.PlayAnAction(actions[DaActions.Attack]);
+			this.PlayAnAction(actions[DaActions.Attack].id);
 			return;
 		}
 
 
 		if (actions[DaActions.Retreat] && this.hero && maxHero && maxHero.point > this.hero.totalPoint) {
-			this.PlayAnAction(actions[DaActions.Retreat]);
+			this.PlayAnAction(actions[DaActions.Retreat].id);
 			return;
 		}
 
@@ -98,13 +98,13 @@ export class DaNpc extends DaPlayer {
 				}
 			});
 			if (this.hero.totalPoint > availableMonsters.point) {
-				this.PlayAnAction(actions[DaActions.Provoke], monster.card.id);
+				this.PlayAnAction(actions[DaActions.Provoke].id, monster.card.id);
 				return;
 			}
 		}
 
 		if (actions[DaActions.Steal]) {
-			this.PlayAnAction(actions[DaActions.Steal], 0);
+			this.PlayAnAction(actions[DaActions.Steal].id, 0);
 			return;
 		}
 
@@ -137,7 +137,7 @@ export class DaNpc extends DaPlayer {
 		let stopCard = this.hand.find((c) => { return c.action == DaActions.Stop; });
 
 		if (stopCard) {
-			super.PlayAnAction(stopCard);
+			super.PlayAnAction(stopCard.id);
 		} else {
 			super.SkipAction();
 		}

@@ -145,7 +145,12 @@ export class DaPlayer {
 		}		
 	}
 
-	PlayAnAction(card: DaActionCard, ...args) {
+	PlayAnAction(cardId: number, ...args) {
+		let card = this.hand.find((c) => { return c.id == cardId;});
+		if (!card){
+			throw new Error ("Action card not in hand!!!!");
+		}
+		
 		if (card.type != DaCardType.Action) {
 			throw new Error("Card type is not ACTION!!!");
 		}

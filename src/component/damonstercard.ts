@@ -139,8 +139,8 @@ export default class DaMonsterCard extends HTMLElement {
                 	Retreat - 4,
                 	Provoke - 5,
                 	Attack - 6,	
-                	SuicideBelt - 7,
-                	MindReading - 8,
+                	//SuicideBelt - 7,
+                	//MindReading - 8,
                 */             
                 .back.card-a.action-0 .context{
                     background-image: url(images/bomb.png);
@@ -155,20 +155,21 @@ export default class DaMonsterCard extends HTMLElement {
                     background-image: url(images/steal.png);                    
                 }
                 .back.card-a.action-4 .context{
-                    background-image: url(images/swap.png);
+                    background-image: url(images/retreat.png);
                 }
                 .back.card-a.action-5 .context{
                     background-image: url(images/provoke.png);
                 }
                 .back.card-a.action-6 .context{
-                    background-image: url(images/attack.png);
+                    background-image: url(images/swordIcon.png);
                 }
+                /*
                 .back.card-a.action-7 .context{
                     background-image: url(images/suicidebelt.png);
                 }
                 .back.card-a.action-8 .context{
                     background-image: url(images/mindreading.png);
-                }                                                                                
+                }*/                                                                               
                 
                 
                 .back.card-m .context{
@@ -225,7 +226,7 @@ export default class DaMonsterCard extends HTMLElement {
                     
                 }
                 #da-card-container{
-                    animation-duration: 1s; 
+                    animation-duration: 0.5s; 
                     animation-timing-function: ease-out; 
                     animation-delay: 0s;
                     animation-direction: alternate;

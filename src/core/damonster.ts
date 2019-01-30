@@ -13,7 +13,7 @@ export enum DaMonsterEvents {
 	SetHero,
 	EquipHero,
 	ActionStart,
-	ActionExec,	
+	ActionDone,	
 }
 
 
@@ -164,6 +164,9 @@ export default class DaMonster {
 				this._players.forEach((player) =>{
 					if (player !== p){
 						player.isActionDone = false;
+						if (player.isNPC){
+							player.ReactOnAction(card, args);
+						}
 					}else{
 						player.isActionDone = true;
 					}
@@ -194,7 +197,8 @@ export default class DaMonster {
 			switch (parseInt(index)) {
 				case DaActions.AtomicBomb:
 					DaActionCard.callbacks[index] = (player) => {
-						console.log("Action card (Atomic bomb) played");								
+						console.log("Action card (Atomic bomb) played");
+						let hasMonster = this.monsterCard != undefined;								
 						//monster
 						if (this.monsterCard) {
 							player.monsterKilled.push(this.monsterCard);
@@ -204,6 +208,8 @@ export default class DaMonster {
 						this._players.forEach((p) => {
 							p.hero = undefined;
 						});
+						
+						return hasMonster;
 					}
 					break;
 
@@ -214,7 +220,7 @@ export default class DaMonster {
 							index = this.availableMonsters.findIndex((c) => { return c.id == id; });
 
 						if (index < 0) {
-							throw new Error("Monster card is found from the discard pile");
+							throw new Error("Monster card is not found from the available monster");
 						}
 							
 						let monsterCard = this.availableMonsters[index];
@@ -224,9 +230,9 @@ export default class DaMonster {
 								
 						//provoke monster!!!
 						this._isProvokeBattle = true;
-						this.availableMonsters.splice(index, 1);			
-						
+						this.availableMonsters.splice(index, 1);									
 						this.monsterCard = monsterCard;
+						return this.monsterCard;
 					}
 					break;
 
@@ -237,7 +243,7 @@ export default class DaMonster {
 				case DaActions.Radar:
 					DaActionCard.callbacks[index] = (player) => {
 						console.log('Radar.... %s', player);
-						this.monsterCard = this._deck.NextNCards(3);
+						return this._deck.NextNCards(3);
 					}
 					break;
 
@@ -293,10 +299,12 @@ export default class DaMonster {
 						}
 						
 						if (this.players[0].hero.totalPoint < this.players[1].hero.totalPoint){
-							this.players[0].hero = undefined;							
+							this.players[0].hero = undefined;
+							return this.players[0];							
 						}else{
-							this.players[1].hero = undefined;							
-						}
+							this.players[1].hero = undefined;
+							return this.players[1];							
+						}						 
 					}
 					break;
 					
@@ -399,25 +407,54 @@ export default class DaMonster {
 	ExeCardAction() {
 		if (this.playedActions.length > 0) {
 			let action = this.playedActions[0],
-				result;
+				cards = this.playedActions.map((a) => {return {cardId: a.card.id, player: a.player};});
+			
 			if (!action.isStopped){
 				//do action
-				result = action.card.Play(action.player, action.args);
+				action.result = action.card.Play(action.player, action.args);
 			}
-			
-			let callbacks = this._callbacks[DaMonsterEvents.ActionExec];
+			let callbacks = this._callbacks[DaMonsterEvents.ActionDone];
 			if (callbacks) {
 				callbacks.forEach((c) => {
-					c.call(null, action, result);
+					c.call(null, action, cards);
 				})
-			}												
-						
-			this.playedActions = [];	
+			}																
 			
-			let activePlayer = this._players.find((p) => {return p.isActive;});
-			if (activePlayer.isNPC){
-				activePlayer.DoARound(this._players, this.availableMonsters);
-			}												
+									
+			this.playedActions = [];
+			
+			//check for monster card...
+			// //can be monster invade -> atomic bomb
+			// //or action -> provoke....			
+			if (!this.monsterCard){
+				let activePlayer = this._players.find((p) => {return p.isActive;});
+				if (activePlayer.isNPC){
+					activePlayer.DoARound(this._players, this.availableMonsters);
+				}					
+			}else{
+				//battle mode....
+				let monsterCallback = this._callbacks[DaMonsterEvents.MonsterInvade];
+				if (monsterCallback) {
+					monsterCallback.forEach((c) => {
+						c.call(null, this.monsterCard);
+					})
+				}																
+			}
+			
+			// //check for monster card....
+			// //can be monster invade -> atomic bomb
+			// //or action -> provoke....			
+			// if (this.monsterCard){
+			// 	this.Battle();				
+			// }else{																	
+			// 	let activePlayer = this._players.find((p) => {return p.isActive;});
+			// 	if (activePlayer.isNPC){
+			// 		activePlayer.DoARound(this._players, this.availableMonsters);
+			// 	}	
+			// }						
+			
+			//wait for next action or done actions.....????
+			//in monster invade..... how can we wait for all actions played... STEAL action???											
 		}
 		
 		

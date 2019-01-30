@@ -173,6 +173,11 @@ export default class DaMonsterDeck extends HTMLElement {
         
         return Promise.resolve();                
     }
+    
+    public ShowNCard(cards){
+        console.log('com::Deck ShowNCards %o', cards);
+        return Promise.resolve();
+    }
 }
 
 customElements.define(DaMonsterDeck.is, DaMonsterDeck);

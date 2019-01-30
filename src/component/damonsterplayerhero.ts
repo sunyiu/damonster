@@ -102,22 +102,50 @@ export default class DaMonsterPlayerHero extends HTMLElement {
                 }
                 
                 @keyframes setHero {
-                    0%, 100% {
-                        transform: scale(1.0);
-                        -webkit-transform: scale(1.0);
+                    0% {
+                        transform: scale(0.1);
+                        -webkit-transform: scale(0.1);
                     }
-                    50%{
+                    75%{
                         transform: scale(1.3);
                         -webkit-transform: scale(1.3);            
                     }
-                }        
+                    100% {
+                        transform: scale(1.0);
+                        -webkit-transform: scale(1.0);
+                    }                    
+                }
+                @keyframes removeHero{
+                    0%{
+                        transform: scale(1.0);
+                        -webkit-transform: scale(1.0);                        
+                    }
+                    15%{
+                        transform: scale(1.3);
+                        -webkit-transform: scale(1.3);                        
+                    }
+                    100%{
+                        transform: scale(0.1);
+                        -webkit-transform: scale(0.1);
+                        
+                    }
+                }
+                #hero-context{
+                    animation-duration: 0.5s; 
+                    animation-timing-function: ease-out; 
+                    animation-delay: 0s;
+                    animation-direction: alternate;
+                    animation-iteration-count: 1;
+                    animation-fill-mode: none;
+                    animation-play-state: running; 
+                }                        
                 
                 #hero-context.set{
-                    -webkit-animation: setHero 1s 1; /* Safari 4+ */
-                    -moz-animation: setHero 1s 1; /* Fx 5+ */
-                    -o-animation: setHero 1s 1; /* Opera 12+ */
-                    animation: setHero 1s 1; /* IE 10+, Fx 29+ */      
+                    animation-name: setHero;
                 }
+                #hero-context.remove{
+                    animation-name: removeHero;
+                }                                                           
                 
 			</style>
             <!-- shadow DOM for your element -->
@@ -207,30 +235,39 @@ export default class DaMonsterPlayerHero extends HTMLElement {
 
         
         if (!heroType){
-            heroContainer.className = '';
-            pointContainer.innerHTML = '';
-
-            while (itemContainer.firstChild) {
-                itemContainer.removeChild(itemContainer.firstChild);
-            }            
-            return;            
-        }   
-                                    
-        heroContainer.classList.add(heroType);
-        pointContainer.innerHTML = point;         
-        
-        return new Promise((resolve, reject) =>{                        
-            let hero = this.shadowRoot.getElementById('hero-context'),
-            callback = (e) =>{
-                hero.removeEventListener('webkitAnimationEnd', callback);
-                hero.classList.remove('set');
-                resolve();                
-            }
-                
-            hero.addEventListener('webkitAnimationEnd', callback);
-            hero.classList.add('set');
-        });                 
-    }                
+            return new Promise((resolve, reject) =>{                        
+                let hero = this.shadowRoot.getElementById('hero-context'),
+                callback = (e) =>{
+                    hero.removeEventListener('webkitAnimationEnd', callback);
+                    hero.classList.remove('remove');
+                    heroContainer.className = '';
+                    pointContainer.innerHTML = '';
+                    
+                    while (itemContainer.firstChild) {
+                        itemContainer.removeChild(itemContainer.firstChild);
+                    }                                                    
+                    resolve();                
+                }
+                    
+                hero.addEventListener('webkitAnimationEnd', callback);
+                hero.classList.add('remove');
+            });                                                                 
+        } else{                                             
+            heroContainer.classList.add(heroType);
+            pointContainer.innerHTML = point;                 
+            return new Promise((resolve, reject) =>{                        
+                let hero = this.shadowRoot.getElementById('hero-context'),
+                    callback = (e) =>{
+                        hero.removeEventListener('webkitAnimationEnd', callback);
+                        hero.classList.remove('set');
+                        resolve();                
+                    }
+                    
+                hero.addEventListener('webkitAnimationEnd', callback);
+                hero.classList.add('set');
+            });                 
+        }          
+    }      
 }
 
 customElements.define(DaMonsterPlayerHero.is, DaMonsterPlayerHero);

@@ -41,26 +41,29 @@ export default class DaMonsterGame {
                 return this.playerAddCardFromDeck(player.isNPC ? this.npc : this.player, card);
             }).then(() =>{
                 console.log('COM::%o end turn', player);
-                return Promise.resolve();
+                return this.delayForNSec();
             }); 
         });
         this.game.AddEventListener(DaMonsterEvents.SetHero, (player, hero) =>{            
              this.animation = this.animation.then(() => {
                  return this.playerHeroSet(player.isNPC ? this.npc : this.player, hero);  
+             }).then(() =>{
+                 return this.delayForNSec();
              });              
         });
         this.game.AddEventListener(DaMonsterEvents.EquipHero, (player, item) =>{
             this.animation = this.animation.then(() =>{
                 return this.playerEquipHero(player.isNPC ? this.npc : this.player, item);
-            });
+            }).then(() =>{
+                 return this.delayForNSec();
+             });
         });
         this.game.AddEventListener(DaMonsterEvents.MonsterInvade, (monster) =>{
             this.animation = this.animation.then(() =>{
                     return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, DeckServeDirection.Flip);
-            }).then(() =>{
-                
+            }).then(() =>{                
                 this.player.isBattleOn = true;
-                return Promise.resolve();
+                return this.delayForNSec();
             });
         });
         this.game.AddEventListener(DaMonsterEvents.BattleDone, (isPlayerWin, winner) =>{
@@ -71,13 +74,19 @@ export default class DaMonsterGame {
                     return this.deck.RemoveTop();
                 }).then(() =>{
                     return player.KillAMonster();
-                })                
-
-                
+                }).then(() =>{
+                 return this.delayForNSec();
+                });                                
             }else{
                 this.animation = this.animation.then(() => {
-                    return this.deck.AddAVailableMonster(winner.id, winner.point);
-                });
+                    let promises = [];
+                    promises.push(this.deck.AddAVailableMonster(winner.id, winner.point));
+                    promises.push(this.playerHeroSet(this.player, null));
+                    promises.push(this.playerHeroSet(this.npc, null));
+                    return Promise.all(promises);
+                }).then(() =>{
+                 return this.delayForNSec();
+             });
             }            
         });
         this.game.AddEventListener(DaMonsterEvents.ActionStart, (player, card) =>{
@@ -91,28 +100,78 @@ export default class DaMonsterGame {
                 });                                                
             }
         });              
-        this.game.AddEventListener(DaMonsterEvents.ActionExec, (action, result) =>{
+        this.game.AddEventListener(DaMonsterEvents.ActionDone, (action, cards) =>{
+            console.log('COM::action %o, card id(s) - %o', action, cards);
+            
             this.player.isActionOn = false;
+            
+            //remove all played card
+            this.animation = this.animation.then(() => {
+                let cardRemovalPromises = [];
+                cards.forEach((r) => {
+                    let player = r.player.isNPC ? this.npc : this.player;
+                    cardRemovalPromises.push(player.RemoveHand(r.cardId));                        
+                });
+                return Promise.all(cardRemovalPromises);                                        
+            });
+            
+            //show the result
             if (!action.isStopped){
-               console.log('COM::action %o', action);
-                if (action.card.name == 'Steal'){
-                   //let index = action.args[0];
-                   this.animation = this.animation.then(() =>{
-                        let promises = [],
-                            daCard = new DaMonsterCard(),
-                            actionCard = action.card,
-                            player = action.player.isNPC ? this.npc : this.player,
+                let promises = [];
+                let player = action.player.isNPC ? this.npc : this.player,
+                    actionCard = action.card;
+                                                                    
+                switch(action.card.name){
+                case 'Steal':
+                    //let index = action.args[0];
+                    this.animation = this.animation.then(() =>{
+                        let daCard = new DaMonsterCard(),
+                            result = action.result,
                             target = action.player.isNPC ? this.player : this.npc;
                         daCard.Set(result.id, result.point, result.cardType, result.heroType, result.action);
                         promises.push(player.AddHand(daCard));
-                        promises.push(player.RemoveHand(actionCard.id));
                         promises.push(target.RemoveHand(result.id));
                         return Promise.all(promises);                        
-                   });
-                }               
-            }else{
+                    });                   
+                break;
+                
+                case 'Radar':
+                    this.animation = this.animation.then(() =>{
+                        promises.push(this.deck.ShowNCard(result));
+                        return Promise.all(promises);
+                    })
+                    
+                break;
+                
+                case 'Atomic Bomb':
+                    this.animation = this.animation.then(() =>{
+                        let hasMonster = action.result;                       
+                        promises.push(this.playerHeroSet(this.player, null));
+                        promises.push(this.playerHeroSet(this.npc, null));
+                        if (hasMonster){
+                            promises.push(player.KillAMonster());
+                        }
+                        
+                        //cancel battle if there is any...
+                        this.player.isBattleOn = false;
+                        
+                        return Promise.all(promises);
+                    });                
+                break;
+                
+                case 'Attack':
+                    this.animation = this.animation.then(() =>{
+                        let loser = result.isNPC ? this.npc : this.player;
+                        promises.push(playerHeroSet(loser, null));
+                        return Promise.all(promises);                        
+                    });
+                break;                
+               }
                
-            }
+               this.animation = this.animation.then(() =>{
+                   return this.delayForNSec();
+               });                  
+            }                                             
         });
               
 
@@ -140,7 +199,7 @@ export default class DaMonsterGame {
         this.player = new DaMonsterPlayer();
                         
         this.player.InitHand(        
-            this.game.players[0].hand.map((c) =>{
+            this.game.player.hand.map((c) =>{
                 let daCard = new DaMonsterCard();
                 daCard.Set(c.id, c.point, c.type, c.heroType, c.action, true);
                 return daCard;
@@ -148,16 +207,26 @@ export default class DaMonsterGame {
         );        
 
         this.player.addEventListener(DaPlayerComEvents.SetHero, (e)=>{
-            this.game.players[0].SetHero(e.detail.card.id);
+            this.game.player.SetHero(e.detail.card.id);
         });              
         this.player.addEventListener(DaPlayerComEvents.EquipHero, (e)=>{
-            this.game.players[0].EquipHero(e.detail.card.id);
+            this.game.player.EquipHero(e.detail.card.id);
         });
+        this.player.addEventListener(DaPlayerComEvents.DoAction, (e)=>{
+            switch (e.detail.card.name){
+                case 'Steal':
+                    this.game.player.PlayAnAction(e.detail.card.id, 0);                                
+                break;
+                default:
+                    this.game.player.PlayAnAction(e.detail.card.id);
+                break;
+            }            
+        });         
         this.player.addEventListener(DaPlayerComEvents.DoBattle, (e) => {
             this.player.isBattle = false;
             this.game.Battle();
-        })
-        this.player.addEventListener(DaPlayerComEvents.DoneAction, (e) => {
+        });
+        this.player.addEventListener(DaPlayerComEvents.SkipAction, (e) => {
             this.player.isActionOn = false;
             this.game.player.SkipAction();
         })        
@@ -175,10 +244,7 @@ export default class DaMonsterGame {
     private playerHeroSet(player, hero){
         console.log('%o set hero %o', player, hero);            
         if (!hero){
-            // this.animation = player.animation.then(() => {
-            //     player.hero.set();
-            // });
-            return;
+            return player.hero.Set();
         }
         
         return player.RemoveHand(hero.id).then(() =>{
@@ -189,6 +255,7 @@ export default class DaMonsterGame {
                 //     this.npc.EquipHero(item.point);
                 // });
             });
+            return Promise.resolve();
         });            
     }
     
@@ -224,5 +291,17 @@ export default class DaMonsterGame {
             .then((daCard)=>{
                 return player.AddHand(daCard);
             });                    
+    }
+    
+    
+    private delayForNSec(sec: number | undefined){
+        if (!sec){
+            sec = 0.5;
+        }
+        return new Promise((resolve, reject) => {
+            setTimeout(function() {
+                resolve();                
+            }, sec * 1000);
+        })        
     }    
  }

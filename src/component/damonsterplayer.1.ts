@@ -8,7 +8,7 @@ export enum DaPlayerComEvents {
     SetHero = 'set-hero',
     EquipHero = 'equip-hero',
     DoAction = 'do-action',
-    DoneAction = 'action-done',
+    SkipAction = 'action-done',
     DoBattle = 'do-battle'
 }
 
@@ -159,42 +159,41 @@ export default class DaMonsterPlayer extends HTMLElement {
             container.removeChild(this.shadowRoot.getElementById('btns'));                        
         }else{
             this.shadowRoot.getElementById('playBtn').onclick = (e) => {
-            let container = this.shadowRoot.getElementById('hand-container'),
-                card = Array.from(container.children).find((c) =>{
-                    return c.isSelected;
-                });
-            
-            if (!card){
-                console.log('NOTHING is selected!!!!');
-                return;
-            }
-            
-            switch (card.cardType) {
-                case 'h':
-                    this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
-                    break;
-            
-                case 'a':
-                    this._action.name = DaPlayerComEvents.DoAction;
-                    break;
-            
-                case 'i':
-                    this.dispatchEvent(new CustomEvent(DaPlayerComEvents.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
-                    break;
-            }
-            //this.dispatchEvent(new CustomEvent(this._action.name, { detail: this._action.detail, bubbles: true, composed: true }));
-            
-            //reset
-            //this._action.name = DaPlayerComEvents.DrawFromDeck;
-            //this._action.detail = null;
+                let container = this.shadowRoot.getElementById('hand-container'),
+                    card = Array.from(container.children).find((c) =>{
+                        return c.isSelected;
+                    });
+                
+                if (!card){
+                    console.log('NOTHING is selected!!!!');
+                    return;
+                }
+                
+                switch (card.cardType) {
+                    case 'h':
+                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
+                        break;
+                
+                    case 'a':
+                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
+                        break;
+                
+                    case 'i':
+                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
+                        break;
+                }
+                //hide the play button
+                e.srcElement.classList.add('hide');
             }    
             
             this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{
-            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoBattle, {detail: null, bubbles: true, composed: true}));
+                this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoBattle, {detail: null, bubbles: true, composed: true}));
+                e.srcElement.classList.add('hide');
             }
             
             this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
-            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoneAction, {detail: null, bubbles: true, composed: true}));            
+                this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SkipAction, {detail: null, bubbles: true, composed: true}));
+                e.srcElement.classList.add('hide');            
             }              
         }                   
     }
