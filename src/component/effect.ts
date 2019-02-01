@@ -1,6 +1,6 @@
 'use strict';
 
-export default class EffectCom extends HTMLElement {
+export default class Effect_com extends HTMLElement {
     public static get is(): string { return 'da-monster-effect'; }
 
     public getTemplate(props: any): string {
@@ -35,7 +35,7 @@ export default class EffectCom extends HTMLElement {
     public static get observedAttributes(): string[] {        
         const attributes: string[] = [];
 
-        for (let key in EffectCom.properties) {
+        for (let key in Effect_com.properties) {
             attributes.push(key.toLowerCase());
         }
         return attributes;
@@ -49,8 +49,8 @@ export default class EffectCom extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in EffectCom.properties) {
-            this.props[key] = EffectCom.properties[key].value;
+        for (let key in Effect_com.properties) {
+            this.props[key] = Effect_com.properties[key].value;
         }                        
 
         this.requestRender();                                                               
@@ -69,4 +69,4 @@ export default class EffectCom extends HTMLElement {
     }                
 }
 
-customElements.define(EffectCom.is, EffectCom);
+customElements.define(Effect_com.is, Effect_com);

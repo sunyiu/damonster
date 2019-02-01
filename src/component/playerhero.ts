@@ -1,6 +1,6 @@
 'use strict';
 
-export default class DaMonsterPlayerHero extends HTMLElement {
+export default class Playerhero_com extends HTMLElement {
     public static get is(): string { return 'da-monster-player-hero'; }
 
     public getTemplate(props: any): string {
@@ -169,7 +169,7 @@ export default class DaMonsterPlayerHero extends HTMLElement {
         
         const attributes: string[] = [];
 
-        for (let key in DaMonsterPlayerHero.properties) {
+        for (let key in Playerhero_com.properties) {
             attributes.push(key.toLowerCase());
         }
         
@@ -191,8 +191,8 @@ export default class DaMonsterPlayerHero extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaMonsterPlayerHero.properties) {
-            this.props[key] = DaMonsterPlayerHero.properties[key].value;
+        for (let key in Playerhero_com.properties) {
+            this.props[key] = Playerhero_com.properties[key].value;
         }                                
 
         this.requestRender();           
@@ -270,4 +270,4 @@ export default class DaMonsterPlayerHero extends HTMLElement {
     }      
 }
 
-customElements.define(DaMonsterPlayerHero.is, DaMonsterPlayerHero);
+customElements.define(Playerhero_com.is, Playerhero_com);

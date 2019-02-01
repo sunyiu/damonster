@@ -1,20 +1,20 @@
 'use strict';
 
-import DaMonsterCard from './damonstercard.js'
-import {DaCardEvents} from  './damonstercard.js'
+import Card_com from './Card_com.js'
+import {Card_com_events} from  './Card_com.js'
 
-export enum DeckServeDirection{
+export enum Deck_com_serve_direction{
     Up,
     DownAndFlip,
     Flip
 }
 
-export enum DaDeckEvents {
+export enum Deck_com_events {
     Draw = 'draw-from-deck'
 }
 
 
-export default class DaMonsterDeck extends HTMLElement {        
+export default class Deck_com extends HTMLElement {        
     public static get is(): string { return 'da-monster-deck'; }
 
     public getTemplate(props: any): string {
@@ -57,7 +57,7 @@ export default class DaMonsterDeck extends HTMLElement {
 
         const attributes: string[] = [];
 
-        for (let key in DaMonsterDeck.properties) {
+        for (let key in Deck_com.properties) {
             attributes.push(key.toLowerCase());
         }
 
@@ -72,18 +72,18 @@ export default class DaMonsterDeck extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         
         // Initialize declared properties
-        for (let key in DaMonsterDeck.properties) {
-            this.props[key] = DaMonsterDeck.properties[key].value;
+        for (let key in Deck_com.properties) {
+            this.props[key] = Deck_com.properties[key].value;
         }
 
         this.requestRender();
          
         let container = this.shadowRoot.getElementById('card-container'),
-            daCard = new DaMonsterCard();
+            daCard = new Card_com();
         container.appendChild(daCard);
         
-        daCard.addEventListener(DaCardEvents.Clicked,(e) => {
-            this.dispatchEvent(new CustomEvent(DaDeckEvents.Draw, {detail: null, bubbles: true, composed: true}));
+        daCard.addEventListener(Card_com_events.Clicked,(e) => {
+            this.dispatchEvent(new CustomEvent(Deck_com_events.Draw, {detail: null, bubbles: true, composed: true}));
         });                
     }
 
@@ -107,7 +107,7 @@ export default class DaMonsterDeck extends HTMLElement {
     //--------------------------------------------------//                    
     public Serve(id, point, cardType, heroType, action, direction){                        
         let cardContainer = this.shadowRoot.getElementById('card-container'),
-            daCard = new DaMonsterCard();
+            daCard = new Card_com();
                         
         cardContainer.appendChild(daCard);
         daCard.Set(id, point, cardType, heroType, action)
@@ -116,18 +116,18 @@ export default class DaMonsterDeck extends HTMLElement {
         return new Promise((resolve, reject)=>{            
             setTimeout(()=>{                   
                 let promises = [];                             
-                if (direction == DeckServeDirection.Flip || direction == DeckServeDirection.DownAndFlip){
+                if (direction == Deck_com_serve_direction.Flip || direction == Deck_com_serve_direction.DownAndFlip){
                     promises.push(
                         daCard.flip(direction)
                     );
                 }
         
-                if (direction != DeckServeDirection.Flip){
+                if (direction != Deck_com_serve_direction.Flip){
                     promises.push(
                         new Promise((resolve, reject) =>{                                
                             let animation = daCard.animate(
                                 [   {'top': 0}, 
-                                    {'top': direction == DeckServeDirection.Up ? '-15px' : '15px'}
+                                    {'top': direction == Deck_com_serve_direction.Up ? '-15px' : '15px'}
                                 ], 
                                 {   duration: 500, 
                                     iterations: 1,
@@ -143,7 +143,7 @@ export default class DaMonsterDeck extends HTMLElement {
                 }                
                                 
                 Promise.all(promises).then(() =>{
-                    if (direction != DeckServeDirection.Flip){
+                    if (direction != Deck_com_serve_direction.Flip){
                         cardContainer.removeChild(daCard);
                     }                    
                     resolve(daCard);
@@ -180,4 +180,4 @@ export default class DaMonsterDeck extends HTMLElement {
     }
 }
 
-customElements.define(DaMonsterDeck.is, DaMonsterDeck);
+customElements.define(Deck_com.is, Deck_com);

@@ -6,7 +6,7 @@ import { DaActions, DaActionCard } from  "./actioncard.js"
 import { DaNpc } from "./npc.js"
 
 
-export enum DaMonsterEvents {
+export enum DaMonsterGameEvents {
 	MonsterInvade,
 	BattleDone,
 	DrawFromDeck,
@@ -17,7 +17,7 @@ export enum DaMonsterEvents {
 }
 
 
-export default class DaMonster {
+export default class DaMonsterGame {
 	
 
 	
@@ -71,7 +71,7 @@ export default class DaMonster {
 			this._isProvokeBattle = false;
 			this.monsterCard = monster;
 			
-			let callbacks = this._callbacks[DaMonsterEvents.MonsterInvade];
+			let callbacks = this._callbacks[DaMonsterGameEvents.MonsterInvade];
 			if (callbacks) {
 				callbacks.forEach((c) => {
 					c.call(null, monster);
@@ -97,7 +97,7 @@ export default class DaMonster {
 			// });
 			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck,(card) => {				
 				console.log('%s done draw from deck', p.name);
-				let callbacks = this._callbacks[DaMonsterEvents.DrawFromDeck];
+				let callbacks = this._callbacks[DaMonsterGameEvents.DrawFromDeck];
 				if (callbacks) {
 					callbacks.forEach((c) => {
 						c.call(null, p, card);
@@ -108,7 +108,7 @@ export default class DaMonster {
 			});
 			
 			p.AddEventListener(DaPlayerEvents.SetHero,(hero) => {
-				let callbacks = this._callbacks[DaMonsterEvents.SetHero];
+				let callbacks = this._callbacks[DaMonsterGameEvents.SetHero];
 				if (callbacks) {
 					callbacks.forEach((c) => {
 						c.call(null, p, hero);
@@ -121,7 +121,7 @@ export default class DaMonster {
 			});
 
 			p.AddEventListener(DaPlayerEvents.EquipHero,(card) => {
-				let callbacks = this._callbacks[DaMonsterEvents.EquipHero];
+				let callbacks = this._callbacks[DaMonsterGameEvents.EquipHero];
 				if (callbacks) {
 					callbacks.forEach((c) => {
 						c.call(null, p, card);
@@ -172,7 +172,7 @@ export default class DaMonster {
 					}
 				})
 				
-				let callbacks = this._callbacks[DaMonsterEvents.ActionStart];
+				let callbacks = this._callbacks[DaMonsterGameEvents.ActionStart];
 				if (callbacks) {
 					callbacks.forEach((c) => {
 						c.call(null, p, card);
@@ -237,7 +237,7 @@ export default class DaMonster {
 					break;
 
 				case DaActions.Stop:
-					//Stopping logic is handled in daMonster player play action callback event??	
+					//Stopping logic is handled in DaMonsterGame player play action callback event??	
 					break;
 
 				case DaActions.Radar:
@@ -369,7 +369,7 @@ export default class DaMonster {
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
 		
-		let callbacks = this._callbacks[DaMonsterEvents.BattleDone];
+		let callbacks = this._callbacks[DaMonsterGameEvents.BattleDone];
 		if (callbacks) {
 			callbacks.forEach((c) => {
 				c.call(null, isPlayerWin, winner);
@@ -413,7 +413,7 @@ export default class DaMonster {
 				//do action
 				action.result = action.card.Play(action.player, action.args);
 			}
-			let callbacks = this._callbacks[DaMonsterEvents.ActionDone];
+			let callbacks = this._callbacks[DaMonsterGameEvents.ActionDone];
 			if (callbacks) {
 				callbacks.forEach((c) => {
 					c.call(null, action, cards);
@@ -433,7 +433,7 @@ export default class DaMonster {
 				}					
 			}else{
 				//battle mode....
-				let monsterCallback = this._callbacks[DaMonsterEvents.MonsterInvade];
+				let monsterCallback = this._callbacks[DaMonsterGameEvents.MonsterInvade];
 				if (monsterCallback) {
 					monsterCallback.forEach((c) => {
 						c.call(null, this.monsterCard);

@@ -1,11 +1,11 @@
 'use strict';
 
-export enum DaCardEvents {
+export enum Card_com_events {
     Clicked = 'clicked'
 }
 
 
-export default class DaMonsterCard extends HTMLElement {
+export default class Card_com extends HTMLElement {
     public static get is(): string { return 'da-monster-card'; }
 
     public getTemplate(props: any): string {
@@ -288,7 +288,7 @@ export default class DaMonsterCard extends HTMLElement {
     public static get observedAttributes(): string[] {        
         const attributes: string[] = [];
 
-        for (let key in DaMonsterCard.properties) {
+        for (let key in Card_com.properties) {
             attributes.push(key.toLowerCase());
         }
         return attributes;
@@ -338,15 +338,15 @@ export default class DaMonsterCard extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaMonsterCard.properties) {
-            this.props[key] = DaMonsterCard.properties[key].value;
+        for (let key in Card_com.properties) {
+            this.props[key] = Card_com.properties[key].value;
         }                        
 
         this.requestRender();
                                                                
         let container = this.shadowRoot.getElementById('da-card-container');        
         container.onclick = (e) => {
-            this.dispatchEvent(new CustomEvent(DaCardEvents.Clicked, {detail: null, bubbles: true, composed: true}));
+            this.dispatchEvent(new CustomEvent(Card_com_events.Clicked, {detail: null, bubbles: true, composed: true}));
         };
     }    
     
@@ -451,4 +451,4 @@ export default class DaMonsterCard extends HTMLElement {
     }           
 }
 
-customElements.define(DaMonsterCard.is, DaMonsterCard);
+customElements.define(Card_com.is, Card_com);

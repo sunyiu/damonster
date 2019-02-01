@@ -3,20 +3,20 @@
 'use strict';
 
 //core
- import DaMonster from '../core/damonster.js'
- import {DaMonsterEvents} from  '../core/damonster.js'
+ import DaMonsterGame from '../core/game.js'
+ import {DaMonsterGameEvents} from  '../core/game.js'
 
 //web component
-import DaMonsterCard from './damonstercard.js'
-import DaMonsterDeck from './damonsterdeck.js'
-import {DeckServeDirection, DaDeckEvents} from './damonsterdeck.js'
-import DaMonsterPlayer from './damonsterplayer.1.js'
-import {DaPlayerComEvents} from './damonsterplayer.1.js'
-import {EffectCom} from './effectCom.js'
+import Card_com from './card.js'
+import Deck_com from './deck.js'
+import {Deck_com_serve_direction, Deck_com_events} from './deck.js'
+import Player_com from './player.js'
+import {Player_com_events} from './player.js'
+import {Effect_com} from './effect.js'
 
 
 
-export default class DaMonsterCom extends HTMLElement {
+export default class DaMonster_Com extends HTMLElement {
     public static get is(): string { return 'da-monster'; }
 
     public getTemplate(props: any): string {
@@ -40,7 +40,7 @@ export default class DaMonsterCom extends HTMLElement {
     public static get observedAttributes(): string[] {        
         const attributes: string[] = [];
 
-        for (let key in DaMonsterCom.properties) {
+        for (let key in DaMonster_Com.properties) {
             attributes.push(key.toLowerCase());
         }
         return attributes;
@@ -54,8 +54,8 @@ export default class DaMonsterCom extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in DaMonsterCom.properties) {
-            this.props[key] = DaMonsterCom.properties[key].value;
+        for (let key in DaMonster_Com.properties) {
+            this.props[key] = DaMonster_Com.properties[key].value;
         }                        
 
         this.requestRender();
@@ -71,10 +71,10 @@ export default class DaMonsterCom extends HTMLElement {
     }
     
     //-------------------------------------------------------------------------------    
-    private game:DaMonster;
-    private npc:DaMonsterPlayer;
-    private player:DaMonsterPlayer;
-    private deck:DaMonsterDeck;
+    private game:DaMonsterGame;
+    private npc:Player_com;
+    private player:Player_com;
+    private deck:Deck_com;
     private animation:Promise = Promise.resolve();
     
     private init():void{
@@ -82,13 +82,13 @@ export default class DaMonsterCom extends HTMLElement {
         this.player = this.shadowRoot.getElementById('player');
         this.deck = this.shadowRoot.getElementById('deck');
         
-        this.game = new DaMonster();
+        this.game = new DaMonsterGame();
         this.game.New();        
         this.hookUpGame();
     }
     
     private hookUpGame(){
-        this.game.AddEventListener(DaMonsterEvents.DrawFromDeck, (player, card) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.DrawFromDeck, (player, card) =>{
             this.animation = this.animation.then(() => {
                 return this.playerAddCardFromDeck(player.isNPC ? this.npc : this.player, card);
             }).then(() =>{
@@ -96,29 +96,29 @@ export default class DaMonsterCom extends HTMLElement {
                 return this.delayForNSec();
             }); 
         });
-        this.game.AddEventListener(DaMonsterEvents.SetHero, (player, hero) =>{            
+        this.game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) =>{            
              this.animation = this.animation.then(() => {
                  return this.playerHeroSet(player.isNPC ? this.npc : this.player, hero);  
              }).then(() =>{
                  return this.delayForNSec();
              });              
         });
-        this.game.AddEventListener(DaMonsterEvents.EquipHero, (player, item) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.EquipHero, (player, item) =>{
             this.animation = this.animation.then(() =>{
                 return this.playerEquipHero(player.isNPC ? this.npc : this.player, item);
             }).then(() =>{
                  return this.delayForNSec();
              });
         });
-        this.game.AddEventListener(DaMonsterEvents.MonsterInvade, (monster) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.MonsterInvade, (monster) =>{
             this.animation = this.animation.then(() =>{
-                    return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, DeckServeDirection.Flip);
+                    return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, Deck_com_serve_direction.Flip);
             }).then(() =>{                
                 this.player.isBattleOn = true;
                 return this.delayForNSec();
             });
         });
-        this.game.AddEventListener(DaMonsterEvents.BattleDone, (isPlayerWin, winner) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.BattleDone, (isPlayerWin, winner) =>{
             this.player.isBattleOn = false;
             if (isPlayerWin){
                 let player = winner.isNPC ? this.npc : this.player;
@@ -141,7 +141,7 @@ export default class DaMonsterCom extends HTMLElement {
              });
             }            
         });
-        this.game.AddEventListener(DaMonsterEvents.ActionStart, (player, card) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.ActionStart, (player, card) =>{
             if (player.isNPC){
                 let daCard = this.npc.GetCardById(card.id);
                 this.animation = this.animation.then(() =>{
@@ -152,7 +152,7 @@ export default class DaMonsterCom extends HTMLElement {
                 });                                                
             }
         });              
-        this.game.AddEventListener(DaMonsterEvents.ActionDone, (action, cards) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.ActionDone, (action, cards) =>{
             console.log('COM::action %o, card id(s) - %o', action, cards);
             
             this.player.isActionOn = false;
@@ -177,7 +177,7 @@ export default class DaMonsterCom extends HTMLElement {
                 case 'Steal':
                     //let index = action.args[0];
                     this.animation = this.animation.then(() =>{
-                        let daCard = new DaMonsterCard(),
+                        let daCard = new Card_com(),
                             result = action.result,
                             target = action.player.isNPC ? this.player : this.npc;
                         daCard.Set(result.id, result.point, result.cardType, result.heroType, result.action);
@@ -227,14 +227,14 @@ export default class DaMonsterCom extends HTMLElement {
         });
                               
         //-- deck ------------------------------------------        
-        this.deck.addEventListener(DaDeckEvents.Draw, (e) =>{            
+        this.deck.addEventListener(Deck_com_events.Draw, (e) =>{            
             this.game.player.DrawFromDeck();
         });                
         
         //-- npc -------------------------------------------------                                  
         this.npc.InitHand(
             this.game.npc.hand.map((c) => {
-                let daCard = new DaMonsterCard();
+                let daCard = new Card_com();
                 daCard.Set(c.id, c.point, c.type, c.heroType, c.action,  false);
                 return daCard;
             })
@@ -244,19 +244,19 @@ export default class DaMonsterCom extends HTMLElement {
         //-- player -------------------------------------------------                        
         this.player.InitHand(        
             this.game.player.hand.map((c) =>{
-                let daCard = new DaMonsterCard();
+                let daCard = new Card_com();
                 daCard.Set(c.id, c.point, c.type, c.heroType, c.action, true);
                 return daCard;
             })
         );        
 
-        this.player.addEventListener(DaPlayerComEvents.SetHero, (e)=>{
+        this.player.addEventListener(Player_com_events.SetHero, (e)=>{
             this.game.player.SetHero(e.detail.card.id);
         });              
-        this.player.addEventListener(DaPlayerComEvents.EquipHero, (e)=>{
+        this.player.addEventListener(Player_com_events.EquipHero, (e)=>{
             this.game.player.EquipHero(e.detail.card.id);
         });
-        this.player.addEventListener(DaPlayerComEvents.DoAction, (e)=>{
+        this.player.addEventListener(Player_com_events.DoAction, (e)=>{
             switch (e.detail.card.name){
                 case 'Steal':
                     this.game.player.PlayAnAction(e.detail.card.id, 0);                                
@@ -266,11 +266,11 @@ export default class DaMonsterCom extends HTMLElement {
                 break;
             }            
         });         
-        this.player.addEventListener(DaPlayerComEvents.DoBattle, (e) => {
+        this.player.addEventListener(Player_com_events.DoBattle, (e) => {
             this.player.isBattle = false;
             this.game.Battle();
         });
-        this.player.addEventListener(DaPlayerComEvents.SkipAction, (e) => {
+        this.player.addEventListener(Player_com_events.SkipAction, (e) => {
             this.player.isActionOn = false;
             this.game.player.SkipAction();
         })          
@@ -303,7 +303,7 @@ export default class DaMonsterCom extends HTMLElement {
             card.type, 
             card.heroType, 
             card.action, 
-            player.isNPC ? DeckServeDirection.Up : DeckServeDirection.DownAndFlip)
+            player.isNPC ? Deck_com_serve_direction.Up : Deck_com_serve_direction.DownAndFlip)
             .then((daCard)=>{
                 return player.AddHand(daCard);
             });                    
@@ -322,4 +322,4 @@ export default class DaMonsterCom extends HTMLElement {
     }          
 }
 
-customElements.define(DaMonsterCom.is, DaMonsterCom);
+customElements.define(DaMonster_Com.is, DaMonster_Com);

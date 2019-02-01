@@ -1,10 +1,10 @@
 'use strict';
 
-import DaMonsterCard from './damonstercard.js'
-import {DaCardEvents} from './damonstercard.js'
-import DaMonsterPlayerHero from './damonsterplayerhero.js'
+import DaMonsterCard from './card.js'
+import {DaCardEvents} from './card.js'
+import Playerhero_com from './playerhero.js'
 
-export enum DaPlayerComEvents {
+export enum Player_com_events {
     SetHero = 'set-hero',
     EquipHero = 'equip-hero',
     DoAction = 'do-action',
@@ -12,7 +12,7 @@ export enum DaPlayerComEvents {
     DoBattle = 'do-battle'
 }
 
-export default class DaMonsterPlayer extends HTMLElement {
+export default class Player_com extends HTMLElement {
     public static get is(): string { return 'da-monster-player'; }
 
     public getTemplate(props: any): string {
@@ -73,7 +73,7 @@ export default class DaMonsterPlayer extends HTMLElement {
 
         const attributes: string[] = [];
 
-        for (let key in DaMonsterPlayer.properties) {
+        for (let key in Player_com.properties) {
             attributes.push(key.toLowerCase());
         }
 
@@ -88,14 +88,14 @@ export default class DaMonsterPlayer extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         
         // Initialize declared properties
-        for (let key in DaMonsterPlayer.properties) {
-            this.props[key] = DaMonsterPlayer.properties[key].value;
+        for (let key in Player_com.properties) {
+            this.props[key] = Player_com.properties[key].value;
         }
 
         this.requestRender();
         
         let container = this.shadowRoot.getElementById('da-player-container');
-        this._hero = new DaMonsterPlayerHero();
+        this._hero = new Playerhero_com();
         container.insertBefore(this._hero, container.firstChild);        
     }
         
@@ -128,15 +128,15 @@ export default class DaMonsterPlayer extends HTMLElement {
                     
                     switch (card.cardType) {
                         case 'h':
-                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
+                            this.dispatchEvent(new CustomEvent(Player_com_events.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
                             break;
                     
                         case 'a':
-                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
+                            this.dispatchEvent(new CustomEvent(Player_com_events.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
                             break;
                     
                         case 'i':
-                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
+                            this.dispatchEvent(new CustomEvent(Player_com_events.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
                             break;
                     }
                         //hide the play button
@@ -144,12 +144,12 @@ export default class DaMonsterPlayer extends HTMLElement {
                     }    
             
                     this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{
-                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoBattle, {detail: null, bubbles: true, composed: true}));
+                        this.dispatchEvent(new CustomEvent(Player_com_events.DoBattle, {detail: null, bubbles: true, composed: true}));
                         e.srcElement.classList.add('hide');
                     }
                     
                     this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
-                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SkipAction, {detail: null, bubbles: true, composed: true}));
+                        this.dispatchEvent(new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true}));
                         e.srcElement.classList.add('hide');            
                     }                     
                 }
@@ -167,7 +167,7 @@ export default class DaMonsterPlayer extends HTMLElement {
     
     //------------------------------------------------------------//
     // private _action = {
-    //     name: DaPlayerComEvents.DrawFromDeck,
+    //     name: Player_com_events.DrawFromDeck,
     //     detail: null
     // };
     
@@ -329,4 +329,4 @@ export default class DaMonsterPlayer extends HTMLElement {
     // }    
 }
 
-customElements.define(DaMonsterPlayer.is, DaMonsterPlayer);
+customElements.define(Player_com.is, Player_com);
