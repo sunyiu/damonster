@@ -13,17 +13,13 @@
             }
             
         </style>
+        
+        <script type="module" src="./dist/component/damonsterCom.js"></script>        
     </head>
     
     <body>
         <div id="damonster-container"></div>
+        <da-monster></da-monster>
     </body>
     
-    <script type="module">
-        import DaMonsterGame from './dist/damonster.1.js';
-        
-        window.game = new DaMonsterGame(document.body.querySelector('#damonster-container'));
-                                 
-    </script>
-
 </html>

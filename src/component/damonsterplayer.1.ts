@@ -62,7 +62,7 @@ export default class DaMonsterPlayer extends HTMLElement {
 
     public static get properties() {
         return {
-            'data-name': {
+            'data-type': {
                 type: String,
                 value: ''
             }
@@ -82,7 +82,7 @@ export default class DaMonsterPlayer extends HTMLElement {
 
     private props: any = {};
 
-    public constructor(isNPC) {
+    public constructor() {
         super();        
 
         this.attachShadow({ mode: 'open' });
@@ -93,16 +93,68 @@ export default class DaMonsterPlayer extends HTMLElement {
         }
 
         this.requestRender();
-
-        this.init(isNPC);
+        
+        let container = this.shadowRoot.getElementById('da-player-container');
+        this._hero = new DaMonsterPlayerHero();
+        container.insertBefore(this._hero, container.firstChild);        
     }
-
+        
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
         if (oldValue === newValue) {
             return;
         }
-
+        
         this.props[name] = newValue;
+        
+        if(name === 'data-type'){
+            if(newValue && newValue){
+                if (newValue == 'npc'){
+                    this._isNPC = true;
+                    let container = this.shadowRoot.getElementById('da-player-container');
+                    container.removeChild(this.shadowRoot.getElementById('btns'));
+                }
+                else{
+                    this._isNPC = false;
+                    this.shadowRoot.getElementById('playBtn').onclick = (e) => {
+                    let container = this.shadowRoot.getElementById('hand-container'),
+                        card = Array.from(container.children).find((c) =>{
+                            return c.isSelected;
+                        });
+                    
+                    if (!card){
+                        console.log('NOTHING is selected!!!!');
+                        return;
+                    }
+                    
+                    switch (card.cardType) {
+                        case 'h':
+                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
+                            break;
+                    
+                        case 'a':
+                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
+                            break;
+                    
+                        case 'i':
+                            this.dispatchEvent(new CustomEvent(DaPlayerComEvents.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
+                            break;
+                    }
+                        //hide the play button
+                        e.srcElement.classList.add('hide');
+                    }    
+            
+                    this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{
+                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoBattle, {detail: null, bubbles: true, composed: true}));
+                        e.srcElement.classList.add('hide');
+                    }
+                    
+                    this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
+                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SkipAction, {detail: null, bubbles: true, composed: true}));
+                        e.srcElement.classList.add('hide');            
+                    }                     
+                }
+            }                        
+        }
     }
 
     private requestRender(): void {
@@ -145,57 +197,6 @@ export default class DaMonsterPlayer extends HTMLElement {
         }else{
             btn.classList.add('hide');
         }
-    }
-
-    private init(isNPC) {
-        this._isNPC = isNPC;
-        
-        let container = this.shadowRoot.getElementById('da-player-container');
-
-        this._hero = new DaMonsterPlayerHero();
-        container.insertBefore(this._hero, container.firstChild);
-        
-        if (isNPC){
-            container.removeChild(this.shadowRoot.getElementById('btns'));                        
-        }else{
-            this.shadowRoot.getElementById('playBtn').onclick = (e) => {
-                let container = this.shadowRoot.getElementById('hand-container'),
-                    card = Array.from(container.children).find((c) =>{
-                        return c.isSelected;
-                    });
-                
-                if (!card){
-                    console.log('NOTHING is selected!!!!');
-                    return;
-                }
-                
-                switch (card.cardType) {
-                    case 'h':
-                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
-                        break;
-                
-                    case 'a':
-                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
-                        break;
-                
-                    case 'i':
-                        this.dispatchEvent(new CustomEvent(DaPlayerComEvents.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
-                        break;
-                }
-                //hide the play button
-                e.srcElement.classList.add('hide');
-            }    
-            
-            this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{
-                this.dispatchEvent(new CustomEvent(DaPlayerComEvents.DoBattle, {detail: null, bubbles: true, composed: true}));
-                e.srcElement.classList.add('hide');
-            }
-            
-            this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
-                this.dispatchEvent(new CustomEvent(DaPlayerComEvents.SkipAction, {detail: null, bubbles: true, composed: true}));
-                e.srcElement.classList.add('hide');            
-            }              
-        }                   
     }
 
     private toggleCard(card) {
