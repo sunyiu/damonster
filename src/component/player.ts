@@ -1,7 +1,7 @@
 'use strict';
 
 import DaMonsterCard from './card.js'
-import {DaCardEvents} from './card.js'
+import {Card_com_events} from './card.js'
 import Playerhero_com from './playerhero.js'
 
 export enum Player_com_events {
@@ -223,7 +223,7 @@ export default class Player_com extends HTMLElement {
             let container = this.shadowRoot.getElementById('hand-container');
             
             if (!this._isNPC){               
-                card.addEventListener(DaCardEvents.Clicked,(e) => {
+                card.addEventListener(Card_com_events.Clicked,(e) => {
                     this.toggleCard(card);
                 });    
             }
@@ -253,7 +253,7 @@ export default class Player_com extends HTMLElement {
         
         return daCard.add().then(() =>{
             if (!this._isNPC){
-                daCard.addEventListener(DaCardEvents.Clicked,(e) => {
+                daCard.addEventListener(Card_com_events.Clicked,(e) => {
                     this.toggleCard(daCard);
                 });               
             }              

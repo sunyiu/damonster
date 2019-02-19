@@ -1,7 +1,7 @@
 'use strict';
 
-import Card_com from './Card_com.js'
-import {Card_com_events} from  './Card_com.js'
+import Card_com from './card.js'
+import {Card_com_events} from  './card.js'
 
 export enum Deck_com_serve_direction{
     Up,
@@ -22,16 +22,27 @@ export default class Deck_com extends HTMLElement {
             <style>
                 #da-monster-deck-container{
                     position: relative;
-                    padding: 15px 0;  /*for the moving...*/                                        
+                    /*padding: 15px 0;  for the moving...*/                                        
                 }
                 
                 #card-container{
                     position: relative;
-                    height: 80px;
                 }
                 
                 #card-container da-monster-card{
-                    position: absolute;                    
+                    display: inline-block;
+                    position: absolute;
+                    top: 0;
+                    left: 0;                    
+                }
+                #card-container da-monster-card:first-child{
+                    position: relative;
+                }
+                
+                #available-monster-container{
+                    position: absolute;
+                    right: 0;
+                    top: 0;
                 }
                                                 
 

@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 //core
  import DaMonsterGame from '../core/game.js'
  import {DaMonsterGameEvents} from  '../core/game.js'
@@ -12,7 +10,7 @@ import Deck_com from './deck.js'
 import {Deck_com_serve_direction, Deck_com_events} from './deck.js'
 import Player_com from './player.js'
 import {Player_com_events} from './player.js'
-import {Effect_com} from './effect.js'
+import TableEffect_com from './tableeffect.js'
 
 
 
@@ -22,11 +20,27 @@ export default class DaMonster_Com extends HTMLElement {
     public getTemplate(props: any): string {
         return `
             <style> 
+                #table{
+                    position: relative;
+                    margin: 10px 0;
+                }
+                
+                da-monster-table-effect{
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    width: 100%;
+                    z-index: 100;
+                    pointer-events: none;
+                }
 			</style>
             <!-- shadow DOM for your element -->
             <div id="da-monster-container">
                 <da-monster-player id='npc' data-type='npc'></da-monster-player>
-                <da-monster-deck id='deck'></da-monster-deck>
+                <div id="table">
+                    <da-monster-deck id='deck'></da-monster-deck>
+                    <da-monster-table-effect id='effect'></da-monster-table-effect>
+                </div>
                 <da-monster-player id='player' data-type='player'></da-monstr-player>                
             </div>
         `;
@@ -59,7 +73,8 @@ export default class DaMonster_Com extends HTMLElement {
         }                        
 
         this.requestRender();
-        this.init();                                                                       
+        this.init();
+        
     }    
     
     private requestRender(): void {
@@ -75,12 +90,17 @@ export default class DaMonster_Com extends HTMLElement {
     private npc:Player_com;
     private player:Player_com;
     private deck:Deck_com;
+    private effect:TableEffect_com;
     private animation:Promise = Promise.resolve();
     
     private init():void{
         this.npc = this.shadowRoot.getElementById('npc');
         this.player = this.shadowRoot.getElementById('player');
         this.deck = this.shadowRoot.getElementById('deck');
+        
+        let tmp = new TableEffect_com();    //!!!need this to load component js...!!!        
+        //this.shadowRoot.getElementById('table').appendChild(this.effect);  
+        this.effect = this.shadowRoot.getElementById('effect');       
         
         this.game = new DaMonsterGame();
         this.game.New();        
@@ -113,6 +133,8 @@ export default class DaMonster_Com extends HTMLElement {
         this.game.AddEventListener(DaMonsterGameEvents.MonsterInvade, (monster) =>{
             this.animation = this.animation.then(() =>{
                     return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, Deck_com_serve_direction.Flip);
+            }).then(() =>{
+                return this.effect.monsterInvade(monster.point);
             }).then(() =>{                
                 this.player.isBattleOn = true;
                 return this.delayForNSec();
@@ -266,9 +288,14 @@ export default class DaMonster_Com extends HTMLElement {
                 break;
             }            
         });         
-        this.player.addEventListener(Player_com_events.DoBattle, (e) => {
+        this.player.addEventListener(Player_com_events.DoBattle, (e) => {            
             this.player.isBattle = false;
-            this.game.Battle();
+            this.animation = this.animation.then(() =>{
+                return this.effect.monsterBattle();
+            }).then(() =>{
+                this.game.Battle();
+                return Promise.resolve();
+            })
         });
         this.player.addEventListener(Player_com_events.SkipAction, (e) => {
             this.player.isActionOn = false;

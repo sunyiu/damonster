@@ -16,12 +16,12 @@ export default class Card_com extends HTMLElement {
                     display: inline-block;                    
                 }
                 #da-card-container.flip .front{
-                    z-index: 900;
+                    z-index: 80;
                     -webkit-transform: rotateY(179deg);
                     transform: rotateY(179deg);
                 }            
                 #da-card-container.flip .back{
-                    z-index: 1000;
+                    z-index: 90;
                     -webkit-transform: rotateX(0) rotateY(0);
                     transform: rotateX(0) rotateY(0);
                 }
@@ -39,7 +39,7 @@ export default class Card_com extends HTMLElement {
                 
                 .front{
                     position: relative;                    
-                    z-index: 900;
+                    z-index: 80;
                     -webkit-transform: rotateX(0) rotateY(0);
                     transform: rotateX(0) rotateY(0);
                     -webkit-transform-style: preserve-3d;
@@ -53,7 +53,7 @@ export default class Card_com extends HTMLElement {
                     position: absolute;
                     top: 0;
                     left: 0;
-                    z-index: 800;
+                    z-index: 70;
                     -webkit-transform: rotateY(-179deg);
                     transform: rotateY(-179deg);
                     -webkit-transform-style: preserve-3d;
