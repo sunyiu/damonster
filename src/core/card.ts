@@ -23,6 +23,10 @@ export class DaCard {
 	get type() {
 		return this._type;
 	}
+	
+	get isMonster(){
+		return this._type == DaCardType.Monster;
+	}
 
 	private _point: number | undefined;
 	get point() {

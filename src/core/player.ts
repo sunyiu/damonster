@@ -75,6 +75,8 @@ export class DaPlayer {
 	}
 
 	DrawFromDeck() {
+		console.log('%s draw from deck', this._isNPC ? 'NPC' : 'Player');
+		
 		let card = this._deck.Deal(),
 			isMonster = card.type == DaCardType.Monster;
 
@@ -89,8 +91,21 @@ export class DaPlayer {
 			}								
 		}		
 	}
-
-	SetHero(id: number | undefined) {
+	
+	RemoveCardFromHandById(cardId){
+		console.log('%s remove card from hand %s', this._isNPC ? 'NPC' : 'Player', cardId);
+				
+		let index = this.hand.findIndex((c) => {return c.id == cardId;});
+		if (index == -1){
+			throw new Error ('Card (id=' + cardId + ') not find!!!');
+		}
+		
+		return this.hand.splice(index, 1);		
+	}
+	
+	SetHero(id: number | undefined) {		
+		console.log('%s set hero %s', this._isNPC ? 'NPC' : 'Player', id);
+				
 		if (id == undefined){
 			this.hero = undefined;
 			return;
@@ -119,6 +134,7 @@ export class DaPlayer {
 	}
 
 	EquipHero(id: number) {
+		console.log('%s equip hero %s', this._isNPC ? 'NPC' : 'Player', id);		
 		
 		if (this.hero == undefined) {
 			throw new Error("No hero exits to equip");
@@ -146,6 +162,8 @@ export class DaPlayer {
 	}
 
 	PlayAnAction(cardId: number, ...args) {
+		console.log('%s set hero %s (args::%o)', this._isNPC ? 'NPC' : 'Player', cardId, args);
+				
 		let card = this.hand.find((c) => { return c.id == cardId;});
 		if (!card){
 			throw new Error ("Action card not in hand!!!!");
@@ -182,6 +200,8 @@ export class DaPlayer {
 	}
 
 	SkipAction() {
+		console.log('%s skip action', this._isNPC ? 'NPC' : 'Player');
+				
 		this._isActionDone = true;
 
 		let callbacks = this._callbacks[DaPlayerEvents.EndAnAction];

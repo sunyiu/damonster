@@ -130,7 +130,7 @@ export default class Playerhero_com extends HTMLElement {
                         
                     }
                 }
-                #hero-context{
+                #da-hero-type-icon{
                     animation-duration: 0.5s; 
                     animation-timing-function: ease-out; 
                     animation-delay: 0s;
@@ -140,10 +140,10 @@ export default class Playerhero_com extends HTMLElement {
                     animation-play-state: running; 
                 }                        
                 
-                #hero-context.set{
+                #da-hero-type-icon.set{
                     animation-name: setHero;
                 }
-                #hero-context.remove{
+                #da-hero-type-icon.remove{
                     animation-name: removeHero;
                 }                                                           
                 
@@ -235,8 +235,12 @@ export default class Playerhero_com extends HTMLElement {
 
         
         if (!heroType){
+            if (heroContainer.classList.length == 0){
+                return Promise.resolve();
+            }                
+            
             return new Promise((resolve, reject) =>{                        
-                let hero = this.shadowRoot.getElementById('hero-context'),
+                let hero = this.shadowRoot.getElementById('da-hero-type-icon'),
                 callback = (e) =>{
                     hero.removeEventListener('webkitAnimationEnd', callback);
                     hero.classList.remove('remove');
@@ -252,11 +256,11 @@ export default class Playerhero_com extends HTMLElement {
                 hero.addEventListener('webkitAnimationEnd', callback);
                 hero.classList.add('remove');
             });                                                                 
-        } else{                                             
+        } else{                                                         
             heroContainer.classList.add(heroType);
             pointContainer.innerHTML = point;                 
             return new Promise((resolve, reject) =>{                        
-                let hero = this.shadowRoot.getElementById('hero-context'),
+                let hero = this.shadowRoot.getElementById('da-hero-type-icon'),
                     callback = (e) =>{
                         hero.removeEventListener('webkitAnimationEnd', callback);
                         hero.classList.remove('set');

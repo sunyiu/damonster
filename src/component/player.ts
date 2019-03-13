@@ -251,7 +251,7 @@ export default class Player_com extends HTMLElement {
         let container = this.shadowRoot.getElementById('hand-container');
         container.prepend(daCard); 
         
-        return daCard.add().then(() =>{
+        return daCard.add(!this.isNPC).then(() =>{
             if (!this._isNPC){
                 daCard.addEventListener(Card_com_events.Clicked,(e) => {
                     this.toggleCard(daCard);

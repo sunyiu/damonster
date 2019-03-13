@@ -16,47 +16,50 @@ export class DaNpc extends DaPlayer {
 	}
 
 	DoARound(allPlayers, availableMonsters) {
-		console.log('NPC doing a round');
-
 		let opponent = allPlayers.find((p) => { return !p.isNPC; }),
-			actions = [],
-			heros = [],
-			items = [];
-		this.hand.forEach((c) => {
-			if (c.type == DaCardType.Action) {
-				actions[c.action] = c;
-			}
+			actions = this.hand.filter((c) => {return c.type == DaCardType.Action;}),
+			heros = this.hand.filter((c) => {return c.type == DaCardType.Hero}),
+			items = this.hand.filter((c) => {return c.type == DaCardType.Item});
+			
+// 			heros = [],
+// 			items = [];
+// 		this.hand.forEach((c) => {
+// 			if (c.type == DaCardType.Action) {
+// 				actions[c.action] = c;
+// 			}
+// 
+// 			if (c.type == DaCardType.Hero) {
+// 				heros[c.heroType] = {
+// 					hero: c,
+// 					point: c.point,
+// 					items: []
+// 				};
+// 			}
+// 		});
+// 		this.hand.forEach((c) => {
+// 			if (c.type == DaCardType.Item) {
+// 				let hero = heros[c.heroType]
+// 				if (hero) {
+// 					hero.point += c.point;
+// 					hero.items.push(c);
+// 				}
+// 			}
+// 		});
+// 
+// 
+// 		let maxHero = undefined;
+// 		for (var key in heros) {
+// 			if (!maxHero || maxHero.point < heros[key].point) {
+// 				maxHero = heros[key];
+// 			}
+// 		}
 
-			if (c.type == DaCardType.Hero) {
-				heros[c.heroType] = {
-					hero: c,
-					point: c.point,
-					items: []
-				};
-			}
-		});
-		this.hand.forEach((c) => {
-			if (c.type == DaCardType.Item) {
-				let hero = heros[c.heroType]
-				if (hero) {
-					hero.point += c.point;
-					hero.items.push(c);
-				}
-			}
-		});
 
-
-		let maxHero = undefined;
-		for (var key in heros) {
-			if (!maxHero || maxHero.point < heros[key].point) {
-				maxHero = heros[key];
-			}
-		}
-
-
-		if (actions[DaActions.AtomicBomb]) {
+		//action
+		let atomicBomb = actions.find((a) => {return a.action == DaActions.AtomicBomb;});
+		if (atomicBomb) {
 			if (!this.hero && opponent.hero) {
-				this.PlayAnAction(actions[DaActions.AtomicBomb].id);
+				this.PlayAnAction(atomicBomb.id);
 				return;
 			}
 
@@ -65,27 +68,30 @@ export class DaNpc extends DaPlayer {
 					this.PlayAnAction(actions[DaActions.Retreat].id);
 					return;
 				} else {
-					this.PlayAnAction(actions[DaActions.AtomicBomb].id);
+					this.PlayAnAction(atomicBomb.id);
 					return;
 				}
 			}
 		}
 		
-		if ((actions[DaActions.Attack] && this.hero && opponent.hero) && (
+		let attack = actions.find((a) => {return a.action == DaActions.Attack;});		
+		if ((attack && this.hero && opponent.hero) && (
 				(this.hero && opponent.hero && this.hero.totalPoint > opponent.hero.totalPoint) ||
 				(this.hero.totalPoint < opponent.hero.totalPoint && maxHero && maxHero.point > opponent.hero.totalPoint)
 			)){
-			this.PlayAnAction(actions[DaActions.Attack].id);
+			this.PlayAnAction(attack.id);
 			return;
 		}
 
 
-		if (actions[DaActions.Retreat] && this.hero && maxHero && maxHero.point > this.hero.totalPoint) {
-			this.PlayAnAction(actions[DaActions.Retreat].id);
+		let retreat = actions.find((a) => {return a.action == DaActions.Retreat;});
+		if (retreat && this.hero && maxHero && maxHero.point > this.hero.totalPoint) {
+			this.PlayAnAction(retreat.id);
 			return;
 		}
 
-		if (actions[DaActions.Provoke] && this.hero && availableMonsters && availableMonsters.length > 0) {
+		let provoke = actions.find((a) => {return a.action == DaActions.Provoke;});
+		if (provoke && this.hero && availableMonsters && availableMonsters.length > 0) {
 			//TODO:: provoke to kill opponent hero....
 			let monster = {
 				point: undefined,
@@ -98,31 +104,44 @@ export class DaNpc extends DaPlayer {
 				}
 			});
 			if (this.hero.totalPoint > availableMonsters.point) {
-				this.PlayAnAction(actions[DaActions.Provoke].id, monster.card.id);
+				this.PlayAnAction(provoke.id, monster.card.id);
 				return;
 			}
 		}
-
-		if (actions[DaActions.Steal]) {
-			this.PlayAnAction(actions[DaActions.Steal].id, 0);
+		
+		let steal = actions.find((a) => {return a.action == DaActions.Steal;});
+		if (steal) {
+			this.PlayAnAction(steal.id, 0);
 			return;
 		}
 
 
 
-		if (this.hero == undefined) {
+		if (this.hero == undefined && heros.length > 0) {
 			//look through the hand				
-			//set hero if there is any
-			let hero = this.hand.find((c) => { return c.type == DaCardType.Hero; });
-			if (hero) {
+			//set hero with max point if there is any
+			
+			let maxPoint = 0, heroId = null;			
+			heros.forEach((h) =>{
+				let equiped = this.items.find((i) => {i.heroType == h.heroType;}),
+					totalPoint = equiped.reduce((total, i) => {
+						return total + i.point					
+					}, h.point);
+				if (totalPoint > maxPoint){
+					maxPoint = totalPoint;
+					heroId = h.id;
+				}
+			})
+			
+			if (heroId){
 				super.SetHero(hero.id);
 				return;
-			}
+			}												
 		}
 
 		if (this.hero) {
 			//equip item if there is any
-			let item = this.hand.find((c) => { return c.type == DaCardType.Item && c.heroType == this.hero.heroType; });
+			let item = this.items.find((c) => { return c.heroType == this.hero.heroType; });
 			if (item){
 				this.EquipHero(item.id);
 				return;

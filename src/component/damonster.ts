@@ -3,6 +3,7 @@
 //core
  import DaMonsterGame from '../core/game.js'
  import {DaMonsterGameEvents} from  '../core/game.js'
+ import {DaActions} from '../core/actioncard.js'
 
 //web component
 import Card_com from './card.js'
@@ -112,8 +113,13 @@ export default class DaMonster_Com extends HTMLElement {
             this.animation = this.animation.then(() => {
                 return this.playerAddCardFromDeck(player.isNPC ? this.npc : this.player, card);
             }).then(() =>{
-                console.log('COM::%o end turn', player);
                 return this.delayForNSec();
+            }).then(() =>{
+                if (!card.isMonster){                    
+                    return this.effect.switchPlayer(player.isNPC ? 'player' : 'NPC');                    
+                }else{
+                    return Promise.resolve();                    
+                }
             }); 
         });
         this.game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) =>{            
@@ -130,7 +136,9 @@ export default class DaMonster_Com extends HTMLElement {
                  return this.delayForNSec();
              });
         });
-        this.game.AddEventListener(DaMonsterGameEvents.MonsterInvade, (monster) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.MonsterInvade, (monster) =>{            
+            //TODO:: npc can play an action (e.g. atomic or retreat...)
+            
             this.animation = this.animation.then(() =>{
                     return this.deck.Serve(monster.id, monster.point, monster.type, monster.heroType, monster.action, Deck_com_serve_direction.Flip);
             }).then(() =>{
@@ -145,11 +153,13 @@ export default class DaMonster_Com extends HTMLElement {
             if (isPlayerWin){
                 let player = winner.isNPC ? this.npc : this.player;
                 this.animation = this.animation.then(() =>{
+                    return this.effect.doneBattle(player);                    
+                }).then(() =>{
                     return this.deck.RemoveTop();
                 }).then(() =>{
                     return player.KillAMonster();
                 }).then(() =>{
-                 return this.delayForNSec();
+                 return this.effect.switchPlayer(this.game.activePlayer.name);
                 });                                
             }else{
                 this.animation = this.animation.then(() => {
@@ -159,7 +169,7 @@ export default class DaMonster_Com extends HTMLElement {
                     promises.push(this.playerHeroSet(this.npc, null));
                     return Promise.all(promises);
                 }).then(() =>{
-                 return this.delayForNSec();
+                 return this.effect.switchPlayer(this.game.activePlayer.name);
              });
             }            
         });
@@ -175,7 +185,6 @@ export default class DaMonster_Com extends HTMLElement {
             }
         });              
         this.game.AddEventListener(DaMonsterGameEvents.ActionDone, (action, cards) =>{
-            console.log('COM::action %o, card id(s) - %o', action, cards);
             
             this.player.isActionOn = false;
             
@@ -195,35 +204,38 @@ export default class DaMonster_Com extends HTMLElement {
                 let player = action.player.isNPC ? this.npc : this.player,
                     actionCard = action.card;
                                                                     
-                switch(action.card.name){
-                case 'Steal':
+                switch(action.card.action){
+                case DaActions.Steal:
                     //let index = action.args[0];
                     this.animation = this.animation.then(() =>{
                         let daCard = new Card_com(),
                             result = action.result,
                             target = action.player.isNPC ? this.player : this.npc;
-                        daCard.Set(result.id, result.point, result.cardType, result.heroType, result.action);
+                        daCard.Set(result.id, result.point, result.type, result.heroType, result.action);
                         promises.push(player.AddHand(daCard));
                         promises.push(target.RemoveHand(result.id));
                         return Promise.all(promises);                        
                     });                   
                 break;
                 
-                case 'Radar':
+                case DaActions.Radar:
                     this.animation = this.animation.then(() =>{
-                        promises.push(this.deck.ShowNCard(result));
+                        promises.push(this.deck.ShowNCard(action.result));
                         return Promise.all(promises);
                     })
                     
                 break;
                 
-                case 'Atomic Bomb':
+                case DaActions.AtomicBomb:
                     this.animation = this.animation.then(() =>{
                         let hasMonster = action.result;                       
                         promises.push(this.playerHeroSet(this.player, null));
                         promises.push(this.playerHeroSet(this.npc, null));
                         if (hasMonster){
-                            promises.push(player.KillAMonster());
+                            promises.push(this.deck.RemoveTop());
+                            promises.push(player.KillAMonster().then(() =>{
+                                return this.effect.switchPlayer(this.game.activePlayer.name);
+                            }));                            
                         }
                         
                         //cancel battle if there is any...
@@ -233,7 +245,7 @@ export default class DaMonster_Com extends HTMLElement {
                     });                
                 break;
                 
-                case 'Attack':
+                case DaActions.Attack:
                     this.animation = this.animation.then(() =>{
                         let loser = result.isNPC ? this.npc : this.player;
                         promises.push(playerHeroSet(loser, null));
@@ -279,8 +291,8 @@ export default class DaMonster_Com extends HTMLElement {
             this.game.player.EquipHero(e.detail.card.id);
         });
         this.player.addEventListener(Player_com_events.DoAction, (e)=>{
-            switch (e.detail.card.name){
-                case 'Steal':
+            switch (e.detail.card.action){
+                case DaActions.Steal:
                     this.game.player.PlayAnAction(e.detail.card.id, 0);                                
                 break;
                 default:
@@ -289,13 +301,10 @@ export default class DaMonster_Com extends HTMLElement {
             }            
         });         
         this.player.addEventListener(Player_com_events.DoBattle, (e) => {            
-            this.player.isBattle = false;
             this.animation = this.animation.then(() =>{
-                return this.effect.monsterBattle();
-            }).then(() =>{
                 this.game.Battle();
                 return Promise.resolve();
-            })
+            });
         });
         this.player.addEventListener(Player_com_events.SkipAction, (e) => {
             this.player.isActionOn = false;
@@ -304,8 +313,7 @@ export default class DaMonster_Com extends HTMLElement {
     }
     
             
-    private playerHeroSet(player, hero){
-        console.log('%o set hero %o', player, hero);            
+    private playerHeroSet(player, hero){           
         if (!hero){
             return player.hero.Set();
         }

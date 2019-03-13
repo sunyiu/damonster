@@ -164,6 +164,7 @@ export default class Deck_com extends HTMLElement {
     }
     
     public RemoveTop(){
+        console.log('remove top');
         let cardContainer = this.shadowRoot.getElementById('card-container');
         
         cardContainer.removeChild(cardContainer.lastChild);

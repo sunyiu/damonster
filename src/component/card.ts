@@ -436,7 +436,7 @@ export default class Card_com extends HTMLElement {
         });                         
     }
 
-    public add(){       
+    public add(flip){       
         return new Promise((resolve, reject) =>{                        
             let card = this.shadowRoot.getElementById('da-card-container'),
             callback = (e) =>{
@@ -447,6 +447,9 @@ export default class Card_com extends HTMLElement {
                 
             card.addEventListener('webkitAnimationEnd', callback);
             card.classList.add('add');
+            if (flip){
+                card.classList.add('flip');
+            }
         });                         
     }           
 }

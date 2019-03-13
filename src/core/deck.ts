@@ -159,8 +159,10 @@ export class DaDeck {
 	}
 	
 	NextNCards(count:number){
-		let result = [];
-		for(var i=0; i<count; i++){
+		let result = [],
+			end = this.cards.length <= count ? 0 : this.cards.length - count;
+		
+		for(var i=this.cards.length-1; i>=end; i--){
 			result.push(this.cards[i]);
 		}
 		return result;

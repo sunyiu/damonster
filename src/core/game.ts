@@ -43,6 +43,10 @@ export default class DaMonsterGame {
 		return this._npc;
 	}
 	
+	get activePlayer(){
+		return this._players.find((p) => {return p.isActive;});
+	}
+	
 	private _isProvokeBattle:boolean = false;	
 
 	constructor() {
@@ -348,8 +352,12 @@ export default class DaMonsterGame {
 			isPlayerWin = false;
 		this._players.forEach((p: DaPlayer) => {
 			//TODO::how about equal point????
-			if (p.hero && (!maxPointPlayer || maxPointPlayer.hero.totalPoint < p.hero.totalPoint)) {
-				maxPointPlayer = p;
+			if (p.hero){
+				if (!maxPointPlayer || 
+					(maxPointPlayer.hero.totalPoint < p.hero.totalPoint) ||
+					(maxPointPlayer.hero.totalPoint == p.hero.totalPoint && p.isActive)){
+					maxPointPlayer = p;
+				}					
 			}
 		});
 
@@ -369,22 +377,29 @@ export default class DaMonsterGame {
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
 		
+		//get next player
+		let nextPlayer = null
+		if (!this._isProvokeBattle){
+			let index = this._players.findIndex((p) => { return p.isActive;});		
+			this._players[index].isActive = false;
+			index = (index >= this._players.length - 1) ? 0 : index + 1;
+			this._players[index].isActive = true;
+			nextPlayer = this._players[index];
+		}else{
+			nextPlayer = this._players.find((p) => {return p.isActive;});
+		}	
+		
 		let callbacks = this._callbacks[DaMonsterGameEvents.BattleDone];
 		if (callbacks) {
 			callbacks.forEach((c) => {
 				c.call(null, isPlayerWin, winner);
 			})
-		}			
-				
-		this.monsterCard = undefined;
-		if (!this._isProvokeBattle){
-			this.NextPlayer();
-		}else{
-			let activePlayer = this._players.find((p) => {return p.isActive;});
-			if (activePlayer.isNPC){
-				activePlayer.DoARound(this._players, this.availableMonsters);
-			}												
-		}				
+		}
+
+		this.monsterCard = undefined;		
+		if (nextPlayer.isNPC){
+			nextPlayer.DoARound(this._players, this.availableMonsters);
+		}
 	}
 
 	New() {
@@ -408,7 +423,7 @@ export default class DaMonsterGame {
 		if (this.playedActions.length > 0) {
 			let action = this.playedActions[0],
 				cards = this.playedActions.map((a) => {return {cardId: a.card.id, player: a.player};});
-			
+						
 			if (!action.isStopped){
 				//do action
 				action.result = action.card.Play(action.player, action.args);

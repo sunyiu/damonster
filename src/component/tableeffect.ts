@@ -15,7 +15,7 @@ export default class TableEffect_com extends HTMLElement {
                     
                 }
                 
-                @keyframes monsterInvade {
+                @keyframes rollin_up {
                     0%{
                         margin-top: 35px;
                     }
@@ -24,7 +24,7 @@ export default class TableEffect_com extends HTMLElement {
                     }                    
                 }
                 
-                @keyframes monsterBattle{
+                @keyframes rollout_up{
                     0%{
                         margin-top: -35px;
                     }
@@ -32,6 +32,21 @@ export default class TableEffect_com extends HTMLElement {
                     100%{
                         margin-top: -65px;
                     }
+                }
+                
+                @keyframes rollinout_up{
+                    0%{
+                        margin-top: 35px;
+                    }
+                    25%{
+                        margin-top: -35px;                        
+                    } 
+                    75%{
+                        margin-top: -35px;                        
+                    }                   
+                    100%{
+                        margin-top: -65px;
+                    }                    
                 }
                 
                 #da-effect-content{
@@ -55,11 +70,15 @@ export default class TableEffect_com extends HTMLElement {
                     display: none;
                 }                      
                 
-                #da-effect-content.monsterInvade{                   
-                    animation-name: monsterInvade;
+                #da-effect-content.rollin_up{                   
+                    animation-name: rollin_up;
                 }
-                #da-effect-content.monsterBattle{
-                    animation-name: monsterBattle;
+                #da-effect-content.rollout_up{
+                    animation-name: rollout_up;
+                }
+                #da-effect-content.rollinout_up{
+                    animation-duration: 2s;
+                    animation-name: rollinout_up;
                 }
                 
                                                                                                                                                                                                
@@ -109,34 +128,55 @@ export default class TableEffect_com extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
     
+    
     public monsterInvade(point):void{
          return new Promise((resolve, reject) =>{                        
             let content = this.shadowRoot.getElementById('da-effect-content'),
             callback = (e) =>{
-                content.removeEventListener('webkitAnimationEnd', callback);       
+                content.removeEventListener('webkitAnimationEnd', callback);
+                content.classList.remove('rollin_up');       
                 resolve();                
             }
             content.innerHTML = '('+ point +')';
                
             content.addEventListener('webkitAnimationEnd', callback);
             content.classList.remove('hide');
-            content.classList.add('monsterInvade');
+            content.classList.add('rollin_up');
         });                                       
     }
     
-    public monsterBattle(winner):void{
+    public doneBattle(winner):void{
          return new Promise((resolve, reject) =>{                        
             let content = this.shadowRoot.getElementById('da-effect-content'),
             callback = (e) =>{
                 content.removeEventListener('webkitAnimationEnd', callback);
                 content.innerHTML = '';
+                content.classList.remove('rollout_up');
                 content.classList.add('hide');       
                 resolve();                
             }
-                           
+                          
             content.addEventListener('webkitAnimationEnd', callback);
-            content.classList.add('monsterBattle');
+            content.classList.add('rollout_up');
         });         
+    }
+    
+    public switchPlayer(player):void{
+         return new Promise((resolve, reject) =>{                        
+            let content = this.shadowRoot.getElementById('da-effect-content'),
+            callback = (e) =>{
+                content.removeEventListener('webkitAnimationEnd', callback);
+                content.innerHTML = '';
+                content.classList.remove('rollinout_up');
+                content.classList.add('hide');       
+                resolve();                
+            }
+            
+            content.innerHTML = player;            
+            content.classList.remove('hide');                          
+            content.addEventListener('webkitAnimationEnd', callback);
+            content.classList.add('rollinout_up');
+        });                 
     }                
 }
 
