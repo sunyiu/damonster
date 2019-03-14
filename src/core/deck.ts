@@ -5,13 +5,13 @@ import { DaActions, DaActionCard } from "./actioncard.js"
 export function GetDefaultCards(): { monster: DaCard[]; hero: DaHeroCard[]; item: DaCard[]; skill: DaActionCard[] } {
 	return {
 		monster: [
-			new DaCard(1, "m1", DaCardType.Monster, 2),
-			new DaCard(2, "m2", DaCardType.Monster, 5),
-			new DaCard(3, "m3", DaCardType.Monster, 5),
-			new DaCard(4, "m4", DaCardType.Monster, 10),
-			new DaCard(5, "m5", DaCardType.Monster, 10),
-			new DaCard(6, "m6", DaCardType.Monster, 15),
-			new DaCard(7, "m7", DaCardType.Monster, 15)
+			new DaCard(1, "m1", DaCardType.Monster, 4),
+			new DaCard(2, "m2", DaCardType.Monster, 4),
+			new DaCard(3, "m3", DaCardType.Monster, 4),
+			new DaCard(4, "m4", DaCardType.Monster, 9),
+			new DaCard(5, "m5", DaCardType.Monster, 9),
+			new DaCard(6, "m6", DaCardType.Monster, 14),
+			new DaCard(7, "m7", DaCardType.Monster, 14)
 		],
 		hero: [
 			new DaHeroCard(8, "k1", 5, DaHeroTypes.Knight),

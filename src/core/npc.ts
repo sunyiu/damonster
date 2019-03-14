@@ -21,6 +21,10 @@ export class DaNpc extends DaPlayer {
 			heros = this.hand.filter((c) => {return c.type == DaCardType.Hero}),
 			items = this.hand.filter((c) => {return c.type == DaCardType.Item});
 			
+			
+			
+			
+			
 // 			heros = [],
 // 			items = [];
 // 		this.hand.forEach((c) => {
@@ -84,12 +88,6 @@ export class DaNpc extends DaPlayer {
 		}
 
 
-		let retreat = actions.find((a) => {return a.action == DaActions.Retreat;});
-		if (retreat && this.hero && maxHero && maxHero.point > this.hero.totalPoint) {
-			this.PlayAnAction(retreat.id);
-			return;
-		}
-
 		let provoke = actions.find((a) => {return a.action == DaActions.Provoke;});
 		if (provoke && this.hero && availableMonsters && availableMonsters.length > 0) {
 			//TODO:: provoke to kill opponent hero....
@@ -116,32 +114,52 @@ export class DaNpc extends DaPlayer {
 		}
 
 
-
-		if (this.hero == undefined && heros.length > 0) {
-			//look through the hand				
-			//set hero with max point if there is any
+		//get max point equipped hero overall
+		//active hero (potential max point)
+		let maxHero, maxHeroPotentialPoint = 0;
+		if (this.hero){
+			maxHero = this.hero;
 			
-			let maxPoint = 0, heroId = null;			
-			heros.forEach((h) =>{
-				let equiped = this.items.find((i) => {i.heroType == h.heroType;}),
-					totalPoint = equiped.reduce((total, i) => {
-						return total + i.point					
-					}, h.point);
-				if (totalPoint > maxPoint){
-					maxPoint = totalPoint;
-					heroId = h.id;
-				}
-			})
-			
-			if (heroId){
-				super.SetHero(hero.id);
-				return;
-			}												
+			let equipped = items.filter((i) => {return i.heroType == this.hero.heroType;});
+			if (equipped.length > 0){
+				maxHeroPotentialPoint = equipped.reduce((total, i) => {return total + i.point}, this.hero.totalPoint);				
+			}else{
+				maxHeroPotentialPoint = this.hero.totalPoint;
+			}			
 		}
+		
+		//get max point equipped hero on hand
+		heros.forEach((h) => {
+			let equipped = items.filter((i) => {return i.heroType == h.heroType;}),
+				maxPoint = (equipped.length > 0) 
+					? maxPoint = equipped.reduce((total, i) => {return total + i.point}, h.totalPoint)
+					: h.totalPoint;			
+			
+			if (maxHeroPotentialPoint < maxPoint){
+				maxHero = h;
+				maxHeroPotentialPoint = maxPoint;
+			}
+		})
+		
+		//retreat
+		if (this.hero && maxHero && maxHero.id != this.hero.id){
+			//play retreat... because the hand has a hero with more points					
+			let retreat = actions.find((a) => {return a.action == DaActions.Retreat;});
+			if (retreat) {
+				this.PlayAnAction(retreat.id);
+				return;
+			}	
+		}
+		
+		if (!this.hero && maxHero){
+			super.SetHero(maxHero.id);
+			return;
+		}
+						
 
 		if (this.hero) {
 			//equip item if there is any
-			let item = this.items.find((c) => { return c.heroType == this.hero.heroType; });
+			let item = items.find((c) => { return c.heroType == this.hero.heroType; });
 			if (item){
 				this.EquipHero(item.id);
 				return;
