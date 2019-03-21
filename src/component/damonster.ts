@@ -106,21 +106,16 @@ export default class DaMonster_Com extends HTMLElement {
         this.game = new DaMonsterGame();
         this.game.New();        
         this.hookUpGame();
+        this.player.hero.isActive = true;        
     }
     
     private hookUpGame(){
-        this.game.AddEventListener(DaMonsterGameEvents.DrawFromDeck, (player, card) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.DoneDrawFromDeck, (player, card) =>{
             this.animation = this.animation.then(() => {
                 return this.playerAddCardFromDeck(player.isNPC ? this.npc : this.player, card);
-            }).then(() =>{
-                return this.delayForNSec();
-            }).then(() =>{
-                if (!card.isMonster){                    
-                    return this.effect.switchPlayer(player.isNPC ? 'player' : 'NPC');                    
-                }else{
-                    return Promise.resolve();                    
-                }
-            }); 
+            }).then(() => {
+                return this.switchToPlayer(player.isNPC ? this.player : this.npc);
+            });
         });
         this.game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) =>{            
              this.animation = this.animation.then(() => {
@@ -148,7 +143,7 @@ export default class DaMonster_Com extends HTMLElement {
                 return this.delayForNSec();
             });
         });
-        this.game.AddEventListener(DaMonsterGameEvents.BattleDone, (isPlayerWin, winner) =>{
+        this.game.AddEventListener(DaMonsterGameEvents.BattleDone, (isPlayerWin, winner, activePlayer) =>{
             this.player.isBattleOn = false;
             if (isPlayerWin){
                 let player = winner.isNPC ? this.npc : this.player;
@@ -157,9 +152,8 @@ export default class DaMonster_Com extends HTMLElement {
                 }).then(() =>{
                     return this.deck.RemoveTop();
                 }).then(() =>{
+                    console.log('com::damonster -- kill a monster')
                     return player.KillAMonster();
-                }).then(() =>{
-                 return this.effect.switchPlayer(this.game.activePlayer.name);
                 });                                
             }else{
                 this.animation = this.animation.then(() => {
@@ -168,10 +162,11 @@ export default class DaMonster_Com extends HTMLElement {
                     promises.push(this.playerHeroSet(this.player, null));
                     promises.push(this.playerHeroSet(this.npc, null));
                     return Promise.all(promises);
-                }).then(() =>{
-                 return this.effect.switchPlayer(this.game.activePlayer.name);
-             });
-            }            
+                });
+            }
+            this.animation = this.animation.then(() =>{
+                return this.switchToPlayer(activePlayer.isNPC ? this.npc : this.player);
+            })            
         });
         this.game.AddEventListener(DaMonsterGameEvents.ActionStart, (player, card) =>{
             if (player.isNPC){
@@ -233,9 +228,7 @@ export default class DaMonster_Com extends HTMLElement {
                         promises.push(this.playerHeroSet(this.npc, null));
                         if (hasMonster){
                             promises.push(this.deck.RemoveTop());
-                            promises.push(player.KillAMonster().then(() =>{
-                                return this.effect.switchPlayer(this.game.activePlayer.name);
-                            }));                            
+                            promises.push(player.KillAMonster());
                         }
                         
                         //cancel battle if there is any...
@@ -342,6 +335,15 @@ export default class DaMonster_Com extends HTMLElement {
             .then((daCard)=>{
                 return player.AddHand(daCard);
             });                    
+    }
+    
+    private switchToPlayer(player){
+        return this.effect.switchPlayer(player.isNPC ? 'NPC' : 'Player')
+            .then(() =>{
+                player.isNPC ? this.player.hero.isActive = false : this.npc.hero.isActive = false;
+                player.hero.isActive = true;
+                return Promise.resolve();
+        });
     }
     
     

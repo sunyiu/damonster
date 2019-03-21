@@ -9,7 +9,7 @@ import { DaNpc } from "./npc.js"
 export enum DaMonsterGameEvents {
 	MonsterInvade,
 	BattleDone,
-	DrawFromDeck,
+	DoneDrawFromDeck,
 	SetHero,
 	EquipHero,
 	ActionStart,
@@ -87,6 +87,9 @@ export default class DaMonsterGame {
 	private initPlayers() {
 		let p1 = new DaPlayer("p1", this._deck),
 			p2 = new DaNpc("npc", this._deck);
+			
+		p1.nextPlayer = p2;
+		p2.nextPlayer = p1;
 
 		this._players.push(p1, p2);
 		this._player = p1;
@@ -99,16 +102,19 @@ export default class DaMonsterGame {
 			// 	this._isProvokeBattle = false;
 			// 	this.monsterCard = monster;									
 			// });
-			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck,(card) => {				
-				console.log('%s done draw from deck', p.name);
-				let callbacks = this._callbacks[DaMonsterGameEvents.DrawFromDeck];
+									
+			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck,(card) => {
+				//component to display the card taken																												
+				let callbacks = this._callbacks[DaMonsterGameEvents.DoneDrawFromDeck];
 				if (callbacks) {
 					callbacks.forEach((c) => {
 						c.call(null, p, card);
 					})
 				}
 				
-				this.NextPlayer();				
+				if (this.activePlayer.isNPC){
+					this.activePlayer.DoARound(this._players, this.availableMonsters);					
+				}				
 			});
 			
 			p.AddEventListener(DaPlayerEvents.SetHero,(hero) => {
@@ -142,28 +148,30 @@ export default class DaMonsterGame {
 			p.AddEventListener(DaPlayerEvents.StartAction,(card, args) => {
 				console.log('%s play an action %s with args %o', p.name, card.name, args);
 
-				if (this.playedActions.length > 0 && card.action != DaActions.Stop) {
-					throw new Error("Cannot play another action when there is a pending!!!!");
-				}
+				// if (this.playedActions.length > 0 && (card.action != DaActions.Stop || card.action != DaActions.Retreat)) {
+				// 	throw new Error("Cannot play another action when there is a pending action (only stop and retreat can)!!!!");
+				// }
 				
 				if (this.playedActions.length == 0 && card.action == DaActions.Stop){
 					throw new Error("No pending action to stop!!!!");
 				}
 				
-				if (card.action != DaActions.Stop){
-					this.playedActions.push({
-						player: p,
-						card: card,
-						args: args,
-						isStopped: false
-					});
-				}else{
-					this.playedActions[0].isStopped = !this.playedActions[0].isStopped;
-					this.playedActions.push({
-						player: p,
-						card: card
-					});
-				}
+				this.playedActions.push({
+					player: p,
+					card: card,
+					args: args,
+					isStopped: false
+				});				
+				
+				// if (card.action == DaActions.Stop){
+				// 	
+				// }else{
+				// 	this.playedActions[0].isStopped = !this.playedActions[0].isStopped;
+				// 	this.playedActions.push({
+				// 		player: p,
+				// 		card: card
+				// 	});
+				// }
 								
 				this._players.forEach((player) =>{
 					if (player !== p){
@@ -376,29 +384,17 @@ export default class DaMonsterGame {
 			isPlayerWin = true;
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
-		
-		//get next player
-		let nextPlayer = null
-		if (!this._isProvokeBattle){
-			let index = this._players.findIndex((p) => { return p.isActive;});		
-			this._players[index].isActive = false;
-			index = (index >= this._players.length - 1) ? 0 : index + 1;
-			this._players[index].isActive = true;
-			nextPlayer = this._players[index];
-		}else{
-			nextPlayer = this._players.find((p) => {return p.isActive;});
-		}	
-		
+				
 		let callbacks = this._callbacks[DaMonsterGameEvents.BattleDone];
 		if (callbacks) {
 			callbacks.forEach((c) => {
-				c.call(null, isPlayerWin, winner);
+				c.call(null, isPlayerWin, winner, this.activePlayer);
 			})
 		}
 
 		this.monsterCard = undefined;		
-		if (nextPlayer.isNPC){
-			nextPlayer.DoARound(this._players, this.availableMonsters);
+		if (this.activePlayer.isNPC){
+			this.activePlayer.DoARound(this._players, this.availableMonsters);
 		}
 	}
 
@@ -414,16 +410,26 @@ export default class DaMonsterGame {
 				p.hand.push(this._deck.Deal());								
 			}
 		})
-		this._deck.AddCardsAndShuffle(cards.monster);		
+		this._deck.AddCardsAndShuffle(cards.monster);
 		
-		this._players[0].isActive = true;		
+		this._players.find((p) => {return !p.isNPC;}).isActive = true;		
 	}
 
 	ExeCardAction() {
-		if (this.playedActions.length > 0) {
-			let action = this.playedActions[0],
-				cards = this.playedActions.map((a) => {return {cardId: a.card.id, player: a.player};});
-						
+		
+		let cards = this.playedActions.map((a) => {return {cardId: a.card.id, player: a.player};}),
+			nonStopActions = [],			
+			
+		for (var i = 0; i < this.playedActions.length; i++){
+			if (this.playedActions[i].card.action != DaActions.Stop){
+				nonStopActions.push(this.playedActions[i]);				
+			}else{
+				let currentAction = nonStopActions[nonStopActions.length - 1];
+				currentAction.isStopped = !currentAction.isStopped;				
+			}						 			
+		}
+		
+		nonStopActions.forEach((action) =>{
 			if (!action.isStopped){
 				//do action
 				action.result = action.card.Play(action.player, action.args);
@@ -433,57 +439,28 @@ export default class DaMonsterGame {
 				callbacks.forEach((c) => {
 					c.call(null, action, cards);
 				})
-			}																
-			
+			}																															
+		})
 									
-			this.playedActions = [];
-			
-			//check for monster card...
-			// //can be monster invade -> atomic bomb
-			// //or action -> provoke....			
-			if (!this.monsterCard){
-				let activePlayer = this._players.find((p) => {return p.isActive;});
-				if (activePlayer.isNPC){
-					activePlayer.DoARound(this._players, this.availableMonsters);
-				}					
-			}else{
-				//battle mode....
-				let monsterCallback = this._callbacks[DaMonsterGameEvents.MonsterInvade];
-				if (monsterCallback) {
-					monsterCallback.forEach((c) => {
-						c.call(null, this.monsterCard);
-					})
-				}																
+		this.playedActions = [];
+																						
+		//check for monster card...
+		// //can be monster invade -> atomic bomb (next player)
+		// //or action -> provoke....			
+		if (!this.monsterCard){
+			if (this.activePlayer.isNPC){
+				this.activePlayer.DoARound(this._players, this.availableMonsters);
 			}
-			
-			// //check for monster card....
-			// //can be monster invade -> atomic bomb
-			// //or action -> provoke....			
-			// if (this.monsterCard){
-			// 	this.Battle();				
-			// }else{																	
-			// 	let activePlayer = this._players.find((p) => {return p.isActive;});
-			// 	if (activePlayer.isNPC){
-			// 		activePlayer.DoARound(this._players, this.availableMonsters);
-			// 	}	
-			// }						
-			
-			//wait for next action or done actions.....????
-			//in monster invade..... how can we wait for all actions played... STEAL action???											
-		}
-		
+		}else{
+			//battle mode....
+			let monsterCallback = this._callbacks[DaMonsterGameEvents.MonsterInvade];
+			if (monsterCallback) {
+				monsterCallback.forEach((c) => {
+					c.call(null, this.monsterCard);
+				})
+			}																
+		}																
 		
 	}
 	
-	NextPlayer(){
-		let index = this._players.findIndex((p) => { return p.isActive;});		
-		this._players[index].isActive = false;
-		index = (index >= this._players.length - 1) ? 0 : index + 1;
-		this._players[index].isActive = true;	
-		
-		if (this._players[index].isNPC){
-			this._players[index].DoARound(this._players, this.availableMonsters);
-		}	
-	}			
-
 }

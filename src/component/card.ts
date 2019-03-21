@@ -90,7 +90,7 @@ export default class Card_com extends HTMLElement {
                     background-size: contain;
                     background-repeat: no-repeat;                    
                 }
-                
+                                
                 .back.card-h .context{
                     background-color: #E6D81E;
                 }                
@@ -173,7 +173,8 @@ export default class Card_com extends HTMLElement {
                 
                 
                 .back.card-m .context{
-                    background-color: #3F3F3F;                    
+                    background-color: #fff;    
+                    background-image: url(images/GodzillaSilhouetteT.png);
                 }                
                 .back.card-m .context .icon{                    
                 }                                                                         

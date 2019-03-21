@@ -24,7 +24,7 @@ export default class Player_com extends HTMLElement {
 
                 #hand-container{
                     display: flex;
-                    overflow: auto;
+                    flex-wrap: wrap;
                 }
 
                 @media only screen and (max-width: 500px) {
@@ -196,7 +196,7 @@ export default class Player_com extends HTMLElement {
             btn.classList.remove('hide');
         }else{
             btn.classList.add('hide');
-        }
+        }        
     }
 
     private toggleCard(card) {

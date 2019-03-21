@@ -9,6 +9,7 @@ export enum DaPlayerTypes {
 }
 
 export enum DaPlayerEvents {
+	DrawFromDeck,
 	DoneDrawFromDeck,
 	StartAction,
 	EndAnAction,
@@ -42,6 +43,11 @@ export class DaPlayer {
 	}
 	set isActionDone(value) {
 		this._isActionDone = value;
+	}
+	
+	private _nextPlayer
+	set nextPlayer(value){
+		this._nextPlayer = value;
 	}
 
 	private _deck: DaDeck;
@@ -77,9 +83,14 @@ export class DaPlayer {
 	DrawFromDeck() {
 		console.log('%s draw from deck', this._isNPC ? 'NPC' : 'Player');
 		
+		this.isActive = false;
+		this._nextPlayer.isActive = true;
+						
 		let card = this._deck.Deal(),
 			isMonster = card.type == DaCardType.Monster;
 
+		//If monster, monster invade will be called at deck.deal...
+		
 		if (!isMonster) {
 			this.hand.push(card);
 	

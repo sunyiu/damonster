@@ -68,7 +68,7 @@ export class DaNpc extends DaPlayer {
 			}
 
 			if (this.hero && opponent.hero && opponent.hero.totalPoint > this.hero.totalPoint) {
-				if (actions[DaActions.Retreat] && (!maxHero || maxHero.point < this.hero.totalPoint)) {
+				if (actions[DaActions.Retreat] && this.hero) {
 					this.PlayAnAction(actions[DaActions.Retreat].id);
 					return;
 				} else {
@@ -79,10 +79,11 @@ export class DaNpc extends DaPlayer {
 		}
 		
 		let attack = actions.find((a) => {return a.action == DaActions.Attack;});		
-		if ((attack && this.hero && opponent.hero) && (
-				(this.hero && opponent.hero && this.hero.totalPoint > opponent.hero.totalPoint) ||
-				(this.hero.totalPoint < opponent.hero.totalPoint && maxHero && maxHero.point > opponent.hero.totalPoint)
-			)){
+		if (attack 
+				&& this.hero 
+				&& opponent.hero 
+				&& (this.hero && opponent.hero && this.hero.totalPoint > opponent.hero.totalPoint)
+			){
 			this.PlayAnAction(attack.id);
 			return;
 		}
@@ -132,7 +133,7 @@ export class DaNpc extends DaPlayer {
 		heros.forEach((h) => {
 			let equipped = items.filter((i) => {return i.heroType == h.heroType;}),
 				maxPoint = (equipped.length > 0) 
-					? maxPoint = equipped.reduce((total, i) => {return total + i.point}, h.totalPoint)
+					? equipped.reduce((total, i) => {return total + i.point}, h.totalPoint)
 					: h.totalPoint;			
 			
 			if (maxHeroPotentialPoint < maxPoint){

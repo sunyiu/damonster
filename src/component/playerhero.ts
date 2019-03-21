@@ -145,11 +145,25 @@ export default class Playerhero_com extends HTMLElement {
                 }
                 #da-hero-type-icon.remove{
                     animation-name: removeHero;
-                }                                                           
+                }
+                
+                #da-hero-container.active #hero-container #hero-context{
+                    border: 1px solid black;
+                }                                                
+                                                                        
+                #da-hero-container.active #hero-container #da-hero-type-icon{
+                    background-color: black;
+                    color: white;
+                }
+                
+                #da-hero-container.empty #hero-container #da-hero-type-icon,
+                #da-hero-container.empty #hero-container #point-container{
+                    display: none;
+                }                                                                                                                           
                 
 			</style>
             <!-- shadow DOM for your element -->
-                <div id="da-hero-container">
+                <div id="da-hero-container" class="empty">
                     <div id="hero-container">                        
                         <div id="da-hero-type-icon"></div>                
                         <div id="hero-context"></div>                                                                
@@ -214,7 +228,18 @@ export default class Playerhero_com extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
     
-    //------------------------------------------------------------        
+    //------------------------------------------------------------
+    public set isActive(value){
+        let container = this.shadowRoot.getElementById('da-hero-container');
+        if (value){
+            container.classList.add('active');            
+        }else{
+            container.classList.remove('active');
+        }
+        
+    }
+    
+         
     public Equip(card){        
         let itemContainer = this.shadowRoot.getElementById('item-container');
                             
@@ -229,13 +254,15 @@ export default class Playerhero_com extends HTMLElement {
     }
     
     public Set(heroType, point){                
-        let heroContainer = this.shadowRoot.getElementById('hero-container'),
+        let container = this.shadowRoot.getElementById('da-hero-container'), 
+            heroContainer = this.shadowRoot.getElementById('hero-container'),
             itemContainer = this.shadowRoot.getElementById('item-container'),
             pointContainer = this.shadowRoot.getElementById('point-container'),
 
         
-        if (!heroType){
+        if (!heroType){            
             if (heroContainer.classList.length == 0){
+                container.classList.add('empty');                
                 return Promise.resolve();
             }                
             
@@ -244,6 +271,7 @@ export default class Playerhero_com extends HTMLElement {
                 callback = (e) =>{
                     hero.removeEventListener('webkitAnimationEnd', callback);
                     hero.classList.remove('remove');
+                    container.classList.add('empty');
                     heroContainer.className = '';
                     pointContainer.innerHTML = '';
                     
@@ -268,6 +296,7 @@ export default class Playerhero_com extends HTMLElement {
                     }
                     
                 hero.addEventListener('webkitAnimationEnd', callback);
+                container.classList.remove('empty');
                 hero.classList.add('set');
             });                 
         }          
