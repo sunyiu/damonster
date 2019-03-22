@@ -359,7 +359,7 @@ export default class DaMonsterGame {
 			winner = null,
 			isPlayerWin = false;
 		this._players.forEach((p: DaPlayer) => {
-			//TODO::how about equal point????
+			//if equal point, active player win.....
 			if (p.hero){
 				if (!maxPointPlayer || 
 					(maxPointPlayer.hero.totalPoint < p.hero.totalPoint) ||

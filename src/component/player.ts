@@ -19,12 +19,38 @@ export default class Player_com extends HTMLElement {
         return `
             <style>
                 #da-player-container{
+                    display: block;
                     position: relative;
+                }
+                
+                da-monster-player-hero{
+                    display: block;
+                    padding: 5px;
+                    background-color: #33658A;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #e5efff;
+                    border-radius: 15px 15px 0 0;
+                }
+                #da-player-container.npc da-monster-player-hero{
+                    background-color: #F26419;       
+                    border-bottom: 1px solid #ffe7db;             
                 }
 
                 #hand-container{
                     display: flex;
                     flex-wrap: wrap;
+                    padding: 5px;                    
+                }
+                #hand-container, 
+                #btns{
+                    background-color: #86BBD8;
+                }
+                #btns{
+                    border-radius: 0 0 15px 15px;
+                }
+                #da-player-container.npc #hand-container{
+                    background-color: #a03b04;
+                    border-radius: 0 0 15px 15px;                    
                 }
 
                 @media only screen and (max-width: 500px) {
@@ -35,22 +61,30 @@ export default class Player_com extends HTMLElement {
                     display: none;
                 }
                 
+                
+                #monster-container{
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    display: flex;
+                }
+                
                 #monster-container div.monster{
                     display: block;
-                    width: 60px;
-                    height: 60px;
+                    width: 25px;
+                    height: 25px;
                     background-size: contain;
                     background-image: url(images/monster.png);
                     background-repeat: no-repeat;
-                }
-                
+                }                                                
 
 
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
-                <div id="hand-container"></div>
+                <da-monster-player-hero id="hero"></da-monster-player-hero>
                 <div id="monster-container"></div>
+                <div id="hand-container"></div>
                 <div id="btns">
                     <button id="playBtn" class="hide">PLAY</button>
                     <button id="battleBtn" class="hide">FIGHT</button>
@@ -94,9 +128,11 @@ export default class Player_com extends HTMLElement {
 
         this.requestRender();
         
-        let container = this.shadowRoot.getElementById('da-player-container');
-        this._hero = new Playerhero_com();
-        container.insertBefore(this._hero, container.firstChild);        
+        let tmp = new Playerhero_com();
+        this._hero = this.shadowRoot.getElementById('hero');
+        //let container = this.shadowRoot.getElementById('da-player-container');
+        //this._hero = new Playerhero_com();
+        //container.insertBefore(this._hero, container.firstChild);        
     }
         
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
@@ -107,40 +143,42 @@ export default class Player_com extends HTMLElement {
         this.props[name] = newValue;
         
         if(name === 'data-type'){
-            if(newValue && newValue){
+            let container = this.shadowRoot.getElementById('da-player-container');
+            if(newValue){
                 if (newValue == 'npc'){
                     this._isNPC = true;
-                    let container = this.shadowRoot.getElementById('da-player-container');
+                    container.classList.add('npc');
                     container.removeChild(this.shadowRoot.getElementById('btns'));
                 }
                 else{
                     this._isNPC = false;
+                    container.classList.remove('npc');                    
                     this.shadowRoot.getElementById('playBtn').onclick = (e) => {
-                    let container = this.shadowRoot.getElementById('hand-container'),
-                        card = Array.from(container.children).find((c) =>{
-                            return c.isSelected;
-                        });
-                    
-                    if (!card){
-                        console.log('NOTHING is selected!!!!');
-                        return;
-                    }
-                    
-                    switch (card.cardType) {
-                        case 'h':
-                            this.dispatchEvent(new CustomEvent(Player_com_events.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
-                            break;
-                    
-                        case 'a':
-                            this.dispatchEvent(new CustomEvent(Player_com_events.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
-                            break;
-                    
-                        case 'i':
-                            this.dispatchEvent(new CustomEvent(Player_com_events.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
-                            break;
-                    }
-                        //hide the play button
-                        e.srcElement.classList.add('hide');
+                        let container = this.shadowRoot.getElementById('hand-container'),
+                            card = Array.from(container.children).find((c) =>{
+                                return c.isSelected;
+                            });
+                        
+                        if (!card){
+                            console.log('NOTHING is selected!!!!');
+                            return;
+                        }
+                        
+                        switch (card.cardType) {
+                            case 'h':
+                                this.dispatchEvent(new CustomEvent(Player_com_events.SetHero, { detail: {card: card}, bubbles: true, composed: true }));
+                                break;
+                        
+                            case 'a':
+                                this.dispatchEvent(new CustomEvent(Player_com_events.DoAction, { detail: {card: card}, bubbles: true, composed: true }));
+                                break;
+                        
+                            case 'i':
+                                this.dispatchEvent(new CustomEvent(Player_com_events.EquipHero, { detail: {card: card}, bubbles: true, composed: true }));
+                                break;
+                        }
+                            //hide the play button
+                            e.srcElement.classList.add('hide');
                     }    
             
                     this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{

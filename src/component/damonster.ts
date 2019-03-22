@@ -22,8 +22,9 @@ export default class DaMonster_Com extends HTMLElement {
         return `
             <style> 
                 #table{
+                    display: block;
                     position: relative;
-                    margin: 10px 0;
+                    padding: 20px;
                 }
                 
                 da-monster-table-effect{
@@ -33,6 +34,16 @@ export default class DaMonster_Com extends HTMLElement {
                     width: 100%;
                     z-index: 100;
                     pointer-events: none;
+                }
+                
+                da-monster-player{
+                    display: block;
+                    margin: 15px;
+                    /*background-color: gray;*/
+                }
+                
+                da-monster-deck {
+                    text-align: center;
                 }
 			</style>
             <!-- shadow DOM for your element -->

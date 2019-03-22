@@ -10,7 +10,7 @@ export default class Card_com extends HTMLElement {
 
     public getTemplate(props: any): string {
         return `
-            <style>
+            <style>                                              
                 #da-card-container{
                     position: relative;
                     display: inline-block;                    
@@ -79,38 +79,32 @@ export default class Card_com extends HTMLElement {
                 .front .context{
                     background-color: lightblue;
                 }
-                
-                .back .context .icon{
-                    padding: 2px;
-                    color: black;
-                }
-                .back .context .icon #point-context{
-                    font-size: 12px;
-                    text-align: right;
-                    background-size: contain;
-                    background-repeat: no-repeat;                    
-                }
-                                
-                .back.card-h .context{
-                    background-color: #E6D81E;
-                }                
+                                                
+                .back.card-h .context,
                 .back.card-i .context{
-                    background-color: #14850E;
+                    background-color: white;
+                }                                           
+                                     
+                .back.hero-k .context{
+                    background-color: rgba(91, 192, 235, 1);
                 }
-                .back.card-i.hero-k .context .icon #point-context,
-                .back.card-h.hero-k .context .icon #point-context{
-                    background-image: url(images/swordIcon_black.png);                    
+                .back.hero-w .context{
+                    background-color: rgba(226, 49, 223, 1);
                 }
-                .back.card-i.hero-w .context .icon #point-context,
-                .back.card-h.hero-w .context .icon #point-context{
-                    background-image: url(images/staffIcon_black.png);
-                    
+                .back.hero-r .context{
+                    background-color: rgba(155, 197, 61, 1);
                 }
-                .back.card-i.hero-r .context .icon #point-context,
-                .back.card-h.hero-r .context .icon #point-context {
-                    background-image: url(images/arrowIcon_black.png);
+
+                .back.card-h.hero-k .context{
+                    background-image: url(images/knight.png);
                 }
-                
+                .back.card-h.hero-w .context{
+                    background-image: url(images/wizard.png);
+                }
+                .back.card-h.hero-r .context{
+                    background-image: url(images/ranger.png);
+                }                                
+                                
                 .back.card-i.hero-k .context{
                     background-image: url(images/swordIcon.png);
                 }
@@ -123,7 +117,7 @@ export default class Card_com extends HTMLElement {
                 
                 
                 .back.card-a .context{
-                    background-color: #A21515;
+                    background-color: rgba(229, 89, 52, 1);
                 }                
                 .back.card-a .context .icon{
                     
@@ -173,7 +167,7 @@ export default class Card_com extends HTMLElement {
                 
                 
                 .back.card-m .context{
-                    background-color: #fff;    
+                    background-color: #000;    
                     background-image: url(images/GodzillaSilhouetteT.png);
                 }                
                 .back.card-m .context .icon{                    
@@ -241,7 +235,22 @@ export default class Card_com extends HTMLElement {
                 }
                 #da-card-container.add{
                     animation-name: addCard;
-                }                
+                }   
+                
+                
+                #star-container{
+                    display: flex;
+                    flex-direction: row-reverse;
+                }
+                .star{
+                    width: 10px;
+                    height: 10px;
+                    fill: rgba(253, 231, 76, 1);
+                    /*background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>');
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;*/                                                          
+                }            
                                                                                 
                                                 
 			</style>
@@ -252,9 +261,7 @@ export default class Card_com extends HTMLElement {
                 </div>            
     			<div class="card-container back">
                     <div class="context">
-                        <div class="icon">
-                            <div id="point-context" class=""></div>
-                        </div>
+                        <div id="star-container"></div>
                     </div>
                 </div>
             </div>
@@ -316,23 +323,40 @@ export default class Card_com extends HTMLElement {
     public get id(){
         return this._id;
     }   
-    private _point: number;
-    public get point(){
-        return this._point;
-    }
     private _cardType: string;
     public get cardType(){
         return this._cardType;
+    }
+    
+    /*
+    private _action: string;
+    public get action(){
+        return this._action;
+    }    
+    private _point: number;
+    public get point(){
+        return this._point;
     }
     private _heroType: string;
     public get heroType(){
         return this._heroType;
     }
-    private _action: string;
-    public get action(){
-        return this._action;
+    */
+    
+    private _isFlip: boolean;
+    public get isFlip(){
+        return this._isFlip;
+    } 
+    public set isFlip(value){
+        let elem = this.shadowRoot.getElementById('da-card-container');        
+        if (value){
+            elem.classList.add('flip');
+        }else{
+            elem.classList.remove('flip');
+        }
+        this._isFlip = value;        
     }
-
+    
     public constructor(){
         super();
                 
@@ -387,8 +411,13 @@ export default class Card_com extends HTMLElement {
         }
                                 
         if (point){
-            this.shadowRoot.getElementById('point-context').innerHTML = point;            
-            this.setAttribute('data-point', point);
+            let starContainer = this.shadowRoot.getElementById('star-container');
+            for(var i=0; i<point; i++){
+                let star = document.createElement('div');
+                star.classList.add('star');
+                star.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>';
+                starContainer.appendChild(star);
+            }                      
         }
         
         if (isFlip){
