@@ -104,7 +104,7 @@ export default class TableEffect_com extends HTMLElement {
         return attributes;
     }
 
-    private props: any = {};
+    //private props: any = {};
     
        
     public constructor(){
@@ -113,9 +113,9 @@ export default class TableEffect_com extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in TableEffect_com.properties) {
-            this.props[key] = TableEffect_com.properties[key].value;
-        }                        
+        // for (let key in TableEffect_com.properties) {
+        //     this.props[key] = TableEffect_com.properties[key].value;
+        // }                        
 
         this.requestRender();                                                                     
     }    
@@ -125,57 +125,57 @@ export default class TableEffect_com extends HTMLElement {
         
         template.innerHTML = this.getTemplate({});
         
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
     
-    public monsterInvade(point):void{
+    public monsterInvade(point:any){
          return new Promise((resolve, reject) =>{                        
-            let content = this.shadowRoot.getElementById('da-effect-content'),
-            callback = (e) =>{
-                content.removeEventListener('webkitAnimationEnd', callback);
-                content.classList.remove('rollin_up');       
+            let content = this.shadowRoot!.getElementById('da-effect-content'),
+            callback = (e:any) =>{
+                content!.removeEventListener('webkitAnimationEnd', callback);
+                content!.classList.remove('rollin_up');       
                 resolve();                
             }
-            content.innerHTML = '('+ point +')';
+            content!.innerHTML = '('+ point +')';
                
-            content.addEventListener('webkitAnimationEnd', callback);
-            content.classList.remove('hide');
-            content.classList.add('rollin_up');
+            content!.addEventListener('webkitAnimationEnd', callback);
+            content!.classList.remove('hide');
+            content!.classList.add('rollin_up');
         });                                       
     }
     
-    public doneBattle(winner):void{
+    public doneBattle(winner:any){
          return new Promise((resolve, reject) =>{                        
-            let content = this.shadowRoot.getElementById('da-effect-content'),
-            callback = (e) =>{
-                content.removeEventListener('webkitAnimationEnd', callback);
-                content.innerHTML = '';
-                content.classList.remove('rollout_up');
-                content.classList.add('hide');       
+            let content = this.shadowRoot!.getElementById('da-effect-content'),
+            callback = (e:any) =>{
+                content!.removeEventListener('webkitAnimationEnd', callback);
+                content!.innerHTML = '';
+                content!.classList.remove('rollout_up');
+                content!.classList.add('hide');       
                 resolve();                
             }
                           
-            content.addEventListener('webkitAnimationEnd', callback);
-            content.classList.add('rollout_up');
+            content!.addEventListener('webkitAnimationEnd', callback);
+            content!.classList.add('rollout_up');
         });         
     }
     
-    public switchPlayer(player):void{
+    public switchPlayer(player:any){
          return new Promise((resolve, reject) =>{                        
-            let content = this.shadowRoot.getElementById('da-effect-content'),
-            callback = (e) =>{
-                content.removeEventListener('webkitAnimationEnd', callback);
-                content.innerHTML = '';
-                content.classList.remove('rollinout_up');
-                content.classList.add('hide');       
+            let content = this.shadowRoot!.getElementById('da-effect-content'),
+            callback = (e:any) =>{
+                content!.removeEventListener('webkitAnimationEnd', callback);
+                content!.innerHTML = '';
+                content!.classList.remove('rollinout_up');
+                content!.classList.add('hide');       
                 resolve();                
             }
             
-            content.innerHTML = player;            
-            content.classList.remove('hide');                          
-            content.addEventListener('webkitAnimationEnd', callback);
-            content.classList.add('rollinout_up');
+            content!.innerHTML = player;            
+            content!.classList.remove('hide');                          
+            content!.addEventListener('webkitAnimationEnd', callback);
+            content!.classList.add('rollinout_up');
         });                 
     }                
 }

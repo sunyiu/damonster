@@ -1,4 +1,5 @@
 import { DaCard, DaCardType } from "./card.js";
+import { DaPlayer } from "./player.js";
 
 export enum DaActions {
 	AtomicBomb,
@@ -17,7 +18,7 @@ export enum DaActions {
 export class DaActionCard extends DaCard {
 
 
-	static callbacks = [];
+	static callbacks:{(target:DaPlayer, args?:any []): void | DaCard | DaCard[] | DaPlayer[] | boolean;}[] = [];
 
 	// private _callback = undefined;
 	// get callback() {
@@ -38,7 +39,7 @@ export class DaActionCard extends DaCard {
 	}
 
 
-	Play(player, args) {
+	Play(player: DaPlayer, args?:[]) {
 		let callback = DaActionCard.callbacks[this._action];
 		if (callback == undefined){
 			throw new Error('Card action callback is not defined!!!');						

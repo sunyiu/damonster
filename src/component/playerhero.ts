@@ -224,21 +224,18 @@ export default class Playerhero_com extends HTMLElement {
         `;
     }
     
-    public static get properties(){
-        return{
-        };
-    }
+    // public static get properties(){
+    //     return{
+    //     };
+    // }
    
-    public static get observedAttributes(): string[] {
-        
-        const attributes: string[] = [];
-
-        for (let key in Playerhero_com.properties) {
-            attributes.push(key.toLowerCase());
-        }
-        
-        return attributes;
-    }
+    // public static get observedAttributes(): string[] {    
+    //     const attributes: string[] = [];
+    //     for (let key in Playerhero_com.properties) {
+    //         attributes.push(key.toLowerCase());
+    //     }        
+    //     return attributes;
+    // }
     
     // private _point: number;
     // public get point():number{
@@ -255,9 +252,9 @@ export default class Playerhero_com extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in Playerhero_com.properties) {
-            this.props[key] = Playerhero_com.properties[key].value;
-        }                                
+        // for (let key in Playerhero_com.properties) {
+        //     this.props[key] = Playerhero_com.properties[key].value;
+        // }                                
 
         this.requestRender();           
     }
@@ -267,7 +264,7 @@ export default class Playerhero_com extends HTMLElement {
             return;
         }
 
-        this.props[name] = newValue;
+        //this.props[name] = newValue;
     }
         
     private requestRender(): void {
@@ -275,37 +272,37 @@ export default class Playerhero_com extends HTMLElement {
         
         template.innerHTML = this.getTemplate({});
         
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
     //------------------------------------------------------------
-    public set isActive(value){
-        let container = this.shadowRoot.getElementById('da-hero-container');
+    public set isActive(value:any){
+        let container = this.shadowRoot!.getElementById('da-hero-container');
         if (value){
-            container.classList.add('active');            
+            container!.classList.add('active');            
         }else{
-            container.classList.remove('active');
+            container!.classList.remove('active');
         }
         
     }
     
     private addStar(){
-        let container = this.shadowRoot.getElementById('star-container'),
+        let container = this.shadowRoot!.getElementById('star-container'),
             star = document.createElement('div');            
         star.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>';
-        container.appendChild(star);                                        
+        container!.appendChild(star);                                        
     }
     
          
-    public Equip(card){        
-        let itemContainer = this.shadowRoot.getElementById('item-container');
+    public Equip(card:any){        
+        let itemContainer = this.shadowRoot!.getElementById('item-container');
                             
         if (!card.isFlip){
             card.isFlip = true;
         }
                                 
         return new Promise((resolve, reject) => {
-            let callback = (e) =>{
+            let callback = (e:any) =>{
                 card.removeEventListener('webkitAnimationEnd', callback);
                 card.classList.remove('add');
                 resolve();                
@@ -314,32 +311,32 @@ export default class Playerhero_com extends HTMLElement {
             card.addEventListener('webkitAnimationEnd', callback);
             card.isSelected = false;
             card.classList.add('add');            
-            itemContainer.append(card);                                    
+            itemContainer!.append(card);                                    
         })                                        
     }
     
-    public Set(heroType, point){                
-        let container = this.shadowRoot.getElementById('da-hero-container'), 
-            heroContainer = this.shadowRoot.getElementById('hero-container'),
-            itemContainer = this.shadowRoot.getElementById('item-container'),
-            starContainer = this.shadowRoot.getElementById('star-container');
-            //pointContainer = this.shadowRoot.getElementById('point-container'),
+    public Set(heroType:any, point:any){                
+        let container = this.shadowRoot!.getElementById('da-hero-container'), 
+            heroContainer = this.shadowRoot!.getElementById('hero-container'),
+            itemContainer = this.shadowRoot!.getElementById('item-container'),
+            starContainer = this.shadowRoot!.getElementById('star-container');
+            //pointContainer = this.shadowRoot!.getElementById('point-container'),
 
         
         if (!heroType){            
-            heroContainer.className = "";
+            heroContainer!.className = "";
             
-             while (itemContainer.firstChild) {
-                 itemContainer.removeChild(itemContainer.firstChild);
+             while (itemContainer!.firstChild) {
+                 itemContainer!.removeChild(itemContainer!.firstChild);
              }       
-             while (starContainer.firstChild){
-                 starContainer.removeChild(starContainer.firstChild);
+             while (starContainer!.firstChild){
+                 starContainer!.removeChild(starContainer!.firstChild);
              }
              return Promise.resolve();                        
         } else{                                                         
             
             this.addStar();
-            heroContainer.classList.add(heroType);
+            heroContainer!.classList.add(heroType);
             return Promise.resolve();
         }          
     }      

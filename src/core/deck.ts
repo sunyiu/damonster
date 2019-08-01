@@ -99,21 +99,21 @@ function shuffle(a: any) {
 }
 
 export enum DaDeckEvents {
-	MonsterFound = 'm',
-	EndOfDeck = 'e'
+	MonsterFound,
+	EndOfDeck
 }
 
 export class DaDeck {
 
 	public cards: DaCard[] = [];
 
-	private _callbacks = [];
+	private _callbacks:((target?:DaCard)=>void)[][] = [];
 
 	constructor() {
 
 	}
 
-	AddEventListener(event: DaDeckEvents, callback) {
+	AddEventListener(event: DaDeckEvents, callback:(target?:DaCard)=>void) {
 		let callbacks = this._callbacks[event];
 		if (callbacks == undefined) {
 			this._callbacks[event] = [callback];
@@ -131,11 +131,11 @@ export class DaDeck {
 	}
 
 	Deal(): DaCard {
-		if (this.cards.length == 0) {
+		let card = this.cards.pop();
+
+		if (!card){
 			throw new Error("No card left in the deck!!!!");
 		}
-
-		let card = this.cards.pop();
 
 		if (card.type == DaCardType.Monster) {
 			let callbacks = this._callbacks[DaDeckEvents.MonsterFound];

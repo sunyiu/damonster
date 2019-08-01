@@ -1,6 +1,5 @@
 import { DaCard, DaCardType } from './card.js'
-import { DaActions } from './actioncard.js'
-import { DaHeroCard } from './herocard.js'
+import { DaHeroCard, DaItemCard } from './herocard.js'
 import { DaDeck } from  './deck.js'
 
 export enum DaPlayerTypes {
@@ -15,17 +14,14 @@ export enum DaPlayerEvents {
 	EndAnAction,
 	
 	SetHero,
-	EquipHero
-	
-	
-	
+	EquipHero			
 }
 
-export class DaPlayer {
 
+export class DaPlayer {
 	public hand: DaCard[] = [];
-	public hero: DaHeroCard | undefined = undefined;
-	public monsterKilled: DaMonster[] = [];
+	public monsterKilled: DaCard[] = [];
+	public hero?: DaHeroCard;
 	public isActive:boolean = false;
 
 	private _name: string;
@@ -38,34 +34,37 @@ export class DaPlayer {
 	}
 
 	private _isActionDone: boolean;
-	get isActionDone() {
+	get isActionDone():boolean {
 		return this._isActionDone;
 	}
-	set isActionDone(value) {
+	set isActionDone(value:boolean) {
 		this._isActionDone = value;
 	}
 	
-	private _nextPlayer
-	set nextPlayer(value){
+	private _nextPlayer?:DaPlayer;
+	set nextPlayer(value:DaPlayer){
 		this._nextPlayer = value;
 	}
 
 	private _deck: DaDeck;
 
-	private _callbacks = [];
+	private _callbacks: ((target:any, ...args:any[])=>void)[][] = [];
 
 	get type(): DaPlayerTypes {
 		return DaPlayerTypes.Player;
 	}
 
-	constructor(name: string, deck: DaDeck) {
+	constructor(name: string, deck: DaDeck, isNPC? :boolean) {
 		this._name = name;
 		this._deck = deck;
 		this._isNPC = false;
 		this._isActionDone = false;
+		if (isNPC){
+			this._isNPC = isNPC;
+		}
 	}
 
-	AddEventListener(event: DaPlayerEvents, callback) {
+	AddEventListener(event: DaPlayerEvents, callback: (target:any, ...args:any[])=>void) {
 		let callbacks = this._callbacks[event];
 		if (callbacks == undefined) {
 			this._callbacks[event] = [callback];
@@ -84,7 +83,7 @@ export class DaPlayer {
 		console.log('%s draw from deck', this._isNPC ? 'NPC' : 'Player');
 		
 		this.isActive = false;
-		this._nextPlayer.isActive = true;
+		this._nextPlayer!.isActive = true;
 						
 		let card = this._deck.Deal(),
 			isMonster = card.type == DaCardType.Monster;
@@ -103,7 +102,7 @@ export class DaPlayer {
 		}		
 	}
 	
-	RemoveCardFromHandById(cardId){
+	RemoveCardFromHandById(cardId: number):DaCard{
 		console.log('%s remove card from hand %s', this._isNPC ? 'NPC' : 'Player', cardId);
 				
 		let index = this.hand.findIndex((c) => {return c.id == cardId;});
@@ -111,18 +110,18 @@ export class DaPlayer {
 			throw new Error ('Card (id=' + cardId + ') not find!!!');
 		}
 		
-		return this.hand.splice(index, 1);		
+		return this.hand.splice(index, 1)[0];		
 	}
 	
-	SetHero(id: number | undefined) {		
+	SetHero(id?: number) {		
 		console.log('%s set hero %s', this._isNPC ? 'NPC' : 'Player', id);
 				
-		if (id == undefined){
+		if (id === undefined){
 			this.hero = undefined;
 			return;
 		}
 		
-		let index = this.hand.findIndex((c) => { return c.id == id; });
+		let index = this.hand.findIndex((c) => { return c.id == id && c.type == DaCardType.Hero});
 		
 		
 		if (this.hero != undefined) {
@@ -133,7 +132,7 @@ export class DaPlayer {
 			throw new Error("Hero card not found!!!!");
 		}
 		
-		this.hero = this.hand[index];
+		this.hero = this.hand[index] as DaHeroCard;
 		this.hand.splice(index, 1);
 						
 		let callbacks = this._callbacks[DaPlayerEvents.SetHero];
@@ -161,7 +160,7 @@ export class DaPlayer {
 			throw new Error("Card type is not ITEM");
 		}
 
-		this.hero.equip(card);
+		this.hero.equip(card as DaItemCard);
 		this.hand.splice(index, 1);
 		
 		let callbacks = this._callbacks[DaPlayerEvents.EquipHero];
@@ -172,7 +171,7 @@ export class DaPlayer {
 		}		
 	}
 
-	PlayAnAction(cardId: number, ...args) {
+	PlayAnAction(cardId: number, ...args:any[]) {
 		console.log('%s set hero %s (args::%o)', this._isNPC ? 'NPC' : 'Player', cardId, args);
 				
 		let card = this.hand.find((c) => { return c.id == cardId;});

@@ -10,34 +10,36 @@ export enum DaCardType {
 export class DaCard {
 
 	private _id: number;
-	get id() {
+	get id():number {
 		return this._id;
 	}
 
 	private _name: string;
-	get name() {
+	get name():string {
 		return this._name;
 	}
 
 	private _type: DaCardType;
-	get type() {
+	get type():DaCardType {
 		return this._type;
 	}
 	
-	get isMonster(){
+	get isMonster():boolean{
 		return this._type == DaCardType.Monster;
 	}
 
-	private _point: number | undefined;
-	get point() {
+	private _point: number = 0;
+	get point(): number {
 		return this._point;
 	}
 
-	constructor(id: number, name: string, type: DaCardType, point?: number | undefined) {
+	constructor(id: number, name: string, type: DaCardType, point?: number) {
 		this._id = id;
 		this._name = name;
 		this._type = type;
-		this._point = point;
+		if (point){
+			this._point = point;
+		}
 	}
 
 

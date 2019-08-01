@@ -310,7 +310,10 @@ export default class Card_com extends HTMLElement {
         return this._isSelected;
     }
     public set isSelected(value){
-        let elem = this.shadowRoot.getElementById('da-card-container');                        
+        let elem = this.shadowRoot!.getElementById('da-card-container');                        
+        if (!elem){
+            return;
+        }
         if (value){
             elem.classList.add('selected');
         }else{
@@ -319,11 +322,11 @@ export default class Card_com extends HTMLElement {
         this._isSelected = value;                
     }
         
-    private _id: number;
+    private _id: string = '';
     public get id(){
         return this._id;
     }   
-    private _cardType: string;
+    private _cardType: string = '';
     public get cardType(){
         return this._cardType;
     }
@@ -343,16 +346,16 @@ export default class Card_com extends HTMLElement {
     }
     */
     
-    private _isFlip: boolean;
+    private _isFlip: boolean = false;
     public get isFlip(){
         return this._isFlip;
     } 
     public set isFlip(value){
-        let elem = this.shadowRoot.getElementById('da-card-container');        
+        let elem = this.shadowRoot!.getElementById('da-card-container');        
         if (value){
-            elem.classList.add('flip');
+            elem!.classList.add('flip');
         }else{
-            elem.classList.remove('flip');
+            elem!.classList.remove('flip');
         }
         this._isFlip = value;        
     }
@@ -363,14 +366,14 @@ export default class Card_com extends HTMLElement {
         this.attachShadow({mode: 'open'});
         
         // Initialize declared properties
-        for (let key in Card_com.properties) {
-            this.props[key] = Card_com.properties[key].value;
-        }                        
+        // for (let key in Card_com.properties) {
+        //     this.props[key] = Card_com.properties[key].value;
+        // }                        
 
         this.requestRender();
                                                                
-        let container = this.shadowRoot.getElementById('da-card-container');        
-        container.onclick = (e) => {
+        let container = this.shadowRoot!.getElementById('da-card-container');        
+        container!.onclick = (e) => {
             this.dispatchEvent(new CustomEvent(Card_com_events.Clicked, {detail: null, bubbles: true, composed: true}));
         };
     }    
@@ -380,17 +383,17 @@ export default class Card_com extends HTMLElement {
         
         template.innerHTML = this.getTemplate({});
         
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
-    public Set(id, point, cardType, heroType, action, isFlip){
+    public Set(id: any, point: any, cardType: any, heroType:any, action:any, isFlip:boolean){
         this._id = id;
-        this._point = point;
+        //this._point = point;
         this._cardType = cardType;
-        this._heroType = heroType;
-        this._action = action;        
+        //this._heroType = heroType;
+        //this._action = action;        
                                 
-        let elem = this.shadowRoot.querySelector('.back');
+        let elem = this.shadowRoot!.querySelector('.back');
         
         this.setAttribute('id', 'id'+id);
         this.setAttribute('data-id', id);
@@ -400,85 +403,85 @@ export default class Card_com extends HTMLElement {
             case 'h':
             case 'i':
                 let className = 'hero-' + heroType;
-                elem.classList.remove('hero-k', 'hero-w', 'hero-r');
-                elem.classList.add(className);                                        
+                elem!.classList.remove('hero-k', 'hero-w', 'hero-r');
+                elem!.classList.add(className);                                        
                 this.setAttribute('data-hero', heroType);
                 break;
             case 'a':
                 this.setAttribute('data-action', action)
-                elem.classList.add('action-' + action);
+                elem!.classList.add('action-' + action);
                 break;    
         }
                                 
         if (point){
-            let starContainer = this.shadowRoot.getElementById('star-container');
+            let starContainer = this.shadowRoot!.getElementById('star-container');
             for(var i=0; i<point; i++){
                 let star = document.createElement('div');
                 star.classList.add('star');
                 star.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>';
-                starContainer.appendChild(star);
+                starContainer!.appendChild(star);
             }                      
         }
         
         if (isFlip){
-            this.shadowRoot.getElementById('da-card-container').classList.add('flip');            
+            this.shadowRoot!.getElementById('da-card-container')!.classList.add('flip');            
         }                
         
         //elem.classList.remove('card-h', 'card-i', 'card-a', 'card-m');
-        elem.classList.add('card-' + cardType);             
+        elem!.classList.add('card-' + cardType);             
                 
      
     }
         
     public flip(){
         return new Promise((resolve, reject) =>{                         
-            let elem = this.shadowRoot.getElementById('da-card-container'),
-            callback = (e) =>{
-                elem.removeEventListener('webkitTransitionEnd', callback);
+            let elem = this.shadowRoot!.getElementById('da-card-container'),
+            callback = (e: any) =>{
+                elem!.removeEventListener('webkitTransitionEnd', callback);
                 resolve();                
             }
                 
-            elem.addEventListener('webkitTransitionEnd', callback);
-            elem.classList.toggle('flip');
+            elem!.addEventListener('webkitTransitionEnd', callback);
+            elem!.classList.toggle('flip');
         });
     }    
             
     public hide(){
-        this.shadowRoot.getElementById('da-card-container').classList.add('hidden');
+        this.shadowRoot!.getElementById('da-card-container')!.classList.add('hidden');
     }
     public show(){
-        this.shadowRoot.getElementById('da-card-container').classList.remove('hidden');
+        this.shadowRoot!.getElementById('da-card-container')!.classList.remove('hidden');
     } 
 
     
     public remove(){       
         return new Promise((resolve, reject) =>{                        
-            let card = this.shadowRoot.getElementById('da-card-container'),
-            callback = (e) =>{
-                card.removeEventListener('webkitAnimationEnd', callback);
-                card.classList.remove('remove');  
+            let card = this.shadowRoot!.getElementById('da-card-container'),
+            callback = (e:any) =>{
+                card!.removeEventListener('webkitAnimationEnd', callback);
+                card!.classList.remove('remove');  
                 //this.hide();                
                 resolve();                
             }
                 
-            card.addEventListener('webkitAnimationEnd', callback);
-            card.classList.add('remove');
+            card!.addEventListener('webkitAnimationEnd', callback);
+            card!.classList.add('remove');
         });                         
     }
 
-    public add(flip){       
+    public add(flip: boolean){       
         return new Promise((resolve, reject) =>{                        
-            let card = this.shadowRoot.getElementById('da-card-container'),
-            callback = (e) =>{
-                card.removeEventListener('webkitAnimationEnd', callback);
-                card.classList.remove('add');               
+            let card = this.shadowRoot!.getElementById('da-card-container'),
+            callback = (e:any) =>{
+                card!.removeEventListener('webkitAnimationEnd', callback);
+                card!.classList.remove('add');               
                 resolve();                
             }
                 
-            card.addEventListener('webkitAnimationEnd', callback);
-            card.classList.add('add');
+            card!.addEventListener('webkitAnimationEnd', callback);
+            card!.classList.add('add');
             if (flip){
-                card.classList.add('flip');
+                card!.classList.add('flip');
             }
         });                         
     }           

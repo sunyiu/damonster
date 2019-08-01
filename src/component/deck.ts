@@ -59,21 +59,18 @@ export default class Deck_com extends HTMLElement {
         `;
     }
 
-    public static get properties() {
-        return {
-        };
-    }
+    // public static get properties() {
+    //     return {
+    //     };
+    // }
 
-    public static get observedAttributes(): string[] {
-
-        const attributes: string[] = [];
-
-        for (let key in Deck_com.properties) {
-            attributes.push(key.toLowerCase());
-        }
-
-        return attributes;
-    }
+    // public static get observedAttributes(): string[] {
+    //     const attributes: string[] = [];
+    //     for (let key in Deck_com.properties) {
+    //         attributes.push(key.toLowerCase());
+    //     }
+    //     return attributes;
+    // }
 
     private props: any = {};
 
@@ -83,15 +80,15 @@ export default class Deck_com extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         
         // Initialize declared properties
-        for (let key in Deck_com.properties) {
-            this.props[key] = Deck_com.properties[key].value;
-        }
+        // for (let key in Deck_com.properties) {
+        //     this.props[key] = Deck_com.properties[key].value;
+        // }
 
         this.requestRender();
          
-        let container = this.shadowRoot.getElementById('card-container'),
+        let container = this.shadowRoot!.getElementById('card-container'),
             daCard = new Card_com();
-        container.appendChild(daCard);
+        container!.appendChild(daCard);
         
         daCard.addEventListener(Card_com_events.Clicked,(e) => {
             this.dispatchEvent(new CustomEvent(Deck_com_events.Draw, {detail: null, bubbles: true, composed: true}));
@@ -111,25 +108,24 @@ export default class Deck_com extends HTMLElement {
 
         template.innerHTML = this.getTemplate({});
 
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
     
     //--------------------------------------------------//                    
-    public Serve(id, point, cardType, heroType, action, direction){                        
-        let cardContainer = this.shadowRoot.getElementById('card-container'),
+    public Serve(id:any, point: any, cardType:any, heroType:any, action:any, direction:any){                        
+        let cardContainer = this.shadowRoot!.getElementById('card-container'),
             daCard = new Card_com();
                         
-        cardContainer.appendChild(daCard);
-        daCard.Set(id, point, cardType, heroType, action)
-                                                        
+        cardContainer!.appendChild(daCard);
+        daCard.Set(id, point, cardType, heroType, action, false)                                                        
         
         return new Promise((resolve, reject)=>{            
             setTimeout(()=>{                   
                 let promises = [];                             
                 if (direction == Deck_com_serve_direction.Flip || direction == Deck_com_serve_direction.DownAndFlip){
                     promises.push(
-                        daCard.flip(direction)
+                        daCard.flip()
                     );
                 }
         
@@ -155,7 +151,7 @@ export default class Deck_com extends HTMLElement {
                                 
                 Promise.all(promises).then(() =>{
                     if (direction != Deck_com_serve_direction.Flip){
-                        cardContainer.removeChild(daCard);
+                        cardContainer!.removeChild(daCard);
                     }                    
                     resolve(daCard);
                 })                        
@@ -165,9 +161,8 @@ export default class Deck_com extends HTMLElement {
     
     public RemoveTop(){
         console.log('remove top');
-        let cardContainer = this.shadowRoot.getElementById('card-container');
-        
-        cardContainer.removeChild(cardContainer.lastChild);
+        let cardContainer = this.shadowRoot!.getElementById('card-container');        
+        cardContainer!.removeChild(cardContainer!.lastChild as Node);
         
         return Promise.resolve();        
         // while (cardContainer.firstChild) {
@@ -175,18 +170,18 @@ export default class Deck_com extends HTMLElement {
         //     }                    
     }
     
-    public AddAVailableMonster(id, point){
-        let cardContainer = this.shadowRoot.getElementById('card-container'),        
-            monsterContainer =  this.shadowRoot.getElementById('available-monster-container'),
-            daCard = cardContainer.lastChild;
+    public AddAVailableMonster(id:any, point:any){
+        let cardContainer = this.shadowRoot!.getElementById('card-container'),        
+            monsterContainer =  this.shadowRoot!.getElementById('available-monster-container'),
+            daCard = cardContainer!.lastChild as Node;
         
-        cardContainer.removeChild(daCard);
-        monsterContainer.append(daCard);
+        cardContainer!.removeChild(daCard);
+        monsterContainer!.append(daCard);
         
         return Promise.resolve();                
     }
     
-    public ShowNCard(cards){
+    public ShowNCard(cards: any[]){
         console.log('com::Deck ShowNCards %o', cards);
         return Promise.resolve();
     }

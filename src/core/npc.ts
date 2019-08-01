@@ -1,6 +1,6 @@
 import { DaCard, DaCardType } from './card.js'
-import { DaActions } from './actioncard.js'
-import { DaHeroCard } from './herocard.js'
+import { DaActions, DaActionCard } from './actioncard.js'
+import { DaHeroCard, DaItemCard } from './herocard.js'
 import { DaDeck } from  './deck.js'
 import { DaPlayerTypes, DaPlayer } from './player.js'
 
@@ -11,16 +11,18 @@ export class DaNpc extends DaPlayer {
 	}
 
 	constructor(name: string, deck: DaDeck) {
-		super(name, deck);
-		super._isNPC = true;
+		super(name, deck, true);
 	}
 
-	DoARound(allPlayers, availableMonsters) {
+	DoARound(allPlayers : DaPlayer[], availableMonsters: DaCard[]) {
 		let opponent = allPlayers.find((p) => { return !p.isNPC; }),
-			actions = this.hand.filter((c) => {return c.type == DaCardType.Action;}),
-			heros = this.hand.filter((c) => {return c.type == DaCardType.Hero}),
-			items = this.hand.filter((c) => {return c.type == DaCardType.Item});
-			
+			actions = this.hand.filter((c) => {return c.type == DaCardType.Action;}) as DaActionCard[],
+			heros = this.hand.filter((c) => {return c.type == DaCardType.Hero}) as DaHeroCard[],
+			items = this.hand.filter((c) => {return c.type == DaCardType.Item}) as DaItemCard[];
+
+			if (!opponent){
+				throw "NO PLAYER !!!!!";
+			}			
 			
 			
 			
@@ -92,17 +94,22 @@ export class DaNpc extends DaPlayer {
 		let provoke = actions.find((a) => {return a.action == DaActions.Provoke;});
 		if (provoke && this.hero && availableMonsters && availableMonsters.length > 0) {
 			//TODO:: provoke to kill opponent hero....
-			let monster = {
-				point: undefined,
+			let monster:{point: number, card:DaCard | undefined} = {
+				point: 0,
 				card: undefined
 			};
+
 			availableMonsters.forEach((m) => {
-				if (!monster.point || monster.point > m.point) {
+				if (!m.point){
+					return;
+				}
+
+				if (m.point > monster.point) {
 					monster.point = m.point;
 					monster.card = m;
 				}
 			});
-			if (this.hero.totalPoint > availableMonsters.point) {
+			if (this.hero.totalPoint > monster.point && monster.card) {
 				this.PlayAnAction(provoke.id, monster.card.id);
 				return;
 			}
@@ -121,7 +128,7 @@ export class DaNpc extends DaPlayer {
 		if (this.hero){
 			maxHero = this.hero;
 			
-			let equipped = items.filter((i) => {return i.heroType == this.hero.heroType;});
+			let equipped = items.filter((i) => {return i.heroType == this.hero!.heroType;}) as DaItemCard[];
 			if (equipped.length > 0){
 				maxHeroPotentialPoint = equipped.reduce((total, i) => {return total + i.point}, this.hero.totalPoint);				
 			}else{
@@ -160,7 +167,7 @@ export class DaNpc extends DaPlayer {
 
 		if (this.hero) {
 			//equip item if there is any
-			let item = items.find((c) => { return c.heroType == this.hero.heroType; });
+			let item = items.find((c) => { return c.heroType == this.hero!.heroType; });
 			if (item){
 				this.EquipHero(item.id);
 				return;
@@ -171,8 +178,8 @@ export class DaNpc extends DaPlayer {
 		super.DrawFromDeck();		
 	}
 
-	ReactOnAction(card, args) {
-		let stopCard = this.hand.find((c) => { return c.action == DaActions.Stop; });
+	ReactOnAction(card: DaActionCard, ...args: any[]) {
+		let stopCard = this.hand.find((c) => { return (c as DaActionCard).action == DaActions.Stop; });
 
 		if (stopCard) {
 			super.PlayAnAction(stopCard.id);

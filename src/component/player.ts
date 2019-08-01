@@ -1,7 +1,7 @@
 'use strict';
 
 import DaMonsterCard from './card.js'
-import {Card_com_events} from './card.js'
+import Card_com, {Card_com_events} from './card.js'
 import Playerhero_com from './playerhero.js'
 
 export enum Player_com_events {
@@ -103,18 +103,15 @@ export default class Player_com extends HTMLElement {
         };
     }
 
-    public static get observedAttributes(): string[] {
+    // public static get observedAttributes(): string[] {
+    //     const attributes: string[] = [];
+    //     for (let key in Player_com.properties) {
+    //         attributes.push(key.toLowerCase());
+    //     }
+    //     return attributes;
+    // }
 
-        const attributes: string[] = [];
-
-        for (let key in Player_com.properties) {
-            attributes.push(key.toLowerCase());
-        }
-
-        return attributes;
-    }
-
-    private props: any = {};
+    //private props: any = {};
 
     public constructor() {
         super();        
@@ -122,15 +119,15 @@ export default class Player_com extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         
         // Initialize declared properties
-        for (let key in Player_com.properties) {
-            this.props[key] = Player_com.properties[key].value;
-        }
+        // for (let key in Player_com.properties) {
+        //     this.props[key] = Player_com.properties[key].value;
+        // }
 
         this.requestRender();
         
         let tmp = new Playerhero_com();
-        this._hero = this.shadowRoot.getElementById('hero');
-        //let container = this.shadowRoot.getElementById('da-player-container');
+        this._hero = this.shadowRoot!.getElementById('hero');
+        //let container = this.shadowRoot!.getElementById('da-player-container');
         //this._hero = new Playerhero_com();
         //container.insertBefore(this._hero, container.firstChild);        
     }
@@ -140,24 +137,24 @@ export default class Player_com extends HTMLElement {
             return;
         }
         
-        this.props[name] = newValue;
+        //this.props[name] = newValue;
         
         if(name === 'data-type'){
-            let container = this.shadowRoot.getElementById('da-player-container');
+            let container = this.shadowRoot!.getElementById('da-player-container');
             if(newValue){
                 if (newValue == 'npc'){
                     this._isNPC = true;
-                    container.classList.add('npc');
-                    container.removeChild(this.shadowRoot.getElementById('btns'));
+                    container!.classList.add('npc');
+                    container!.removeChild((this.shadowRoot!.getElementById('btns') as Node));
                 }
                 else{
                     this._isNPC = false;
-                    container.classList.remove('npc');                    
-                    this.shadowRoot.getElementById('playBtn').onclick = (e) => {
-                        let container = this.shadowRoot.getElementById('hand-container'),
-                            card = Array.from(container.children).find((c) =>{
+                    container!.classList.remove('npc');                    
+                    this.shadowRoot!.getElementById('playBtn')!.onclick = (e) => {
+                        let container = this.shadowRoot!.getElementById('hand-container'),
+                            card = Array.from(container!.children).find((c: any) =>{
                                 return c.isSelected;
-                            });
+                            }) as Card_com;
                         
                         if (!card){
                             console.log('NOTHING is selected!!!!');
@@ -178,17 +175,17 @@ export default class Player_com extends HTMLElement {
                                 break;
                         }
                             //hide the play button
-                            e.srcElement.classList.add('hide');
+                            (e.srcElement as HTMLElement).classList.add('hide');
                     }    
             
-                    this.shadowRoot.getElementById('battleBtn').onclick = (e) =>{
+                    this.shadowRoot!.getElementById('battleBtn')!.onclick = (e) =>{
                         this.dispatchEvent(new CustomEvent(Player_com_events.DoBattle, {detail: null, bubbles: true, composed: true}));
-                        e.srcElement.classList.add('hide');
+                        (e.srcElement as HTMLElement).classList.add('hide');
                     }
                     
-                    this.shadowRoot.getElementById('actionBtn').onclick = (e) =>{
+                    this.shadowRoot!.getElementById('actionBtn')!.onclick = (e) =>{
                         this.dispatchEvent(new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true}));
-                        e.srcElement.classList.add('hide');            
+                        (e.srcElement as HTMLElement).classList.add('hide');            
                     }                     
                 }
             }                        
@@ -200,7 +197,7 @@ export default class Player_com extends HTMLElement {
 
         template.innerHTML = this.getTemplate({});
 
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
     //------------------------------------------------------------//
@@ -209,85 +206,85 @@ export default class Player_com extends HTMLElement {
     //     detail: null
     // };
     
-    private _isNPC;
+    private _isNPC: any;
     public get isNPC(){
         return this._isNPC;
     }
     
-    private _hero;
+    private _hero: any;
     public get hero(){
         return this._hero;
     }
     
-    public set isActionOn(value){
-        let btn = this.shadowRoot.getElementById('actionBtn');
+    public set isActionOn(value:any){
+        let btn = this.shadowRoot!.getElementById('actionBtn');
         if (value){
-            btn.classList.remove('hide');
+            btn!.classList.remove('hide');
         }else{
-            btn.classList.add('hide');
+            btn!.classList.add('hide');
         }
     }
     
-    public set isBattleOn(value){
-        let btn = this.shadowRoot.getElementById('battleBtn');
+    public set isBattleOn(value: any){
+        let btn = this.shadowRoot!.getElementById('battleBtn');
         if (value){
-            btn.classList.remove('hide');
+            btn!.classList.remove('hide');
         }else{
-            btn.classList.add('hide');
+            btn!.classList.add('hide');
         }        
     }
 
-    private toggleCard(card) {
+    private toggleCard(card: any) {
         //deselect other
-        let container = this.shadowRoot.getElementById('hand-container');
-        Array.from(container.children).forEach((c) => {
-            let id = parseInt(c.getAttribute('data-id'));
+        let container = this.shadowRoot!.getElementById('hand-container');
+        Array.from(container!.children).forEach((c) => {
+            let id = parseInt(c.getAttribute('data-id') as string);
             if (id != card.id) {
-                c.isSelected = false;
+                (c as Card_com).isSelected = false;
             }else{
-                c.isSelected = !c.isSelected;
-                let playBtn = this.shadowRoot.getElementById('playBtn');
-                if (c.isSelected){
-                     playBtn.classList.remove('hide');
+                (c as Card_com).isSelected = !(c as Card_com).isSelected;
+                let playBtn = this.shadowRoot!.getElementById('playBtn');
+                if ((c as Card_com).isSelected){
+                     playBtn!.classList.remove('hide');
                 }else{
-                    playBtn.classList.add('hide');
+                    playBtn!.classList.add('hide');
                 }
             }
         })
     }
 
-    public InitHand(cards) {
-        cards.forEach((card) => {
-            let container = this.shadowRoot.getElementById('hand-container');
+    public InitHand(cards:any) {
+        cards.forEach((card: Card_com) => {
+            let container = this.shadowRoot!.getElementById('hand-container');
             
             if (!this._isNPC){               
                 card.addEventListener(Card_com_events.Clicked,(e) => {
                     this.toggleCard(card);
                 });    
             }
-            container.appendChild(card);            
+            container!.appendChild(card);            
         })
     }
             
-    public GetCardById(id){
-        let container = this.shadowRoot.getElementById('hand-container');
-        return Array.from(container.children).find((c)=>{
+    public GetCardById(id: any){
+        let container = this.shadowRoot!.getElementById('hand-container');
+        return Array.from(container!.children).find((c)=>{
             return c.id == id;
         });
     }
     
     public GetHandIds(){
-        let container = this.shadowRoot.getElementById('hand-container');
+        let container = this.shadowRoot!.getElementById('hand-container');
         
-        return Array.from(container.children).map((n) =>
+        return Array.from(container!.children).map((n) =>
             {
                 return n.id;
             });
     }
 
     public AddHand(daCard:DaMonsterCard) {
-        let container = this.shadowRoot.getElementById('hand-container');
-        container.prepend(daCard); 
+        let container = this.shadowRoot!.getElementById('hand-container');
+        container!.prepend(daCard); 
         
         return daCard.add(!this.isNPC).then(() =>{
             if (!this._isNPC){
@@ -299,9 +296,9 @@ export default class Player_com extends HTMLElement {
     }
 
 
-    public RemoveHand(id) {
-        let container = this.shadowRoot.getElementById('hand-container'),
-            daCard = Array.from(container.children).find((c) => {
+    public RemoveHand(id:any) {
+        let container = this.shadowRoot!.getElementById('hand-container'),
+            daCard = Array.from(container!.children).find((c) => {
                 return c.id == id;
             });
             
@@ -309,27 +306,26 @@ export default class Player_com extends HTMLElement {
             console.log('CARD NOT IN HAND!!!!! cannot remove');
         }
         
-        return daCard.remove().then(() =>{
-            container.removeChild(daCard);
+        return (daCard as Card_com)!.remove().then(() =>{
+            container!.removeChild(daCard as HTMLElement);
             return daCard;
         });         
     }   
     
     public EndAction(){
-                let playBtn = this.shadowRoot.getElementById('playBtn');
-                if (c.isSelected){
-                     playBtn.classList.remove('hide');
-                }else{
-                    playBtn.classList.add('hide');
-                }
-        
+        // let playBtn = this.shadowRoot!.getElementById('playBtn');
+        // if (c.isSelected){
+        //         playBtn!.classList.remove('hide');
+        // }else{
+        //     playBtn!.classList.add('hide');
+        // }        
     }
     
     public KillAMonster(){
-        let container = this.shadowRoot.getElementById('monster-container'),
+        let container = this.shadowRoot!.getElementById('monster-container'),
             monster = document.createElement('div');
             monster.classList.add('monster');
-        container.append(monster);
+        container!.append(monster);
         return Promise.resolve();
     }
    
@@ -338,7 +334,7 @@ export default class Player_com extends HTMLElement {
     // }
     
     // public ShowCard(id){
-    //     let container = this.shadowRoot.getElementById('hand-container'),
+    //     let container = this.shadowRoot!.getElementById('hand-container'),
     //         daCard = Array.from(container.children).find((c) => { return c.id == id;});
     //     if (!daCard){
     //         console.log('CARD NOT IN HAND!!!!');

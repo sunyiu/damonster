@@ -10,28 +10,30 @@ export class DaHeroCard extends DaCard {
 
 	public items: DaCard[] = [];
 	
-	private _attack:number;
-	get attack():number{
+	private _attack?:number;
+	get attack():number | undefined{
 		return this._attack;
 	}
-	set attack(value:number){
+	set attack(value:number | undefined){
 		this._attack = value;
 	}
 	
-	private _defense:number;
-	get defense():number{
+	private _defense?:number;
+	get defense():number | undefined{
 		return this._defense;
 	}
-	set defense(value:number){
+	set defense(value:number | undefined){
 		this._defense = value;
 	}
 
 	get totalPoint(): number {
 		let itemPoints: number = 0;
 		this.items.forEach((i) => {
-			itemPoints += i.point;
+			if (i.point){
+				itemPoints += i.point;
+			}
 		})
-		return this.point + itemPoints;
+		return this.point ? this.point + itemPoints : itemPoints;
 	}
 
 	private _heroType: DaHeroTypes;
@@ -44,7 +46,7 @@ export class DaHeroCard extends DaCard {
 		this._heroType = heroType;
 	}
 
-	equip(card: DaCard) {
+	equip(card: DaItemCard) {
 		if (card.type != DaCardType.Item) {
 			throw new Error("Cannot equip non Item card!!!");
 		}
