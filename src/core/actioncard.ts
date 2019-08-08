@@ -1,5 +1,5 @@
-import { DaCard, DaCardType } from "./card.js";
-import { DaPlayer } from "./player.js";
+import { DaCard, DaCardType } from "./card";
+import { DaPlayer } from "./player";
 
 export enum DaActions {
 	AtomicBomb,

@@ -386,8 +386,8 @@ export default class Card_com extends HTMLElement {
         this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
-    public Set(id: any, point: any, cardType: any, heroType:any, action:any, isFlip:boolean){
-        this._id = id;
+    public Set(id: number, point: number, cardType: string, heroType:string, action:string, isFlip:boolean){
+        this._id = id.toString();
         //this._point = point;
         this._cardType = cardType;
         //this._heroType = heroType;
@@ -396,7 +396,7 @@ export default class Card_com extends HTMLElement {
         let elem = this.shadowRoot!.querySelector('.back');
         
         this.setAttribute('id', 'id'+id);
-        this.setAttribute('data-id', id);
+        this.setAttribute('data-id', id.toString());
         this.setAttribute('data-card-type', cardType);
                 
         switch (cardType){

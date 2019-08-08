@@ -29,12 +29,22 @@
             }
             
         </style>
+
+        <script type="module" src="./js/damonster/web-component.js"></script>        
+        <script type="text/javascript" src="js/damonster/bundle.js"></script>
         
-        <script type="module" src="./dist/component/damonster.js"></script>        
     </head>
     
     <body>
-        <da-monster></da-monster>
+        <da-monster id="game"></da-monster>
     </body>
+    <script>
+        let damonster_g = new damonster.DaMonsterGame(),
+            game = document.getElementById('game');
+        
+        game.hookUpGame(damonster_g);
+    
+    
+    </script>
     
 </html>

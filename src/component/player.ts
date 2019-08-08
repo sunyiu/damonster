@@ -1,8 +1,7 @@
 'use strict';
 
-import DaMonsterCard from './card.js'
-import Card_com, {Card_com_events} from './card.js'
-import Playerhero_com from './playerhero.js'
+import Card_com, {Card_com_events} from './card'
+import Playerhero_com from './playerhero'
 
 export enum Player_com_events {
     SetHero = 'set-hero',
@@ -125,11 +124,7 @@ export default class Player_com extends HTMLElement {
 
         this.requestRender();
         
-        let tmp = new Playerhero_com();
-        this._hero = this.shadowRoot!.getElementById('hero');
-        //let container = this.shadowRoot!.getElementById('da-player-container');
-        //this._hero = new Playerhero_com();
-        //container.insertBefore(this._hero, container.firstChild);        
+        this._hero = this.shadowRoot!.getElementById('hero') as Playerhero_com;
     }
         
     public attributeChangedCallback(name: string, oldValue: string, newValue: string, namespace: string): void {
@@ -211,8 +206,8 @@ export default class Player_com extends HTMLElement {
         return this._isNPC;
     }
     
-    private _hero: any;
-    public get hero(){
+    private _hero: Playerhero_com;
+    public get hero():Playerhero_com{
         return this._hero;
     }
     
@@ -266,11 +261,11 @@ export default class Player_com extends HTMLElement {
         })
     }
             
-    public GetCardById(id: any){
+    GetCardById(id: number):Card_com{
         let container = this.shadowRoot!.getElementById('hand-container');
         return Array.from(container!.children).find((c)=>{
-            return c.id == id;
-        });
+            return c.id == id.toString();
+        }) as Card_com;
     }
     
     public GetHandIds(){
@@ -282,7 +277,7 @@ export default class Player_com extends HTMLElement {
             });
     }
 
-    public AddHand(daCard:DaMonsterCard) {
+    AddHand(daCard:Card_com):Promise<void> {
         let container = this.shadowRoot!.getElementById('hand-container');
         container!.prepend(daCard); 
         
@@ -296,10 +291,10 @@ export default class Player_com extends HTMLElement {
     }
 
 
-    public RemoveHand(id:any) {
+    RemoveHand(id:number):Promise<void> {
         let container = this.shadowRoot!.getElementById('hand-container'),
             daCard = Array.from(container!.children).find((c) => {
-                return c.id == id;
+                return c.id == id.toString();
             });
             
         if (!daCard){
@@ -307,8 +302,7 @@ export default class Player_com extends HTMLElement {
         }
         
         return (daCard as Card_com)!.remove().then(() =>{
-            container!.removeChild(daCard as HTMLElement);
-            return daCard;
+            container!.removeChild(daCard as HTMLElement);            
         });         
     }   
     

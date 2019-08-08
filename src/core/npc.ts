@@ -1,8 +1,8 @@
-import { DaCard, DaCardType } from './card.js'
-import { DaActions, DaActionCard } from './actioncard.js'
-import { DaHeroCard, DaItemCard } from './herocard.js'
-import { DaDeck } from  './deck.js'
-import { DaPlayerTypes, DaPlayer } from './player.js'
+import { DaCard, DaCardType } from './card'
+import { DaActions, DaActionCard } from './actioncard'
+import { DaHeroCard, DaItemCard } from './herocard'
+import { DaDeck } from  './deck'
+import { DaPlayerTypes, DaPlayer } from './player'
 
 export class DaNpc extends DaPlayer {
 	

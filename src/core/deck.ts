@@ -1,6 +1,6 @@
-import { DaCard, DaCardType } from './card.js'
-import { DaHeroCard, DaHeroTypes, DaItemCard } from "./herocard.js"
-import { DaActions, DaActionCard } from "./actioncard.js"
+import { DaCard, DaCardType } from './card'
+import { DaHeroCard, DaHeroTypes, DaItemCard } from "./herocard"
+import { DaActions, DaActionCard } from "./actioncard"
 
 export function GetDefaultCards(): { monster: DaCard[]; hero: DaHeroCard[]; item: DaCard[]; skill: DaActionCard[] } {
 	return {

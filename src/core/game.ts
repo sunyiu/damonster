@@ -18,7 +18,7 @@ export enum DaMonsterGameEvents {
 }
 
 
-export default class DaMonsterGame {		
+export class DaMonsterGame {		
 	public monsterCard: DaCard | undefined = undefined;
 	public availableMonsters: DaCard[] = [];
 	public playedActions: {

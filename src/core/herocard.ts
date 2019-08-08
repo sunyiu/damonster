@@ -1,4 +1,4 @@
-import { DaCard, DaCardType } from "./card.js";
+import { DaCard, DaCardType } from "./card";
 
 export enum DaHeroTypes {
 	Knight = 'k',

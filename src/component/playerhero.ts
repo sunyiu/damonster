@@ -5,6 +5,8 @@
 
 'use strict';
 
+import { Card_com } from ".";
+
 export default class Playerhero_com extends HTMLElement {
     public static get is(): string { return 'da-monster-player-hero'; }
 
@@ -276,14 +278,13 @@ export default class Playerhero_com extends HTMLElement {
     }
     
     //------------------------------------------------------------
-    public set isActive(value:any){
+    set isActive(value:any){
         let container = this.shadowRoot!.getElementById('da-hero-container');
         if (value){
             container!.classList.add('active');            
         }else{
             container!.classList.remove('active');
-        }
-        
+        }        
     }
     
     private addStar(){
@@ -294,13 +295,11 @@ export default class Playerhero_com extends HTMLElement {
     }
     
          
-    public Equip(card:any){        
-        let itemContainer = this.shadowRoot!.getElementById('item-container');
-                            
-        if (!card.isFlip){
-            card.isFlip = true;
-        }
-                                
+    Equip(cardId:number, point: number, cardType: string, heroType:string):Promise<void>{
+        let itemContainer = this.shadowRoot!.getElementById('item-container'),
+            card = new Card_com();
+            card.Set(cardId, point, cardType, heroType, '', true);        
+                                                            
         return new Promise((resolve, reject) => {
             let callback = (e:any) =>{
                 card.removeEventListener('webkitAnimationEnd', callback);
@@ -314,31 +313,33 @@ export default class Playerhero_com extends HTMLElement {
             itemContainer!.append(card);                                    
         })                                        
     }
+
+    Empty():Promise<void>{
+        let container = this.shadowRoot!.getElementById('da-hero-container'), 
+            heroContainer = this.shadowRoot!.getElementById('hero-container'),
+            itemContainer = this.shadowRoot!.getElementById('item-container'),
+            starContainer = this.shadowRoot!.getElementById('star-container'); 
+        
+        heroContainer!.className = "";            
+            while (itemContainer!.firstChild) {
+                itemContainer!.removeChild(itemContainer!.firstChild);
+            }       
+            while (starContainer!.firstChild){
+                starContainer!.removeChild(starContainer!.firstChild);
+            }
+            return Promise.resolve();                        
+    }
     
-    public Set(heroType:any, point:any){                
+    Set(type: string, point:number):Promise<void>{
         let container = this.shadowRoot!.getElementById('da-hero-container'), 
             heroContainer = this.shadowRoot!.getElementById('hero-container'),
             itemContainer = this.shadowRoot!.getElementById('item-container'),
             starContainer = this.shadowRoot!.getElementById('star-container');
             //pointContainer = this.shadowRoot!.getElementById('point-container'),
-
         
-        if (!heroType){            
-            heroContainer!.className = "";
-            
-             while (itemContainer!.firstChild) {
-                 itemContainer!.removeChild(itemContainer!.firstChild);
-             }       
-             while (starContainer!.firstChild){
-                 starContainer!.removeChild(starContainer!.firstChild);
-             }
-             return Promise.resolve();                        
-        } else{                                                         
-            
-            this.addStar();
-            heroContainer!.classList.add(heroType);
-            return Promise.resolve();
-        }          
+        this.addStar();
+        heroContainer!.classList.add(type);
+        return Promise.resolve();
     }      
 }
 

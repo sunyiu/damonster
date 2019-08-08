@@ -1,7 +1,6 @@
 'use strict';
 
-import Card_com from './card.js'
-import {Card_com_events} from  './card.js'
+import Card_com, {Card_com_events} from './card'
 
 export enum Deck_com_serve_direction{
     Up,
@@ -113,7 +112,7 @@ export default class Deck_com extends HTMLElement {
     
     
     //--------------------------------------------------//                    
-    public Serve(id:any, point: any, cardType:any, heroType:any, action:any, direction:any){                        
+    public Serve(id:any, point: any, cardType:any, heroType:any, action:any, direction:any):Promise<Card_com>{                        
         let cardContainer = this.shadowRoot!.getElementById('card-container'),
             daCard = new Card_com();
                         
@@ -181,8 +180,8 @@ export default class Deck_com extends HTMLElement {
         return Promise.resolve();                
     }
     
-    public ShowNCard(cards: any[]){
-        console.log('com::Deck ShowNCards %o', cards);
+    public ShowNCard(cardIds: number[]){
+        console.log('com::Deck ShowNCards %o', cardIds);
         return Promise.resolve();
     }
 }

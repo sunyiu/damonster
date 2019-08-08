@@ -1,6 +1,6 @@
-import { DaCard, DaCardType } from './card.js'
-import { DaHeroCard, DaItemCard } from './herocard.js'
-import { DaDeck } from  './deck.js'
+import { DaCard, DaCardType } from './card'
+import { DaHeroCard, DaItemCard } from './herocard'
+import { DaDeck } from  './deck'
 
 export enum DaPlayerTypes {
 	Player = 'player',
