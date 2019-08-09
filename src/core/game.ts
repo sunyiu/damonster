@@ -62,12 +62,6 @@ export class DaMonsterGame {
 	}
 	
 	private _isProvokeBattle:boolean = false;	
-
-	constructor() {
-		this.initDeck();
-		this.initPlayers();
-		this.initActionCards();
-	}
 	
 	private _callbacks:((target:any, ...args:any[])=>void)[][] = [];
 	AddEventListener(event: DaMonsterGameEvents, callback: (target:any, ...args:any[])=>void) {

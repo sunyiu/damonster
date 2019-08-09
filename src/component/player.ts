@@ -2,6 +2,7 @@
 
 import Card_com, {Card_com_events} from './card'
 import Playerhero_com from './playerhero'
+import { DaHeroTypes } from 'src/core/herocard';
 
 export enum Player_com_events {
     SetHero = 'set-hero',
@@ -248,9 +249,11 @@ export default class Player_com extends HTMLElement {
         })
     }
 
-    public InitHand(cards:any) {
-        cards.forEach((card: Card_com) => {
-            let container = this.shadowRoot!.getElementById('hand-container');
+    InitHand(cards:{id:number, point:number, type:string, heroType: string, action: string, flip: boolean}[]) {
+        cards.forEach((c) => {            
+            let container = this.shadowRoot!.getElementById('hand-container'),
+                card = new Card_com();
+                card.Set(c.id, c.point, c.type, c.heroType, c.action, c.flip)
             
             if (!this._isNPC){               
                 card.addEventListener(Card_com_events.Clicked,(e) => {

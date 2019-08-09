@@ -86,7 +86,6 @@ export default class DaMonster_Com extends HTMLElement {
 
     this.npc = this.shadowRoot!.getElementById("npc") as Player_com;
     this.player = this.shadowRoot!.getElementById("player") as Player_com;
-    this.player.hero.isActive = true;
     this.deck = this.shadowRoot!.getElementById("deck") as Deck_com;
 
     let tmp = new TableEffect_com(); //!!!need this to load tableeffect component js...!!!
@@ -104,10 +103,10 @@ export default class DaMonster_Com extends HTMLElement {
   }
 
   //-------------------------------------------------------------------------------
-  private npc: Player_com;
-  private player: Player_com;
-  private deck: Deck_com;
-  private effect: TableEffect_com;
+  npc: Player_com;
+  player: Player_com;
+  deck: Deck_com;
+  effect: TableEffect_com;
   private animation: Promise<void | void[]> = Promise.resolve();
 
   playerHeroSet(

@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "rollup": "rollup -c",
+    "rollup:prod": "rollup -c --environment BUILD:production",
+    "build": "echo --BEGIN DA-MONSTER BUILD-- && echo --1. TSC-- && tsc && echo --2. ROLLUP-- && npm run rollup && echo --DONE--"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/sunyiu/damonster/issues"
   },
-  "homepage": "https://github.com/sunyiu/damonster#readme"
+  "homepage": "https://github.com/sunyiu/damonster#readme",
+  "devDependencies": {
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.1",
+    "rollup-plugin-typescript2": "^0.22.1",
+    "typescript": "^3.5.3"
+  }
 }

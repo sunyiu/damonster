@@ -386,7 +386,7 @@ export default class Card_com extends HTMLElement {
         this.shadowRoot!.appendChild(template.content.cloneNode(true));
     }
     
-    public Set(id: number, point: number, cardType: string, heroType:string, action:string, isFlip:boolean){
+    Set(id: number, point: number, cardType: string, heroType:string, action:string, isFlip:boolean){
         this._id = id.toString();
         //this._point = point;
         this._cardType = cardType;

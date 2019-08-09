@@ -30,21 +30,15 @@
             
         </style>
 
-        <script type="module" src="./js/damonster/web-component.js"></script>        
+        <script type="module" src="./js/damonster/web-components.js"></script>        
         <script type="text/javascript" src="js/damonster/bundle.js"></script>
         
     </head>
     
     <body>
         <da-monster id="game"></da-monster>
+        <script defer type="text/javascript" src="js/bind.js"></script>
     </body>
-    <script>
-        let damonster_g = new damonster.DaMonsterGame(),
-            game = document.getElementById('game');
-        
-        game.hookUpGame(damonster_g);
-    
-    
-    </script>
+
     
 </html>
