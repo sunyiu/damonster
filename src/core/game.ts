@@ -1,7 +1,6 @@
 import { DaDeck, DaDeckEvents, GetDefaultCards } from "./deck"
 import { DaPlayer, DaPlayerTypes, DaPlayerEvents } from "./player"
 import { DaCardType } from "./card"
-import { DaHeroCard } from "./herocard"
 import {DaCard} from './card'
 import { DaActions, DaActionCard } from  "./actioncard"
 import { DaNpc } from "./npc"
@@ -19,7 +18,7 @@ export enum DaMonsterGameEvents {
 
 
 export class DaMonsterGame {		
-	public monsterCard: DaCard | undefined = undefined;
+	public monsterCard?: DaCard;
 	public availableMonsters: DaCard[] = [];
 	public playedActions: {
 			player: DaPlayer,
@@ -51,8 +50,7 @@ export class DaMonsterGame {
 			throw "NO PLAYER FOUND";
 		}
 		return player;
-	}	
-	
+	}		
 	get activePlayer():DaPlayer{
 		let aplayer = this._players.find((p) => {return p.isActive;});
 		if (!aplayer){
@@ -73,6 +71,12 @@ export class DaMonsterGame {
 		}
 	}
 
+	init(){
+		this.initPlayers();
+		this.initDeck();
+		this.initActionCards();
+	}
+
 	private initDeck() {		
 		this._deck.AddEventListener(DaDeckEvents.MonsterFound, (monster) =>{
 			//Monster INvade
@@ -89,8 +93,9 @@ export class DaMonsterGame {
 			}																
 		});
 	}
-
+	
 	private initPlayers() {
+		console.log('init player');
 		let p1 = new DaPlayer("p1", this._deck),
 			p2 = new DaNpc("npc", this._deck);
 			
@@ -169,17 +174,7 @@ export class DaMonsterGame {
 					isStopped: false,
 					result: undefined
 				});				
-				
-				// if (card.action == DaActions.Stop){
-				// 	
-				// }else{
-				// 	this.playedActions[0].isStopped = !this.playedActions[0].isStopped;
-				// 	this.playedActions.push({
-				// 		player: p,
-				// 		card: card
-				// 	});
-				// }
-								
+							
 				this._players.forEach((player) =>{
 					if (player !== p){
 						player.isActionDone = false;

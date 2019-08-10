@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { Card_com } from ".";
+import Card_com from "./card";
 
 export default class Playerhero_com extends HTMLElement {
     public static get is(): string { return 'da-monster-player-hero'; }

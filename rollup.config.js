@@ -7,7 +7,7 @@ import { terser } from "rollup-plugin-terser";
 function config({ output = {}, plugins = [] }) {
   return [
     {
-      input: "build/core/game.js",
+      input: "build/index.js",
       output: {
         file: "www/js/damonster/bundle.js",
         format: "iife",

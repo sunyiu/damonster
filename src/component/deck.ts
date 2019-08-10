@@ -1,6 +1,7 @@
 'use strict';
 
 import Card_com, {Card_com_events} from './card'
+import {Deck_com_events} from './events'
 
 export enum Deck_com_serve_direction{
     Up,
@@ -8,9 +9,6 @@ export enum Deck_com_serve_direction{
     Flip
 }
 
-export enum Deck_com_events {
-    Draw = 'draw-from-deck'
-}
 
 
 export default class Deck_com extends HTMLElement {        

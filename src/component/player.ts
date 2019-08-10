@@ -2,15 +2,9 @@
 
 import Card_com, {Card_com_events} from './card'
 import Playerhero_com from './playerhero'
-import { DaHeroTypes } from 'src/core/herocard';
+import {Player_com_events} from './events'
 
-export enum Player_com_events {
-    SetHero = 'set-hero',
-    EquipHero = 'equip-hero',
-    DoAction = 'do-action',
-    SkipAction = 'action-done',
-    DoBattle = 'do-battle'
-}
+
 
 export default class Player_com extends HTMLElement {
     public static get is(): string { return 'da-monster-player'; }

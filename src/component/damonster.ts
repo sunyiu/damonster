@@ -1,16 +1,67 @@
 "use strict";
 
-//core
-// import {DaMonsterGame} from '../core/game'
-//import {DaMonsterGameEvents} from  '../core/game'
-//import {DaActions} from '../core/actioncard'
-
-//web component
 import Deck_com from "./deck";
-import { Deck_com_serve_direction, Deck_com_events } from "./deck";
+import { Deck_com_serve_direction } from "./deck";
 import Player_com from "./player";
 import TableEffect_com from "./tableeffect";
 import Card_com from "./card";
+
+export interface IDaMonster_Com{
+  playerHeroSet(
+    isNPC: boolean,
+    hero?: { id: number; type: string; point: number }
+  ): void
+  playerEquipHero(
+    isNPC: boolean,
+    card: { id: number; point: number; cardType: string; heroType: string }
+  ): void
+  playerAddCardFromDeck(
+    isNPC: boolean,
+    card: {
+      id: number;
+      point: number;
+      cardType: string;
+      heroType: string;
+      action: string;
+    }
+  ): void
+  switchToPlayer(isNPC: boolean): void
+  monsterInvade(
+    id: number,
+    point: number,
+    type: string,
+    heroType: string,
+    action: string
+  ): void
+  battleDone(
+    winner: "player" | "npc" | "monster",
+    monsterId: number,
+    monsterPoint: number,
+    isActivePlayerNPC: boolean
+  ): void
+  actionStart(isNPC: boolean, cardId: number): void
+  actionDone(
+    cards: { id: number; isNPC: boolean }[],
+    action: {
+      id: number; //action id
+      cardId: number; //action card id
+      isStopped: boolean; //is action stopped
+      isNPC: boolean; //is action played by NPC
+      args?: {
+        cardIds?: number[];
+        card?: {
+          id: number;
+          point: number;
+          type: string;
+          heroType: string;
+          action: string;
+        };
+        winner?: "player" | "npc" | "none";
+      };
+    }
+  ): void
+  delayForNSec(sec?: number): void
+}
 
 export default class DaMonster_Com extends HTMLElement {
   public static get is(): string {
@@ -57,19 +108,6 @@ export default class DaMonster_Com extends HTMLElement {
         `;
   }
 
-  // public static get properties(){
-  //     return{
-  //     };
-  // }
-
-  // public static get observedAttributes(): string[] {
-  //     const attributes: string[] = [];
-  //     for (let key in DaMonster_Com.properties) {
-  //         attributes.push(key.toLowerCase());
-  //     }
-  //     return attributes;
-  // }
-
   private props: any = {};
 
   public constructor() {
@@ -77,19 +115,15 @@ export default class DaMonster_Com extends HTMLElement {
 
     this.attachShadow({ mode: "open" });
 
-    // Initialize declared properties
-    // for (let key in DaMonster_Com.properties) {
-    //     this.props[key] = DaMonster_Com.properties[key].value;
-    // }
-
     this.requestRender();
 
     this.npc = this.shadowRoot!.getElementById("npc") as Player_com;
     this.player = this.shadowRoot!.getElementById("player") as Player_com;
     this.deck = this.shadowRoot!.getElementById("deck") as Deck_com;
 
-    let tmp = new TableEffect_com(); //!!!need this to load tableeffect component js...!!!
+    //let tmp = new TableEffect_com(); //!!!need this to load tableeffect component js...!!!
     this.effect = this.shadowRoot!.getElementById("effect") as TableEffect_com;
+
   }
 
   private requestRender(): void {
@@ -193,7 +227,7 @@ export default class DaMonster_Com extends HTMLElement {
       });
   }
 
-  monstrInvade(
+  monsterInvade(
     id: number,
     point: number,
     type: string,
@@ -274,7 +308,7 @@ export default class DaMonster_Com extends HTMLElement {
       cardId: number; //action card id
       isStopped: boolean; //is action stopped
       isNPC: boolean; //is action played by NPC
-      args: {
+      args?: {
         cardIds?: number[];
         card?: {
           id: number;
@@ -283,7 +317,7 @@ export default class DaMonster_Com extends HTMLElement {
           heroType: string;
           action: string;
         };
-        winner?: "player" | "npc";
+        winner?: "player" | "npc" | "none";
       };
     }
   ) {
@@ -316,14 +350,14 @@ export default class DaMonster_Com extends HTMLElement {
         // MindReading - 8
         case 3:
           //let index = action.args[0];
-          if (!action.args.card) {
+          if (!action.args!.card) {
             throw new Error("No card in the action STEAL");
           }
           this.animation = this.animation.then(() => {
             let daCard = new Card_com(),
               from = action.isNPC ? this.npc : this.player,
               to = action.isNPC ? this.player : this.npc,
-              card = action.args.card!;
+              card = action.args!.card!;
             daCard.Set(
               card.id,
               card.point,
@@ -340,7 +374,7 @@ export default class DaMonster_Com extends HTMLElement {
 
         case 2:
           this.animation = this.animation.then(() => {
-            promises.push(this.deck.ShowNCard(action.args.cardIds!));
+            promises.push(this.deck.ShowNCard(action.args!.cardIds!));
             return Promise.all(promises);
           });
 
@@ -350,7 +384,7 @@ export default class DaMonster_Com extends HTMLElement {
           this.animation = this.animation.then(() => {
             promises.push(this.player.hero.Empty());
             promises.push(this.npc.hero.Empty());
-            if (action.args.card) {
+            if (action.args!.card) {
               promises.push(this.deck.RemoveTop());
               let player = action.isNPC ? this.npc : this.player;
               promises.push(player.KillAMonster());
@@ -365,12 +399,12 @@ export default class DaMonster_Com extends HTMLElement {
 
         case 6:
           this.animation = this.animation.then(() => {
-            if (!action.args.winner) {
+            if (action.args!.winner == 'none') {
               promises.push(this.player.hero.Empty());
               promises.push(this.npc.hero.Empty());
             } else {
               promises.push(
-                action.args.winner == "npc"
+                action.args!.winner == "npc"
                   ? this.player.hero.Empty()
                   : this.npc.hero.Empty()
               );
