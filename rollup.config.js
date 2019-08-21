@@ -20,7 +20,8 @@ function config({ output = {}, plugins = [] }) {
       input: "build/component/damonster.js",
       output: {
         file: "www/js/damonster/web-components.js",
-        format: "esm"
+        format: "esm",
+        ...output
       }
     }
   ];

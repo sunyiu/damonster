@@ -83,7 +83,6 @@ export default class Player_com extends HTMLElement {
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-player-container">
-                <da-monster-player-hero id="hero"></da-monster-player-hero>
                 <div id="monster-container"></div>
                 <div id="hand-container"></div>
                 <div id="btns">
@@ -126,7 +125,11 @@ export default class Player_com extends HTMLElement {
 
     this.requestRender();
 
-    this._hero = this.shadowRoot!.getElementById("hero") as Playerhero_com;
+    let container = this.shadowRoot!.getElementById("da-player-container");
+    this._hero = new Playerhero_com();
+    container!.insertBefore(this._hero, container!.childNodes[0]);
+
+    //this._hero = this.shadowRoot!.getElementById("hero") as Playerhero_com;
   }
 
   public attributeChangedCallback(

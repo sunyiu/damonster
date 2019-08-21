@@ -257,7 +257,6 @@ export default class Playerhero_com extends HTMLElement {
         // for (let key in Playerhero_com.properties) {
         //     this.props[key] = Playerhero_com.properties[key].value;
         // }                                
-
         this.requestRender();           
     }
     

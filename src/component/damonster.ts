@@ -12,7 +12,7 @@ export default class DaMonster_Com extends HTMLElement
     return "da-monster";
   }
 
-  public getTemplate(props: any): string {
+  public getTemplate(): string {
     return `
             <style> 
                 #table{
@@ -51,8 +51,6 @@ export default class DaMonster_Com extends HTMLElement
             </div>
         `;
   }
-
-  private props: any = {};
 
   public constructor() {
     super();
@@ -121,8 +119,9 @@ export default class DaMonster_Com extends HTMLElement
       );
     });
 
-    //let tmp = new TableEffect_com(); //!!!need this to load tableeffect component js...!!!
-    this.effect = this.shadowRoot!.getElementById("effect") as TableEffect_com;
+    let container = this.shadowRoot!.getElementById("table");
+    this.effect = new TableEffect_com();
+    container!.appendChild(this.effect);
   }
 
   private requestRender(): void {
@@ -130,7 +129,7 @@ export default class DaMonster_Com extends HTMLElement
       document.createElement("template")
     );
 
-    template.innerHTML = this.getTemplate({});
+    template.innerHTML = this.getTemplate();
 
     this.shadowRoot!.appendChild(template.content.cloneNode(true));
   }

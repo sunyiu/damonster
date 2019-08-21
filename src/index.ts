@@ -6,7 +6,6 @@ export function start(component: IDaMonster_Com) {
   let game = new DaMonsterGame();
   game.init();
   game.New();
-  //component.player.hero.isActive = true;
 
   game.AddEventListener(
     DaMonsterGameEvents.DoneDrawFromDeck,
