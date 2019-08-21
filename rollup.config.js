@@ -17,10 +17,10 @@ function config({ output = {}, plugins = [] }) {
       plugins: [resolve(), typescript(), ...plugins]
     },
     {
-      input: "build/component/index.js",
+      input: "build/component/damonster.js",
       output: {
         file: "www/js/damonster/web-components.js",
-        format: "es"
+        format: "esm"
       }
     }
   ];

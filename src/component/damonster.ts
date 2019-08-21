@@ -1,69 +1,13 @@
 "use strict";
 
-import Deck_com from "./deck";
-import { Deck_com_serve_direction } from "./deck";
-import Player_com from "./player";
+import Deck_com, { Deck_com_serve_direction, Deck_com_events } from "./deck";
+import Player_com, { Player_com_events } from "./player";
 import TableEffect_com from "./tableeffect";
 import Card_com from "./card";
+import { damonster_events, IDaMonster_Com } from "./idamonster";
 
-export interface IDaMonster_Com{
-  playerHeroSet(
-    isNPC: boolean,
-    hero?: { id: number; type: string; point: number }
-  ): void
-  playerEquipHero(
-    isNPC: boolean,
-    card: { id: number; point: number; cardType: string; heroType: string }
-  ): void
-  playerAddCardFromDeck(
-    isNPC: boolean,
-    card: {
-      id: number;
-      point: number;
-      cardType: string;
-      heroType: string;
-      action: string;
-    }
-  ): void
-  switchToPlayer(isNPC: boolean): void
-  monsterInvade(
-    id: number,
-    point: number,
-    type: string,
-    heroType: string,
-    action: string
-  ): void
-  battleDone(
-    winner: "player" | "npc" | "monster",
-    monsterId: number,
-    monsterPoint: number,
-    isActivePlayerNPC: boolean
-  ): void
-  actionStart(isNPC: boolean, cardId: number): void
-  actionDone(
-    cards: { id: number; isNPC: boolean }[],
-    action: {
-      id: number; //action id
-      cardId: number; //action card id
-      isStopped: boolean; //is action stopped
-      isNPC: boolean; //is action played by NPC
-      args?: {
-        cardIds?: number[];
-        card?: {
-          id: number;
-          point: number;
-          type: string;
-          heroType: string;
-          action: string;
-        };
-        winner?: "player" | "npc" | "none";
-      };
-    }
-  ): void
-  delayForNSec(sec?: number): void
-}
-
-export default class DaMonster_Com extends HTMLElement {
+export default class DaMonster_Com extends HTMLElement
+  implements IDaMonster_Com {
   public static get is(): string {
     return "da-monster";
   }
@@ -119,11 +63,66 @@ export default class DaMonster_Com extends HTMLElement {
 
     this.npc = this.shadowRoot!.getElementById("npc") as Player_com;
     this.player = this.shadowRoot!.getElementById("player") as Player_com;
+    this.player.addEventListener(Player_com_events.SetHero, (e: any) => {
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.PlayerEquipHero, {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+    this.player.addEventListener(Player_com_events.EquipHero, (e: any) => {
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.PlayerEquipHero, {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+    this.player.addEventListener(Player_com_events.DoAction, (e: any) => {
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.PlayerDoAction, {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+    this.player.addEventListener(Player_com_events.DoBattle, (e: any) => {
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.PlayerEquipHero, {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+    this.player.addEventListener(Player_com_events.SkipAction, (e: any) => {
+      this.player.isActionOn = false;
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.PlayerSkipAction, {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+
     this.deck = this.shadowRoot!.getElementById("deck") as Deck_com;
+    this.deck.addEventListener(Deck_com_events.Draw, e => {
+      this.dispatchEvent(
+        new CustomEvent(damonster_events.DeckDraw, {
+          detail: null,
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
 
     //let tmp = new TableEffect_com(); //!!!need this to load tableeffect component js...!!!
     this.effect = this.shadowRoot!.getElementById("effect") as TableEffect_com;
-
   }
 
   private requestRender(): void {
@@ -137,11 +136,16 @@ export default class DaMonster_Com extends HTMLElement {
   }
 
   //-------------------------------------------------------------------------------
-  npc: Player_com;
-  player: Player_com;
-  deck: Deck_com;
-  effect: TableEffect_com;
+  private npc: Player_com;
+  private player: Player_com;
+  private deck: Deck_com;
+  private effect: TableEffect_com;
   private animation: Promise<void | void[]> = Promise.resolve();
+
+  public initHand(npcCards: [], playerCards: []) {
+    this.npc.InitHand(npcCards);
+    this.player.InitHand(playerCards);
+  }
 
   playerHeroSet(
     isNPC: boolean,
@@ -399,7 +403,7 @@ export default class DaMonster_Com extends HTMLElement {
 
         case 6:
           this.animation = this.animation.then(() => {
-            if (action.args!.winner == 'none') {
+            if (action.args!.winner == "none") {
               promises.push(this.player.hero.Empty());
               promises.push(this.npc.hero.Empty());
             } else {
