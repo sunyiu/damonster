@@ -356,13 +356,12 @@ export default class Card_com extends HTMLElement {
         }
     }
 
-    public flip() {
+    public flip(): Promise<void> {
         return new Promise((resolve, reject) => {
             const callback = (e: any) => {
                     this._container.removeEventListener('webkitTransitionEnd', callback);
                     resolve();
                 }
-
             this._container.addEventListener('webkitTransitionEnd', callback);
             this._container.classList.toggle('flip');
         });

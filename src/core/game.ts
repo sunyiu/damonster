@@ -3,6 +3,7 @@ import { DaPlayer, DaPlayerTypes, DaPlayerEvents } from "./player"
 import { DaCard, DaCardType } from './card'
 import { DaActionCard, DaActions } from "./actioncard"
 import { DaNpc } from "./npc"
+import { promises } from "dns"
 
 
 export enum DaMonsterGameEvents {
@@ -59,8 +60,8 @@ export class DaMonsterGame {
 
 	private _isProvokeBattle: boolean = false;
 
-	private _callbacks: ((target: any, ...args: any[]) => void)[][] = [];
-	AddEventListener(event: DaMonsterGameEvents, callback: (target: any, ...args: any[]) => void) {
+	private _callbacks: ((...args: any[]) => Promise<void>)[][] = [];
+	AddEventListener(event: DaMonsterGameEvents, callback: (target: any, ...args: any[]) => Promise<void>) {
 		let callbacks = this._callbacks[event];
 		if (callbacks == undefined) {
 			this._callbacks[event] = [callback];
@@ -114,45 +115,49 @@ export class DaMonsterGame {
 
 			p.AddEventListener(DaPlayerEvents.DoneDrawFromDeck, (card) => {
 				//component to display the card taken																												
-				let callbacks = this._callbacks[DaMonsterGameEvents.DoneDrawFromDeck];
+				let callbacks = this._callbacks[DaMonsterGameEvents.DoneDrawFromDeck],
+					promises:Promise<void>[] = [];
 				if (callbacks) {
 					callbacks.forEach((c) => {
-						c.call(null, p, card);
+						promises.push(c.call(null, p, card));
 					})
 				}
-
-				if (this.activePlayer.isNPC) {
-					(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
-				}
+				Promise.all(promises).then(() =>{
+					if (this.activePlayer.isNPC) {
+						(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
+					}	
+				})
 			});
 
 			p.AddEventListener(DaPlayerEvents.SetHero, (hero) => {
-				let callbacks = this._callbacks[DaMonsterGameEvents.SetHero];
+				let callbacks = this._callbacks[DaMonsterGameEvents.SetHero], 
+					promises:Promise<void>[] = [];
 				if (callbacks) {
 					callbacks.forEach((c) => {
-						c.call(null, p, hero);
+						promises.push(c.call(null, p, hero));
 					})
 				}
-
-				if (p.isNPC) {
-					(p as DaNpc).DoARound(this._players, this.availableMonsters);
-				}
+				Promise.all(promises).then(() =>{
+					if (this.activePlayer.isNPC) {
+						(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
+					}	
+				})
 			});
 
 			p.AddEventListener(DaPlayerEvents.EquipHero, (card) => {
-				let callbacks = this._callbacks[DaMonsterGameEvents.EquipHero];
+				let callbacks = this._callbacks[DaMonsterGameEvents.EquipHero], 
+				promises:Promise<void>[] = [];
 				if (callbacks) {
 					callbacks.forEach((c) => {
-						c.call(null, p, card);
+						promises.push(c.call(null, p, card));
 					})
 				}
-
-				if (p.isNPC) {
-					(p as DaNpc).DoARound(this._players, this.availableMonsters);
-				}
+				Promise.all(promises).then(() =>{
+					if (this.activePlayer.isNPC) {
+						(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
+					}	
+				})
 			});
-
-
 
 			p.AddEventListener(DaPlayerEvents.StartAction, (card, ...args) => {
 				console.log('%s play an action %s with args %o', p.name, card.name, args);
@@ -199,7 +204,6 @@ export class DaMonsterGame {
 					return p.isActionDone;
 				})) {
 					this.ExeCardAction();
-
 				}
 			});
 		});
@@ -363,7 +367,7 @@ export class DaMonsterGame {
 		}
 
 		let maxPointPlayer: DaPlayer | undefined,
-			winner: DaPlayer | undefined | DaCard,
+			winner: DaPlayer |  DaCard,
 			isPlayerWin = false;
 		this._players.forEach((p: DaPlayer) => {
 			//if equal point, active player win.....
@@ -392,17 +396,20 @@ export class DaMonsterGame {
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
 
-		let callbacks = this._callbacks[DaMonsterGameEvents.BattleDone];
+		let callbacks = this._callbacks[DaMonsterGameEvents.BattleDone],
+			promises: Promise<void>[] = [];
 		if (callbacks) {
 			callbacks.forEach((c) => {
-				c.call(null, null, [isPlayerWin, winner, this.activePlayer]);
+				promises.push(c.call(null, winner, this.activePlayer));
 			})
 		}
 
-		this.monsterCard = undefined;
-		if (this.activePlayer.isNPC) {
-			(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
-		}
+		Promise.all(promises).then(() =>{
+			this.monsterCard = undefined;
+			if (this.activePlayer.isNPC) {
+				(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
+			}	
+		})
 	}
 
 	New() {
@@ -431,41 +438,43 @@ export class DaMonsterGame {
 	}
 
 	ExeCardAction() {
-		let isStopped = this.playedActions.filter((a) => {return a.card.action == DaActions.Stop;}).length % 2 == 1;
+		let isStopped = this.playedActions.filter((a) => {return a.card.action == DaActions.Stop;}).length % 2 == 1,
+			cards = this.playedActions.map((a) => { return { id: a.card.id, isNPC: a.player.isNPC }; }),
+			playAction = this.playedActions[0],		
+			promises: Promise<void>[] = [];
 
 		if (!isStopped){
-			let cards = this.playedActions.map((a) => { return { id: a.card.id, isNPC: a.player.isNPC }; }),
-				playAction = this.playedActions[0];
 			playAction.result = playAction.card.Play(playAction.player, ...playAction.args);
-			let callbacks = this._callbacks[DaMonsterGameEvents.ActionDone];
-			if (callbacks) {
-				callbacks.forEach((c) => {
-					c.call(null, playAction, isStopped, cards);
-				})
-			}
 		}
+			
+		let callbacks = this._callbacks[DaMonsterGameEvents.ActionDone];
+		if (callbacks) {
+			callbacks.forEach((c) => {
+				promises.push(c.call(null, playAction, isStopped, cards));
+			})
+		}
+				
+		Promise.all(promises).then(() =>{
+			this.playedActions = [];	
+			//check for monster card...
+			// //can be monster invade -> atomic bomb (next player)
+			// //or action -> provoke....			
+			if (this.monsterCard){
+				//battle mode....
+				let monsterCallback = this._callbacks[DaMonsterGameEvents.MonsterInvade];
+				if (monsterCallback) {
+					monsterCallback.forEach((c) => {
+						c.call(null, this.monsterCard);
+					})
+				}
+				return;
+			}
 
-		this.playedActions = [];
-
-		//TODO:::: somehow too quick.. the display cannot catch up with the application
-
-		//check for monster card...
-		// //can be monster invade -> atomic bomb (next player)
-		// //or action -> provoke....			
-		if (!this.monsterCard) {
 			if (this.activePlayer.isNPC) {
 				(this.activePlayer as DaNpc).DoARound(this._players, this.availableMonsters);
+				return;
 			}
-		} else {
-			//battle mode....
-			let monsterCallback = this._callbacks[DaMonsterGameEvents.MonsterInvade];
-			if (monsterCallback) {
-				monsterCallback.forEach((c) => {
-					c.call(null, this.monsterCard);
-				})
-			}
-		}
-
+		})
 	}
 
 }

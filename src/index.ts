@@ -3,6 +3,7 @@ import { DaMonsterGame, DaMonsterGameEvents, IPlayedAction } from "./core/game";
 import { DaCard, DaCardType } from "./core/card";
 import { DaHeroCard, DaHeroTypes } from "./core/herocard";
 import { DaActionCard, DaActions } from "./core/actioncard";
+import { DaPlayer } from "./core/player";
 
 const DaCard2ComData = (card: DaCard): ICard_com_data => {
   let data: ICard_com_data = { id: card.id, point: card.point, cardType: card.type };
@@ -26,41 +27,35 @@ export function start(component: IDaMonster_Com) {
 
   game.AddEventListener(
     DaMonsterGameEvents.DoneDrawFromDeck,
-    (player, card) => {
-      component.playerAddCardFromDeck(player.isNPC, {
+    (player, card): Promise<void> => {
+      return component.playerAddCardFromDeck(player.isNPC, {
         id: card.id,
         point: card.point,
         cardType: card.type,
         heroType: card.heroType,
         action: card.action
+      }).then(() =>{
+        return component.switchToPlayer(!player.isNPC)
       });
-      component.switchToPlayer(!player.isNPC);
     }
   );
   game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) => {
     if (hero) {
-      component.playerHeroSet(player.isNPC, {
-        id: hero.id,
-        type: hero.type,
-        point: hero.point
-      });
-    } else {
-      component.playerHeroSet(player.isNPC);
-    }
-    component.delayForNSec();
+      return component.playerHeroSet(player.isNPC, {id: hero.id, type: hero.type, point: hero.point});
+    } 
+    return component.playerHeroSet(player.isNPC);
   });
   game.AddEventListener(DaMonsterGameEvents.EquipHero, (player, item) => {
-    component.playerEquipHero(player.isNPC, {
+    return component.playerEquipHero(player.isNPC, {
       id: item.id,
       point: item.point,
       cardType: item.type,
       heroType: item.heroType
     });
-    component.delayForNSec();
   });
   game.AddEventListener(DaMonsterGameEvents.MonsterInvade, monster => {
     //TODO:: npc can play an action (e.g. atomic or retreat...)
-    component.monsterInvade(
+    return component.monsterInvade(
       monster.id,
       monster.point,
       monster.type,
@@ -68,19 +63,18 @@ export function start(component: IDaMonster_Com) {
       monster.action
     );
   });
-  game.AddEventListener(
-    DaMonsterGameEvents.BattleDone,
-    (isPlayerWin, winner, activePlayer) => {
-      let temp: "npc" | "player" | "monster" = isPlayerWin
-        ? winner.isNPC
-          ? "npc"
-          : "player"
-        : "monster";
-      component.battleDone(temp, winner.id, winner.point, activePlayer.isNPC);
+  game.AddEventListener(DaMonsterGameEvents.BattleDone, (winner: DaPlayer | DaCard, activePlayer) => {
+      let win: "npc" | "player" | "monster" = (winner as DaPlayer)
+        ? (winner as DaPlayer).isNPC ? 'npc' : 'player'
+        : 'monster';
+
+        return component.battleDone(win, (winner as DaCard).id, (winner as DaCard).point).then(() => {
+          return component.switchToPlayer(!activePlayer.isNPC);
+      });
     }
   );
   game.AddEventListener(DaMonsterGameEvents.ActionStart, (player, card) => {
-    component.actionStart(player.isNPC, card.id);
+    return component.actionStart(player.isNPC, card.id);
   });
   game.AddEventListener(DaMonsterGameEvents.ActionDone, (action: IPlayedAction, isStopped: boolean, cards: { id: number, isNPC: boolean }[]) => {
     let args: any[] = [];
@@ -126,7 +120,7 @@ export function start(component: IDaMonster_Com) {
         break;
     }
 
-    component.actionDone(
+    return component.actionDone(
       action.card.action,
       cards,
       isStopped,

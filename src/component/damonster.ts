@@ -137,41 +137,34 @@ export default class DaMonster_Com extends HTMLElement
   private player: Player_com;
   private deck: Deck_com;
   private effect: TableEffect_com;
-  private animation: Promise<void | void[]> = Promise.resolve();
+  private animation: Promise<void> = Promise.resolve();
 
   public initHand(npcCards: ICard_com_data[], playerCards: ICard_com_data[]) {
     this.npc.InitHand(npcCards, false);
     this.player.InitHand(playerCards, true);
   }
 
-  playerHeroSet(
-    isNPC: boolean,
-    hero?: { id: number; type: DaHeroTypes; point: number }
-  ): void {
+  playerHeroSet(isNPC: boolean, hero?: { id: number; type: DaHeroTypes; point: number }): Promise<void> {
     let player = isNPC ? this.npc : this.player;
     if (!hero) {
-      this.animation = this.animation.then(() => {
+      return this.animation = this.animation.then(() => {
         player.hero.empty();
       });
-      return;
     }
-    this.animation = this.animation
-      .then(() => {
+    return this.animation = this.animation
+      .then((): Promise<Card_com> => {
         return player.RemoveHand(hero!.id);
       })
-      .then(() => {
+      .then((): Promise<void> => {
         return hero
           ? player.hero.set(hero!.type, hero!.point)
           : player.hero.empty();
       });
   }
 
-  playerEquipHero(
-    isNPC: boolean,
-    card: ICard_com_data
-  ): void {
+  playerEquipHero(isNPC: boolean, card: ICard_com_data): Promise<void> {
     let player = isNPC ? this.npc : this.player;
-    this.animation = this.animation
+    return this.animation = this.animation
       .then(() => {
         return player.RemoveHand(card.id);
       })
@@ -180,12 +173,9 @@ export default class DaMonster_Com extends HTMLElement
       });
   }
 
-  playerAddCardFromDeck(
-    isNPC: boolean,
-    card: ICard_com_data
-  ) {
+  playerAddCardFromDeck(isNPC: boolean, card: ICard_com_data):Promise<void> {
     let player = isNPC ? this.npc : this.player;
-    this.animation = this.animation
+    return this.animation = this.animation
       .then(() => {
         return this.deck!.Serve(
           card.id,
@@ -203,28 +193,19 @@ export default class DaMonster_Com extends HTMLElement
       });
   }
 
-  switchToPlayer(isNPC: boolean) {
+  public switchToPlayer(isNPC: boolean): Promise<void> {
     let to = isNPC ? this.npc : this.player,
       from = isNPC ? this.player : this.npc;
-    this.animation = this.animation
-      .then(() => {
-        return this.effect!.switchPlayer(isNPC ? "NPC" : "Player");
-      })
-      .then(() => {
+    return this.animation = this.animation.then(() => {
+      return this.effect!.switchPlayer(isNPC ? "NPC" : "Player").then(() => {
         to.hero.isActive = true;
         from.hero.isActive = false;
-        return Promise.resolve();
       });
+    });
   }
 
-  monsterInvade(
-    id: number,
-    point: number,
-    type: string,
-    heroType: string,
-    action: string
-  ) {
-    this.animation = this.animation
+  monsterInvade(id: number, point: number, type: string, heroType: string, action: string): Promise<void> {
+    return this.animation = this.animation
       .then(() => {
         return this.deck.Serve(
           id,
@@ -244,12 +225,7 @@ export default class DaMonster_Com extends HTMLElement
       });
   }
 
-  battleDone(
-    winner: "player" | "npc" | "monster",
-    monsterId: number,
-    monsterPoint: number,
-    isActivePlayerNPC: boolean
-  ) {
+  battleDone(winner: "player" | "npc" | "monster", monsterId: number, monsterPoint: number): Promise<void> {
     this.player!.isBattleOn = false;
     if (winner != "monster") {
       let player = winner == "npc" ? this.npc : this.player;
@@ -265,33 +241,35 @@ export default class DaMonster_Com extends HTMLElement
           return player.KillAMonster();
         });
     } else {
-      this.animation = this.animation.then(() => {
+      return this.animation = this.animation.then(() => {
         let promises = [];
         promises.push(this.deck.AddAVailableMonster(monsterId, monsterPoint));
         promises.push(this.player.hero.empty());
         promises.push(this.npc.hero.empty());
-        return Promise.all(promises);
+        return Promise.all(promises).then(() =>{
+          return Promise.resolve();
+        });
       });
     }
-    this.animation = this.animation.then(() => {
-      return this.switchToPlayer(!isActivePlayerNPC);
-    });
+    return this.animation;
   }
 
-  actionStart(isNPC: boolean, cardId: number) {
+  actionStart(isNPC: boolean, cardId: number): Promise<void> {
     if (isNPC) {
       let daCard = this.npc.GetCardById(cardId);
-      this.animation = this.animation
+      return this.animation = this.animation
         .then(() => {
           return daCard.flip();
         })
         .then(() => {
           this.player.isActionOn = true;
+          return Promise.resolve();
         });
     }
+    return Promise.resolve();
   }
 
-  actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]) {
+  actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]): Promise<void> {
     this.player.isActionOn = false;
 
     //remove all played card
@@ -302,38 +280,24 @@ export default class DaMonster_Com extends HTMLElement
         cardRemovalPromises.push(player.RemoveHand(r.id));
       });
       return Promise.all(cardRemovalPromises);
+    }).then(() =>{
+      return Promise.resolve();
     });
 
     //show the result
     if (!isStopped) {
-      let promises: Promise<void>[] = [];
-      //let player = action.isNPC ? this.npc : this.player;
-
       switch (action) {
-        // AtomicBomb - 0
-        // Stop - 1
-        // Radar - 2
-        // Steal - 3
-        // Retreat - 4
-        // Provoke -5
-        // Attack - 6
-        // SuicideBelt - 7
-        // MindReading - 8
         case DaActions.Steal:
-          //let index = action.args[0];
           if (!args || args.length < 1) {
             throw new Error("No card in the action STEAL");
           }
+          let start = args[0].isNPC ? this.npc : this.player,
+          target = args[0].isNPC ? this.player : this.npc,
+          cardId = args[0].cardId;
           this.animation = this.animation.then(() => {
-            let start = args[0].isNPC ? this.npc : this.player,
-              target = args[0].isNPC ? this.player : this.npc,
-              cardId = args[0].cardId;
-
-            this.animation = this.animation.then((): Promise<void> => {
-              return target.RemoveHand(cardId).then((c): Promise<void> =>{
+            return target.RemoveHand(cardId).then((c) =>{
                 return start.AddHand(c);
-              })
-            });
+            })
           });
           break;
 
@@ -376,17 +340,14 @@ export default class DaMonster_Com extends HTMLElement
           //   }
           //   return Promise.all(promises);
           // });
-          break;
+          break
       }
-
-      this.animation = this.animation.then(() => {
-        return this.delayForNSec();
-      });
     }
+    return this.animation;
   }
 
-  delayForNSec(sec?: number) {
-    this.animation = this.animation.then(() => {
+  delayForNSec(sec?: number): Promise<void> {
+    return this.animation = this.animation.then(() => {
       return new Promise((resolve, reject) => {
         setTimeout(
           function () {
