@@ -1,11 +1,9 @@
-
 export enum DaCardType {
 	Monster = 'm',
 	Hero = 'h',
 	Action = 'a',
 	Item = 'i'
 }
-
 
 export class DaCard {
 

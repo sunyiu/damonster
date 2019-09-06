@@ -1,10 +1,10 @@
 "use strict";
-
 import Deck_com, { Deck_com_serve_direction, Deck_com_events } from "./deck";
 import Player_com, { Player_com_events } from "./player";
 import TableEffect_com from "./tableeffect";
+import { DaHeroTypes, DaActions, DaCardType } from './idamonster'
 import Card_com from "./card";
-import { damonster_events, IDaMonster_Com } from "./idamonster";
+import { damonster_events, IDaMonster_Com, ICard_com_data } from "./idamonster";
 
 export default class DaMonster_Com extends HTMLElement
   implements IDaMonster_Com {
@@ -45,7 +45,7 @@ export default class DaMonster_Com extends HTMLElement
                 <da-monster-player id='npc' data-type='npc'></da-monster-player>
                 <div id="table">
                     <da-monster-deck id='deck'></da-monster-deck>
-                    <da-monster-table-effect id='effect'></da-monster-table-effect>
+                    <da-monster-table-effect></da-monster-table-effect>
                 </div>
                 <da-monster-player id='player' data-type='player'></da-monstr-player>                
             </div>
@@ -63,7 +63,7 @@ export default class DaMonster_Com extends HTMLElement
     this.player = this.shadowRoot!.getElementById("player") as Player_com;
     this.player.addEventListener(Player_com_events.SetHero, (e: any) => {
       this.dispatchEvent(
-        new CustomEvent(damonster_events.PlayerEquipHero, {
+        new CustomEvent(damonster_events.PlayerSetHero, {
           detail: e.detail,
           bubbles: true,
           composed: true
@@ -90,7 +90,7 @@ export default class DaMonster_Com extends HTMLElement
     });
     this.player.addEventListener(Player_com_events.DoBattle, (e: any) => {
       this.dispatchEvent(
-        new CustomEvent(damonster_events.PlayerEquipHero, {
+        new CustomEvent(damonster_events.PlayerDoBattle, {
           detail: e.detail,
           bubbles: true,
           composed: true
@@ -113,15 +113,13 @@ export default class DaMonster_Com extends HTMLElement
       this.dispatchEvent(
         new CustomEvent(damonster_events.DeckDraw, {
           detail: null,
-          bubbles: true,
+          bubbles: false,
           composed: true
         })
       );
     });
 
-    let container = this.shadowRoot!.getElementById("table");
-    this.effect = new TableEffect_com();
-    container!.appendChild(this.effect);
+    this.effect = this.shadowRoot!.querySelector("da-monster-table-effect") as TableEffect_com;
   }
 
   private requestRender(): void {
@@ -141,19 +139,19 @@ export default class DaMonster_Com extends HTMLElement
   private effect: TableEffect_com;
   private animation: Promise<void | void[]> = Promise.resolve();
 
-  public initHand(npcCards: [], playerCards: []) {
-    this.npc.InitHand(npcCards);
-    this.player.InitHand(playerCards);
+  public initHand(npcCards: ICard_com_data[], playerCards: ICard_com_data[]) {
+    this.npc.InitHand(npcCards, false);
+    this.player.InitHand(playerCards, true);
   }
 
   playerHeroSet(
     isNPC: boolean,
-    hero?: { id: number; type: string; point: number }
+    hero?: { id: number; type: DaHeroTypes; point: number }
   ): void {
     let player = isNPC ? this.npc : this.player;
     if (!hero) {
       this.animation = this.animation.then(() => {
-        player.hero.Empty();
+        player.hero.empty();
       });
       return;
     }
@@ -163,14 +161,14 @@ export default class DaMonster_Com extends HTMLElement
       })
       .then(() => {
         return hero
-          ? player.hero.Set(hero!.type, hero!.point)
-          : player.hero.Empty();
+          ? player.hero.set(hero!.type, hero!.point)
+          : player.hero.empty();
       });
   }
 
   playerEquipHero(
     isNPC: boolean,
-    card: { id: number; point: number; cardType: string; heroType: string }
+    card: ICard_com_data
   ): void {
     let player = isNPC ? this.npc : this.player;
     this.animation = this.animation
@@ -178,24 +176,13 @@ export default class DaMonster_Com extends HTMLElement
         return player.RemoveHand(card.id);
       })
       .then(() => {
-        return player.hero.Equip(
-          card.id,
-          card.point,
-          card.cardType,
-          card.heroType
-        );
+        return player.hero.equip(card);
       });
   }
 
   playerAddCardFromDeck(
     isNPC: boolean,
-    card: {
-      id: number;
-      point: number;
-      cardType: string;
-      heroType: string;
-      action: string;
-    }
+    card: ICard_com_data
   ) {
     let player = isNPC ? this.npc : this.player;
     this.animation = this.animation
@@ -281,8 +268,8 @@ export default class DaMonster_Com extends HTMLElement
       this.animation = this.animation.then(() => {
         let promises = [];
         promises.push(this.deck.AddAVailableMonster(monsterId, monsterPoint));
-        promises.push(this.player.hero.Empty());
-        promises.push(this.npc.hero.Empty());
+        promises.push(this.player.hero.empty());
+        promises.push(this.npc.hero.empty());
         return Promise.all(promises);
       });
     }
@@ -304,26 +291,7 @@ export default class DaMonster_Com extends HTMLElement
     }
   }
 
-  actionDone(
-    cards: { id: number; isNPC: boolean }[],
-    action: {
-      id: number; //action id
-      cardId: number; //action card id
-      isStopped: boolean; //is action stopped
-      isNPC: boolean; //is action played by NPC
-      args?: {
-        cardIds?: number[];
-        card?: {
-          id: number;
-          point: number;
-          type: string;
-          heroType: string;
-          action: string;
-        };
-        winner?: "player" | "npc" | "none";
-      };
-    }
-  ) {
+  actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]) {
     this.player.isActionOn = false;
 
     //remove all played card
@@ -337,11 +305,11 @@ export default class DaMonster_Com extends HTMLElement
     });
 
     //show the result
-    if (!action.isStopped) {
-      let promises: any[] = [];
+    if (!isStopped) {
+      let promises: Promise<void>[] = [];
       //let player = action.isNPC ? this.npc : this.player;
 
-      switch (action.id) {
+      switch (action) {
         // AtomicBomb - 0
         // Stop - 1
         // Radar - 2
@@ -351,69 +319,63 @@ export default class DaMonster_Com extends HTMLElement
         // Attack - 6
         // SuicideBelt - 7
         // MindReading - 8
-        case 3:
+        case DaActions.Steal:
           //let index = action.args[0];
-          if (!action.args!.card) {
+          if (!args || args.length < 1) {
             throw new Error("No card in the action STEAL");
           }
           this.animation = this.animation.then(() => {
-            let daCard = new Card_com(),
-              from = action.isNPC ? this.npc : this.player,
-              to = action.isNPC ? this.player : this.npc,
-              card = action.args!.card!;
-            daCard.Set(
-              card.id,
-              card.point,
-              card.type,
-              card.heroType,
-              card.action,
-              false
-            );
-            promises.push(from.AddHand(daCard));
-            promises.push(to.RemoveHand(action.cardId));
-            return Promise.all(promises);
+            let start = args[0].isNPC ? this.npc : this.player,
+              target = args[0].isNPC ? this.player : this.npc,
+              cardId = args[0].cardId;
+
+            this.animation = this.animation.then((): Promise<void> => {
+              return target.RemoveHand(cardId).then((c): Promise<void> =>{
+                return start.AddHand(c);
+              })
+            });
           });
           break;
 
         case 2:
-          this.animation = this.animation.then(() => {
-            promises.push(this.deck.ShowNCard(action.args!.cardIds!));
-            return Promise.all(promises);
-          });
+          //this.animation = this.animation.then(() => {
+          //   promises.push(this.deck.ShowNCard(action.args!.cardIds!));
+          //   return Promise.all(promises);
+          // });
 
           break;
 
         case 0:
-          this.animation = this.animation.then(() => {
-            promises.push(this.player.hero.Empty());
-            promises.push(this.npc.hero.Empty());
-            if (action.args!.card) {
-              promises.push(this.deck.RemoveTop());
-              let player = action.isNPC ? this.npc : this.player;
-              promises.push(player.KillAMonster());
-            }
+          // this.animation = this.animation.then(() => {
+          //   promises.push(this.player.hero.empty());
+          //   promises.push(this.npc.hero.empty());
+          //   if (action.args!.card) {
+          //     promises.push(this.deck.RemoveTop());
+          //     let player = action.isNPC ? this.npc : this.player;
+          //     promises.push(player.KillAMonster());
+          //   }
 
-            //cancel battle if there is any...
-            this.player.isBattleOn = false;
+          //   //cancel battle if there is any...
+          //   this.player.isBattleOn = false;
 
-            return Promise.all(promises);
-          });
+          //   return Promise.all(promises);
+          // });
           break;
 
         case 6:
-          this.animation = this.animation.then(() => {
-            if (action.args!.winner == "none") {
-              promises.push(this.player.hero.Empty());
-              promises.push(this.npc.hero.Empty());
-            } else {
-              promises.push(
-                action.args!.winner == "npc"
-                  ? this.player.hero.Empty()
-                  : this.npc.hero.Empty()
-              );
-            }
-            return Promise.all(promises);
-          });
+          // this.animation = this.animation.then(() => {
+          //   if (action.args!.winner == "none") {
+          //     promises.push(this.player.hero.empty());
+          //     promises.push(this.npc.hero.empty());
+          //   } else {
+          //     promises.push(
+          //       action.args!.winner == "npc"
+          //         ? this.player.hero.empty()
+          //         : this.npc.hero.empty()
+          //     );
+          //   }
+          //   return Promise.all(promises);
+          // });
           break;
       }
 
@@ -427,7 +389,7 @@ export default class DaMonster_Com extends HTMLElement
     this.animation = this.animation.then(() => {
       return new Promise((resolve, reject) => {
         setTimeout(
-          function() {
+          function () {
             resolve();
           },
           sec ? sec * 1000 : 500

@@ -172,7 +172,7 @@ export class DaPlayer {
 	}
 
 	PlayAnAction(cardId: number, ...args:any[]) {
-		console.log('%s set hero %s (args::%o)', this._isNPC ? 'NPC' : 'Player', cardId, args);
+		console.log('%s play an action %s (args::%o)', this._isNPC ? 'NPC' : 'Player', cardId, args);
 				
 		let card = this.hand.find((c) => { return c.id == cardId;});
 		if (!card){
@@ -204,7 +204,7 @@ export class DaPlayer {
 		let startActionCallbacks = this._callbacks[DaPlayerEvents.StartAction];
 		if (startActionCallbacks) {
 			startActionCallbacks.forEach((c) => {
-				c.call(null, card, args);
+				c.call(null, card, ...args);
 			})
 		}
 	}

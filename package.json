@@ -6,7 +6,8 @@
   "scripts": {
     "rollup": "rollup -c",
     "rollup:prod": "rollup -c --environment BUILD:production",
-    "build": "echo --BEGIN DA-MONSTER BUILD-- && echo --1. TSC-- && tsc && echo --2. ROLLUP-- && npm run rollup && echo --DONE--"
+    "build": "echo --BEGIN DA-MONSTER BUILD-- && echo --1. TSC-- && tsc && echo --2. ROLLUP-- && npm run rollup && echo --DONE--",
+    "serve": "npm run build && http-server www"
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,6 @@
     "rollup-plugin-terser": "^5.1.1",
     "rollup-plugin-typescript2": "^0.22.1",
     "typescript": "^3.5.3"
-  }
+  },
+  "dependencies": {}
 }

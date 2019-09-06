@@ -1,6 +1,23 @@
-import { damonster_events, IDaMonster_Com } from "./component/idamonster";
-import { DaMonsterGame, DaMonsterGameEvents } from "./core/game";
-import { DaActions } from "./core/actioncard";
+import { damonster_events, IDaMonster_Com, ICard_com_data } from "./component/idamonster";
+import { DaMonsterGame, DaMonsterGameEvents, IPlayedAction } from "./core/game";
+import { DaCard, DaCardType } from "./core/card";
+import { DaHeroCard, DaHeroTypes } from "./core/herocard";
+import { DaActionCard, DaActions } from "./core/actioncard";
+
+const DaCard2ComData = (card: DaCard): ICard_com_data => {
+  let data: ICard_com_data = { id: card.id, point: card.point, cardType: card.type };
+  switch (card.type) {
+    case DaCardType.Hero:
+    case DaCardType.Item:
+      data.heroType = (card as DaHeroCard).heroType;
+      break;
+
+    case DaCardType.Action:
+      data.action = (card as DaActionCard).action;
+      break;
+  }
+  return data;
+}
 
 export function start(component: IDaMonster_Com) {
   let game = new DaMonsterGame();
@@ -17,7 +34,7 @@ export function start(component: IDaMonster_Com) {
         heroType: card.heroType,
         action: card.action
       });
-      component.switchToPlayer(player.isNPC);
+      component.switchToPlayer(!player.isNPC);
     }
   );
   game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) => {
@@ -65,118 +82,69 @@ export function start(component: IDaMonster_Com) {
   game.AddEventListener(DaMonsterGameEvents.ActionStart, (player, card) => {
     component.actionStart(player.isNPC, card.id);
   });
-  game.AddEventListener(DaMonsterGameEvents.ActionDone, (action, cards) => {
-    let c = cards.map((c: any) => {
-        return {
-          id: c.cardId,
-          isNPC: c.player.isNPC
-        };
-      }),
-      args:
-        | {
-            cardIds?: number[];
-            card?: {
-              id: number;
-              point: number;
-              type: string;
-              heroType: string;
-              action: string;
-            };
-            winner?: "none" | "player" | "npc";
-          }
-        | undefined;
-
-    // AtomicBomb - 0
-    // Stop - 1
-    // Radar - 2
-    // Steal - 3
-    // Retreat - 4
-    // Provoke -5
-    // Attack - 6
-    // SuicideBelt - 7
-    // MindReading - 8
+  game.AddEventListener(DaMonsterGameEvents.ActionDone, (action: IPlayedAction, isStopped: boolean, cards: { id: number, isNPC: boolean }[]) => {
+    let args: any[] = [];
+    ;
     switch (action.card.action) {
-      case 2:
-        args = {
-          cardIds: action.result.map(
+      case DaActions.Radar:
+        args = action.result.map(
             (c: any): number => {
               return c.id;
             }
-          )
-        };
+          );
         break;
 
-      case 3:
-        args = {
-          card: {
-            id: action.result.id,
-            point: action.result.point,
-            type: action.result.type,
-            heroType: action.result.heroType,
-            action: action.result.action
+      case DaActions.Steal:
+        args = [
+          {
+            isNPC: action.player.isNPC,   //from
+            cardId: action.result.id
           }
-        };
+        ];
         break;
-      case 0:
-        args = {
-          //monster card
-          card: {
-            id: action.result.id,
-            point: action.result.point,
-            type: action.result.cardType,
-            heroType: action.result.heroType,
-            action: action.result.action
-          }
-        };
+      case DaActions.AtomicBomb:
+        //args = {
+        //   //monster card
+        //   card: {
+        //     id: action.result.id as number,
+        //     point: action.result.point as number,
+        //     cardType: action.result.cardType as DaCardType,
+        //     heroType: action.result.heroType as DaHeroTypes,
+        //     action: action.result.action as DaActions
+        //   }
+        // };
         break;
 
-      case 6:
-        args = {
-          winner: action.result
-            ? action.result.isNPC
-              ? "npc"
-              : "player"
-            : ("none" as "none" | "npc" | "player")
-        };
+      case DaActions.Attack:
+        // args = {
+        //   winner: action.result
+        //     ? action.result.isNPC
+        //       ? "npc"
+        //       : "player"
+        //     : ("none" as "none" | "npc" | "player")
+        // };
         break;
     }
 
-    component.actionDone(c, {
-      id: action.card.action,
-      cardId: action.card.id,
-      isStopped: action.isStopped,
-      isNPC: action.player.isNPC,
-      args: args
-    });
+    component.actionDone(
+      action.card.action,
+      cards,
+      isStopped,
+      ...args);
   });
 
-  //TODO:: take all event to root level
-  //-- deck ------------------------------------------
+  //-----------------------------------------------------------------------
   component.addEventListener(damonster_events.DeckDraw, (e: any) => {
     game.player.DrawFromDeck();
   });
 
   component.initHand(
-    game.npc.hand.map((c: any) => {
-      return {
-        id: c.id,
-        point: c.point,
-        type: c.type,
-        heroType: c.heroType,
-        action: c.action,
-        flip: false
-      };
-    }) as [],
-    game.player.hand.map((c: any) => {
-      return {
-        id: c.id,
-        point: c.point,
-        type: c.type,
-        heroType: c.heroType,
-        action: c.action,
-        flip: true
-      };
-    }) as []
+    game.npc.hand.map((c) => {
+      return DaCard2ComData(c);
+    }),
+    game.player.hand.map((c) => {
+      return DaCard2ComData(c);
+    })
   );
 
   component.addEventListener(damonster_events.PlayerSetHero, (e: any) => {

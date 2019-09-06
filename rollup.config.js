@@ -17,7 +17,7 @@ function config({ output = {}, plugins = [] }) {
       plugins: [resolve(), typescript(), ...plugins]
     },
     {
-      input: "build/component/damonster.js",
+      input: "build/component/index.js",
       output: {
         file: "www/js/damonster/web-components.js",
         format: "esm",
