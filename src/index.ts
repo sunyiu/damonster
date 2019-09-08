@@ -40,8 +40,9 @@ export function start(component: IDaMonster_Com) {
     }
   );
   game.AddEventListener(DaMonsterGameEvents.SetHero, (player, hero) => {
-    if (hero) {
-      return component.playerHeroSet(player.isNPC, {id: hero.id, type: hero.type, point: hero.point});
+    let heroCard = hero as DaHeroCard;
+    if (heroCard) {
+      return component.playerHeroSet(player.isNPC, {id: hero.id, type: heroCard.heroType, point: hero.point});
     } 
     return component.playerHeroSet(player.isNPC);
   });

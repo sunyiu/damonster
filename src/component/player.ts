@@ -15,38 +15,45 @@ const template = document.createElement('template');
 template.innerHTML = `
 <style>
     #da-player-container{
-        display: block;
-        position: relative;
+      position: absolute;
+      display: flex;
+      width: 100%;
     }
-    
-    da-monster-player-hero{
-        display: block;
-        padding: 5px;
-        background-color: #33658A;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e5efff;
-        border-radius: 15px 15px 0 0;
+    #da-player-container[type='npc']{
+      bottom: 15px;
+      align-items: flex-end;
     }
-    #da-player-container.npc da-monster-player-hero{
-        background-color: #F26419;       
-        border-bottom: 1px solid #ffe7db;             
+    #da-player-container[type='player']{
+      top: 15px;
+      flex-direction: row-reverse;
+      align-items: flex-start;
     }
+    #da-player-container[type='npc'] da-monster-player-hero{
+      padding-right: 25px;
+    }
+    #da-player-container[type='player'] da-monster-player-hero{
+      padding-left: 25px;
+    }    
 
     #hand-container{
         display: flex;
         flex-wrap: wrap;
-        padding: 5px;                    
+        flex-grow: 1;
+        overflow: hidden                  
     }
-    #hand-container, 
-    #btns{
-        background-color: #86BBD8;
+    #da-player-container[type='player'] #hand-container{
+      flex-direction: row-reverse;
     }
-    #btns{
-        border-radius: 0 0 15px 15px;
+    #da-player-container #hand-container da-card{
+      transition: margin-right .5s ease-out, margin-left .5s ease-out; 
+      margin-right: 0;
+      margin-left: 0; 
     }
-    #da-player-container.npc #hand-container{
-        background-color: #a03b04;
-        border-radius: 0 0 15px 15px;                    
+    #da-player-container[type='player'] #hand-container da-card.on-add{
+      margin-right: -45px;
+    }
+    #da-player-container[type='npc'] #hand-container da-card.on-add{
+      margin-left: -45px;
     }
 
     @media only screen and (max-width: 500px) {
@@ -79,7 +86,6 @@ template.innerHTML = `
 <!-- shadow DOM for your element -->
 <div id="da-player-container">
     <da-monster-player-hero></da-monster-player-hero>
-    <div id="monster-container"></div>
     <div id="hand-container"></div>
     <div id="btns">
         <button id="playBtn" class="hide">PLAY</button>
@@ -92,7 +98,7 @@ template.innerHTML = `
 export default class Player_com extends HTMLElement {
 
   private _hero: Playerhero_com;
-  public get hero(){
+  public get hero() {
     return this._hero;
   }
 
@@ -108,6 +114,11 @@ export default class Player_com extends HTMLElement {
     this._hero = this._shadowRoot.querySelector('da-monster-player-hero') as Playerhero_com;
 
     const type = this.getAttribute('data-type');
+    if (!type) {
+      throw "Player type (data-type) is needed!!!!";
+    }
+
+    this._container.setAttribute('type', type);
     if (type == "npc") {
       this._isNPC = true;
       this._container.classList.add("npc");
@@ -222,12 +233,12 @@ export default class Player_com extends HTMLElement {
     });
   }
 
-  InitHand(cards: ICard_com_data[], isFlip: boolean) {
+  initHand(cards: ICard_com_data[]) {
     cards.forEach(c => {
       const container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
       let card = new Card_com();
       card.set(c);
-      card.isFlip = isFlip;
+      card.isFlip = !this._isNPC;
 
       if (!this._isNPC) {
         card.addEventListener(Card_com_events.Clicked, e => {
@@ -240,7 +251,7 @@ export default class Player_com extends HTMLElement {
 
   GetCardById(id: number): Card_com {
     let container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
-    return Array.from(container.children).find( (c): boolean => {
+    return Array.from(container.children).find((c): boolean => {
       return c.id == id.toString();
     }) as Card_com;
   }
@@ -253,32 +264,85 @@ export default class Player_com extends HTMLElement {
     });
   }
 
-  AddHand(daCard: Card_com): Promise<void> {
-    const container = this._shadowRoot.getElementById("hand-container") as  HTMLElement;
+  public addHand(daCard: Card_com): Promise<void> {
+    const container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
+    daCard.classList.add('on-add')
     container.prepend(daCard);
-
-    return daCard.add(!this._isNPC).then(() => {
-      if (!this._isNPC) {
-        daCard.addEventListener(Card_com_events.Clicked, e => {
-          this.toggleCard(daCard);
-        });
-      }
+    return new Promise((resolve, reject) => {
+      const callback = (e: any) => {
+        daCard.removeEventListener('webkitTransitionEnd', callback);
+              resolve();
+      };
+      daCard.addEventListener('webkitTransitionEnd', callback);
+      setTimeout(() => { 
+        daCard.classList.remove('on-add');
+      }, 50);
     });
   }
 
-  RemoveHand(id: number): Promise<Card_com> {
+  removeHand(id: number): Promise<Card_com> {
     const container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
     let daCard = Array.from(container.children).find(c => {
-        return c.id == id.toString();
-      }) as Card_com;
+      return c.id == id.toString();
+    }) as Card_com;
 
     if (!daCard) {
       console.log("CARD NOT IN HAND!!!!! cannot remove");
     }
 
-    return (daCard as Card_com)!.remove().then((): Card_com => {
-      container.removeChild(daCard as HTMLElement);
-      return daCard;
+    container.removeChild(daCard);
+    return Promise.resolve(daCard);
+
+    // return (daCard as Card_com)!.remove().then((): Card_com => {
+    //   container.removeChild(daCard as HTMLElement);
+    //   return daCard;
+    // });
+  }
+
+  public setHero(hero?: { id: number; type: DaHeroTypes; point: number }): Promise<void>{
+    if (!hero){
+      return this.hero.empty();
+    }
+
+    const container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
+      let daCard = Array.from(container.children).find(c => {
+      return c.id == hero.id.toString();
+    }) as Card_com;
+    if (!daCard){
+      throw "CARD NOT IN HAND!!! cannot set hero";
+    }
+
+    let promise: Promise<void> = Promise.resolve();
+    if (this._isNPC){
+      promise = daCard.flip();
+    }
+    promise = promise.then(() => {
+      return this.removeHand(hero.id).then((c) => {
+        return this.hero.set(hero.type, 1)
+      });
+    });
+    return promise;
+  }
+
+  public equip(cardId: number, flip: boolean): Promise<void> {
+    const container = this._shadowRoot.getElementById("hand-container") as HTMLElement;
+    let daCard = Array.from(container.children).find(c => {
+      return c.id == cardId.toString();
+    }) as Card_com;
+
+    if (!daCard) {
+      console.log("CARD NOT IN HAND!!!!! cannot remove");
+    }
+
+    let promise: Promise<void> = Promise.resolve();
+    if (daCard.isFlip != flip) {
+      promise = promise.then(() => { return daCard.flip(); });
+    }
+
+    return promise.then(() => {
+      //highlight the card..... animation !!
+      container.removeChild(daCard);
+      return this.hero.equip();
     });
   }
 
@@ -298,39 +362,6 @@ export default class Player_com extends HTMLElement {
     container.append(monster);
     return Promise.resolve();
   }
-
-  // public EquipHero(point) {
-  //     return this._hero.Equip(point);
-  // }
-
-  // public ShowCard(id){
-  //     let container = this._shadowRoot.getElementById('hand-container'),
-  //         daCard = Array.from(container.children).find((c) => { return c.id == id;});
-  //     if (!daCard){
-  //         console.log('CARD NOT IN HAND!!!!');
-  //     }
-  //
-  //     return daCard.flip();
-  //
-  //     // return this._animation = new Promise((resolve, reject) => {
-  //     //     //only one direction because it should be called by NPC playing an action
-  //     //     return daCard.flip().then(() =>{
-  //     //         let animation = daCard.animate(
-  //     //             [   {'marginTop': 0},
-  //     //                 {'marginTop': '15px'}
-  //     //             ],
-  //     //             {   duration: 500,
-  //     //                 iterations: 1,
-  //     //                 //startDelay: 1000
-  //     //                 //endDelay: 500
-  //     //             }
-  //     //         );
-  //     //         animation.onfinish = (e) =>{
-  //     //             resolve();
-  //     //         };
-  //     //     });
-  //     // });
-  // }
 }
 
 customElements.define('da-monster-player', Player_com);

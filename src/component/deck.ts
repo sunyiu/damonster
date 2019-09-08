@@ -18,13 +18,30 @@ export default class Deck_com extends HTMLElement {
     public getTemplate(props: any): string {
         return `
             <style>
+                da-card{
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: perspective(1px) translateX(-50%) translateY(-50%);
+                    transition: margin-top .5s ease-in;
+                    margin-top: 0;
+                }
+                da-card.serveUp{
+                    margin-top: -25px;
+                }
+                da-card.serveDown{
+                    margin-top: 25px;
+                }
+
                 #da-monster-deck-container{
                     position: relative;
-                    /*padding: 15px 0;  for the moving...*/                                        
+                    height: 100%;                                     
                 }
                 
                 #card-container{
                     position: relative;
+                    height: 100%;
+                    overflow: hidden;
                 }
                 
                 #card-container da-monster-card{
@@ -129,24 +146,15 @@ export default class Deck_com extends HTMLElement {
                 }
 
                 if (direction != Deck_com_serve_direction.Flip) {
-                    promises.push(
-                        new Promise((resolve, reject) => {
-                            let animation = daCard.animate(
-                                [{ 'top': 0 },
-                                { 'top': direction == Deck_com_serve_direction.Up ? '-15px' : '15px' }
-                                ],
-                                {
-                                    duration: 500,
-                                    iterations: 1,
-                                    //startDelay: 1000
-                                    //endDelay: 100
-                                }
-                            );
-                            animation.onfinish = (e) => {
+
+                    promises.push(new Promise((resolve, reject) => {
+                        const callback = (e: any) => {
+                               daCard.removeEventListener('webkitTransitionEnd', callback);
                                 resolve();
-                            };
-                        })
-                    );
+                            }
+                        daCard.addEventListener('webkitTransitionEnd', callback);
+                        daCard.classList.add(direction == Deck_com_serve_direction.Up ? 'serveUp' : 'serveDown');
+                    }));
                 }
 
                 Promise.all(promises).then(() => {

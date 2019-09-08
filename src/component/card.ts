@@ -367,34 +367,34 @@ export default class Card_com extends HTMLElement {
         });
     }
 
-    public remove() {
-        return new Promise((resolve, reject) => {
-            const callback = (e: any) => {
-                    this._container.removeEventListener('webkitAnimationEnd', callback);
-                    this._container.classList.remove('remove');             
-                    resolve();
-                }
+    // public remove() {
+    //     return new Promise((resolve, reject) => {
+    //         const callback = (e: any) => {
+    //                 this._container.removeEventListener('webkitAnimationEnd', callback);
+    //                 this._container.classList.remove('remove');             
+    //                 resolve();
+    //             }
 
-            this._container.addEventListener('webkitAnimationEnd', callback);
-            this._container.classList.add('remove');
-        });
-    }
+    //         this._container.addEventListener('webkitAnimationEnd', callback);
+    //         this._container.classList.add('remove');
+    //     });
+    // }
 
-    public add(flip: boolean) {
-        return new Promise((resolve, reject) => {
-            const callback = (e: any) => {
-                    this._container.removeEventListener('webkitAnimationEnd', callback);
-                    this._container.classList.remove('add');
-                    resolve();
-                }
+    // public add(flip: boolean): Promise<void> {
+    //     return new Promise((resolve, reject) => {
+    //         const callback = (e: any) => {
+    //                 this._container.removeEventListener('webkitAnimationEnd', callback);
+    //                 this._container.classList.remove('add');
+    //                 resolve();
+    //             }
 
-            this._container.addEventListener('webkitAnimationEnd', callback);
-            this._container.classList.add('add');
-            if (flip) {
-                this._container.classList.add('flip');
-            }
-        });
-    }
+    //         this._container.addEventListener('webkitAnimationEnd', callback);
+    //         this._container.classList.add('add');
+    //         if (flip) {
+    //             this._container.classList.add('flip');
+    //         }
+    //     });
+    // }
 }
 
 customElements.define('da-card', Card_com);
