@@ -14,11 +14,18 @@ export default class DaMonster_Com extends HTMLElement
 
   public getTemplate(): string {
     return `
-            <style> 
+            <style>
+                div[da-monster-container]{
+                  height: 100%;
+                  position: relative;
+                  display: flex;
+                  flex-direction: column;
+                } 
                 #table{
                     display: block;
                     position: relative;
-                    padding: 20px;
+                    height: 150px;
+                    flex-shrink: 0;
                 }
                 
                 da-monster-table-effect{
@@ -32,16 +39,26 @@ export default class DaMonster_Com extends HTMLElement
                 
                 da-monster-player{
                     display: block;
-                    margin: 15px;
-                    /*background-color: gray;*/
+                    /*margin: 15px;
+                    background-color: gray;*/
+                    flex-grow: 1;
+                    position: relative;
+                }
+                da-monster-player[data-type='npc']{
+                  background-color: #F26419;
+                }
+                da-monster-player[data-type='player']{
+                  background-color: #86BBD8;
                 }
                 
                 da-monster-deck {
                     text-align: center;
+                    height: 100%;
+                    display: block;
                 }
 			</style>
             <!-- shadow DOM for your element -->
-            <div id="da-monster-container">
+            <div da-monster-container>
                 <da-monster-player id='npc' data-type='npc'></da-monster-player>
                 <div id="table">
                     <da-monster-deck id='deck'></da-monster-deck>
@@ -140,8 +157,8 @@ export default class DaMonster_Com extends HTMLElement
   private animation: Promise<void> = Promise.resolve();
 
   public initHand(npcCards: ICard_com_data[], playerCards: ICard_com_data[]) {
-    this.npc.InitHand(npcCards, false);
-    this.player.InitHand(playerCards, true);
+    this.npc.initHand(npcCards);
+    this.player.initHand(playerCards);
   }
 
   playerHeroSet(isNPC: boolean, hero?: { id: number; type: DaHeroTypes; point: number }): Promise<void> {
@@ -151,25 +168,16 @@ export default class DaMonster_Com extends HTMLElement
         player.hero.empty();
       });
     }
-    return this.animation = this.animation
-      .then((): Promise<Card_com> => {
-        return player.RemoveHand(hero!.id);
-      })
-      .then((): Promise<void> => {
-        return hero
-          ? player.hero.set(hero!.type, hero!.point)
-          : player.hero.empty();
-      });
+    return this.animation = this.animation.then(() =>{
+      return player.setHero(hero);
+    })
   }
 
   playerEquipHero(isNPC: boolean, card: ICard_com_data): Promise<void> {
     let player = isNPC ? this.npc : this.player;
     return this.animation = this.animation
       .then(() => {
-        return player.RemoveHand(card.id);
-      })
-      .then(() => {
-        return player.hero.equip(card);
+        return player.equip(card.id, isNPC);
       });
   }
 
@@ -189,7 +197,7 @@ export default class DaMonster_Com extends HTMLElement
         );
       })
       .then(daCard => {
-        return player.AddHand(daCard);
+        return player.addHand(daCard);
       });
   }
 
@@ -277,7 +285,7 @@ export default class DaMonster_Com extends HTMLElement
       let cardRemovalPromises: any[] = [];
       cards.forEach((r: { id: number; isNPC: boolean }) => {
         let player = r.isNPC ? this.npc : this.player;
-        cardRemovalPromises.push(player.RemoveHand(r.id));
+        cardRemovalPromises.push(player.removeHand(r.id));
       });
       return Promise.all(cardRemovalPromises);
     }).then(() =>{
@@ -295,8 +303,8 @@ export default class DaMonster_Com extends HTMLElement
           target = args[0].isNPC ? this.player : this.npc,
           cardId = args[0].cardId;
           this.animation = this.animation.then(() => {
-            return target.RemoveHand(cardId).then((c) =>{
-                return start.AddHand(c);
+            return target.removeHand(cardId).then((c) =>{
+                return start.addHand(c);
             })
           });
           break;
