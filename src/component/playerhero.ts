@@ -44,11 +44,7 @@ template.innerHTML = `
     div[da-hero-container].active div[hero-container] div[hero-context]{
     }
                                                                             
-    #item-container{
-        display: flex;
-    }
-    
-        @keyframes addItem {
+    @keyframes addItem {
         0% {
             transform: scale(0.1);
             -webkit-transform: scale(0.1);
@@ -77,7 +73,11 @@ template.innerHTML = `
             
         }
     }
-    #item-container da-monster-card{
+    [item-container]{
+        transform: scale(0.7);
+    }
+    
+    [item-container] da-monster-card{
         display: block;
         animation-duration: 0.5s; 
         animation-timing-function: ease-out; 
@@ -87,13 +87,12 @@ template.innerHTML = `
         animation-fill-mode: none;
         animation-play-state: running; 
     }                                        
-    #item-container da-monster-card.add{
+    [item-container] da-monster-card.add{
         animation-name: addItem;                    
     }
-    #item-container da-monster-card.remove{
+    [item-container] da-monster-card.remove{
         animation-name: removeItem;                    
     }
-    
     
     div[star-container]{
         display: flex;
@@ -113,14 +112,19 @@ template.innerHTML = `
     <div da-hero-container>
         <div monster-container></div>
         <div hero-item-container>
-            <div hero-container>                                       
-                <div hero-context></div>                                                                
-            </div>
             <div star-container>
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
             </div> 
+            <div hero-container>                                       
+                <div hero-context></div>                                                                
+            </div>
+            <div item-container>
+                <da-card></da-card>
+                <da-card></da-card>
+                <da-card></da-card>
+            </div>
         </div>                                       
     </div>
 `;

@@ -115,7 +115,6 @@ export default class DaMonster_Com extends HTMLElement
       );
     });
     this.player.addEventListener(Player_com_events.SkipAction, (e: any) => {
-      this.player.isActionOn = false;
       this.dispatchEvent(
         new CustomEvent(damonster_events.PlayerSkipAction, {
           detail: e.detail,
@@ -177,7 +176,7 @@ export default class DaMonster_Com extends HTMLElement
     let player = isNPC ? this.npc : this.player;
     return this.animation = this.animation
       .then(() => {
-        return player.equip(card.id, isNPC);
+        return player.equip(card.id);
       });
   }
 
@@ -197,7 +196,7 @@ export default class DaMonster_Com extends HTMLElement
         );
       })
       .then(daCard => {
-        return player.addHand(daCard);
+        return player.addHand(daCard)
       });
   }
 
@@ -270,7 +269,7 @@ export default class DaMonster_Com extends HTMLElement
           return daCard.flip();
         })
         .then(() => {
-          this.player.isActionOn = true;
+          this.player.onAction();
           return Promise.resolve();
         });
     }
@@ -278,8 +277,6 @@ export default class DaMonster_Com extends HTMLElement
   }
 
   actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]): Promise<void> {
-    this.player.isActionOn = false;
-
     //remove all played card
     this.animation = this.animation.then(() => {
       let cardRemovalPromises: any[] = [];
@@ -352,19 +349,6 @@ export default class DaMonster_Com extends HTMLElement
       }
     }
     return this.animation;
-  }
-
-  delayForNSec(sec?: number): Promise<void> {
-    return this.animation = this.animation.then(() => {
-      return new Promise((resolve, reject) => {
-        setTimeout(
-          function () {
-            resolve();
-          },
-          sec ? sec * 1000 : 500
-        );
-      });
-    });
   }
 }
 

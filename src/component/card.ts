@@ -3,23 +3,14 @@ import { DaCardType, ICard_com_data } from './idamonster';
 
 const template = document.createElement('template');
 template.innerHTML = `
-<style>                                              
-    #da-card-container{
+<style>
+    [da-card-container]{
         position: relative;
-        display: inline-block;                    
+        display: inline-block;
+        -webkit-transition: all .4s ease-in-out;
+        transition: all .4s ease-in-out;
     }
-    #da-card-container.flip .front{
-        z-index: 80;
-        -webkit-transform: rotateY(179deg);
-        transform: rotateY(179deg);
-    }            
-    #da-card-container.flip .back{
-        z-index: 90;
-        -webkit-transform: rotateX(0) rotateY(0);
-        transform: rotateX(0) rotateY(0);
-    }
-                                
-    .card-container{
+    [da-card-container] > div{
         display: inline-block;
         background-color: #fff;                    
         float: none;                    
@@ -29,8 +20,19 @@ template.innerHTML = `
         border-radius: 2px;
         font-size: 10pt;               
     }
-    
-    .front{
+
+    [da-card-container].flip [front]{
+        z-index: 80;
+        -webkit-transform: rotateY(179deg);
+        transform: rotateY(179deg);
+    }            
+    [da-card-container].flip [back]{
+        z-index: 90;
+        -webkit-transform: rotateX(0) rotateY(0);
+        transform: rotateX(0) rotateY(0);
+    }
+                                
+    [front]{
         position: relative;                    
         z-index: 80;
         -webkit-transform: rotateX(0) rotateY(0);
@@ -42,7 +44,7 @@ template.innerHTML = `
         -webkit-transition: all .4s ease-in-out;
         transition: all .4s ease-in-out;
     }
-    .back{
+    [back]{
         position: absolute;
         top: 0;
         left: 0;
@@ -57,7 +59,7 @@ template.innerHTML = `
         transition: all .4s ease-in-out;
     }
                                                                                             
-    .context{
+    [context]{
         /*0.7142857142857143 -- card ratio*/                    
         width: 36px;
         height: 50px;                  
@@ -69,50 +71,50 @@ template.innerHTML = `
         background-repeat: no-repeat;
         background-position: center;                    
     }                
-    .front .context{
+    [front] [context]{
         background-color: lightblue;
     }
                                     
-    .back.card-h .context,
-    .back.card-i .context{
+    [back].card-h [context],
+    [back].card-i [context]{
         background-color: white;
     }                                           
                             
-    .back.hero-k .context{
+    [back].hero-k [context]{
         background-color: rgba(91, 192, 235, 1);
     }
-    .back.hero-w .context{
+    [back].hero-w [context]{
         background-color: rgba(226, 49, 223, 1);
     }
-    .back.hero-r .context{
+    [back].hero-r [context]{
         background-color: rgba(155, 197, 61, 1);
     }
 
-    .back.card-h.hero-k .context{
+    [back].card-h.hero-k [context]{
         background-image: url(images/knight.png);
     }
-    .back.card-h.hero-w .context{
+    [back].card-h.hero-w [context]{
         background-image: url(images/wizard.png);
     }
-    .back.card-h.hero-r .context{
+    [back].card-h.hero-r [context]{
         background-image: url(images/ranger.png);
     }                                
                     
-    .back.card-i.hero-k .context{
+    [back].card-i.hero-k [context]{
         background-image: url(images/swordIcon.png);
     }
-    .back.card-i.hero-w .context{
+    [back].card-i.hero-w [context]{
         background-image: url(images/staffIcon.png);
     }
-    .back.card-i.hero-r .context{
+    [back].card-i.hero-r [context]{
         background-image: url(images/arrowIcon.png);
     }                                
     
     
-    .back.card-a .context{
+    [back].card-a [context]{
         background-color: rgba(229, 89, 52, 1);
     }                
-    .back.card-a .context .icon{
+    [back].card-a [context] .icon{
         
     }
     
@@ -129,107 +131,58 @@ template.innerHTML = `
         //SuicideBelt - 7,
         //MindReading - 8,
     */             
-    .back.card-a.action-0 .context{
+    [back].card-a.action-0 [context]{
         background-image: url(images/bomb.png);
     }
-    .back.card-a.action-1 .context{
+    [back].card-a.action-1 [context]{
         background-image: url(images/stop.png);
     }
-    .back.card-a.action-2 .context{
+    [back].card-a.action-2 [context]{
         background-image: url(images/radar.png);
     }                
-    .back.card-a.action-3 .context{
+    [back].card-a.action-3 [context]{
         background-image: url(images/steal.png);                    
     }
-    .back.card-a.action-4 .context{
+    [back].card-a.action-4 [context]{
         background-image: url(images/retreat.png);
     }
-    .back.card-a.action-5 .context{
+    [back].card-a.action-5 [context]{
         background-image: url(images/provoke.png);
     }
-    .back.card-a.action-6 .context{
+    [back].card-a.action-6 [context]{
         background-image: url(images/swordIcon.png);
     }
     /*
-    .back.card-a.action-7 .context{
+    [back].card-a.action-7 [context]{
         background-image: url(images/suicidebelt.png);
     }
-    .back.card-a.action-8 .context{
+    [back].card-a.action-8 [context]{
         background-image: url(images/mindreading.png);
     }*/                                                                               
     
     
-    .back.card-m .context{
+    [back].card-m [context]{
         background-color: #000;    
         background-image: url(images/GodzillaSilhouetteT.png);
     }                
-    .back.card-m .context .icon{                    
+    [back].card-m [context] .icon{                    
     }                                                                         
     
-    #da-card-container.selected .card-container{
+    [da-card-container].selected > div{
         border:2px solid red;
         margin:1px;
         padding:1px;
     }
     
-    #da-card-container.disabled .context{
+    [da-card-container].disabled [context]{
         /*background-color: #7f7f7f !important;*/
     }
                                                                                                              
-    #da-card-container.hidden{
+    [da-card-container].hidden{
         display:none;                    
     }
-        
-    @keyframes removeCard {
-        0%{
-            transform: scalex(1);
-            -webkit-transform: scalex(1);
-        }
-        15%{
-            transform: scalex(1.2);
-            -webkit-transform: scalex(1.2);            
-        }
-        100%{
-            transform: scalex(0.1);
-            -webkit-transform: scalex(0.1);            
-        }
-        
-    }   
     
-    @keyframes addCard {
-        0%{
-            transform: scalex(0);
-            -webkit-transform: scalex(0);
-        }
-        75%{
-            transform: scalex(1.2);
-            -webkit-transform: scalex(1.2);            
-        }
-        100%{
-            transform: scalex(1);
-            -webkit-transform: scalex(1);            
-        }
-        
-    }
-    #da-card-container{
-        animation-duration: 0.5s; 
-        animation-timing-function: ease-out; 
-        animation-delay: 0s;
-        animation-direction: alternate;
-        animation-iteration-count: 1;
-        animation-fill-mode: none;
-        animation-play-state: running; 
-    }                        
-    
-    #da-card-container.remove{
-        animation-name: removeCard;
-    }
-    #da-card-container.add{
-        animation-name: addCard;
-    }   
-    
-    
-    #star-container{
+    [star-container]{
         display: flex;
         flex-direction: row-reverse;
     }
@@ -245,35 +198,36 @@ template.innerHTML = `
 </style>
 
 <!-- shadow DOM for your element -->
-<div id="da-card-container">
-    <div class="card-container front">
-        <div class="context"></div>
+<div da-card-container>
+    <div front>
+        <div context></div>
     </div>            
-    <div class="card-container back">
-        <div class="context">
-            <div id="star-container"></div>
+    <div back>
+        <div context>
+            <div star-container></div>
         </div>
     </div>
 </div>
 `;
 
 export enum Card_com_events {
-    Clicked = 'clicked'
+    clicked = 'clicked',
+    onAnimationDone = 'on-animation-done'
 }
 
 export default class Card_com extends HTMLElement {
-    static get observedAttributes() { return []; }
+    static get observedAttributes() { return ['is-selected']; }
 
-    public get isSelected() {
-        return this._container.classList.contains('selected');
-    }
-    public set isSelected(value: boolean) {
-        if (value) {
-            this._container.classList.add('selected');
-        } else {
-            this._container.classList.remove('selected');
-        }
-    }
+    // public get isSelected() {
+    //     return this._container.classList.contains('selected');
+    // }
+    // public set isSelected(value: boolean) {
+    //     if (value) {
+    //         this._container.classList.add('selected');
+    //     } else {
+    //         this._container.classList.remove('selected');
+    //     }
+    // }
 
     public get isFlip() {
         return this._container.classList.contains('flip');
@@ -312,24 +266,36 @@ export default class Card_com extends HTMLElement {
         super();
         this._shadowRoot = this.attachShadow({ mode: 'open' });
         this._shadowRoot.appendChild(template.content.cloneNode(true));
-        this._container = this._shadowRoot.getElementById('da-card-container') as HTMLElement;
+        this._container = this._shadowRoot.querySelector('[da-card-container]') as HTMLElement;
     }
 
     public connectedCallback() {
         this._container!.onclick = (e) => {
-            this.dispatchEvent(new CustomEvent(Card_com_events.Clicked, { detail: null, bubbles: true, composed: true }));
+            this.dispatchEvent(new CustomEvent(Card_com_events.clicked, { detail: null, bubbles: true, composed: true }));
         };
     }
 
     public disconnectedCallback() { }
 
-    public attributeChangedCallback(name: string, oldValue: any, newValue: any) { }
+    public attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+        if (oldValue === newValue){return;}
+
+        switch(name){
+            case 'is-selected':
+                if (newValue){
+                    this._container.classList.add('selected');
+                }else{
+                    this._container.classList.remove('selected');
+                }
+                return;
+        }
+    }
 
     public set(data: ICard_com_data){
         this._data = data;
         this.id = data.id.toString();
         
-        const elem = this.shadowRoot!.querySelector('.back');
+        const elem = this.shadowRoot!.querySelector('[back]');
         
         elem!.classList.add('card-' + data.cardType);
         
@@ -342,11 +308,12 @@ export default class Card_com extends HTMLElement {
                 break;
             case DaCardType.Action:
                 elem!.classList.add('action-' + data.action);
+                elem!.setAttribute('data-action', data.action!.toString());
                 break;
         }
 
         if (data.point) {
-            let starContainer = this.shadowRoot!.getElementById('star-container');
+            let starContainer = this.shadowRoot!.querySelector('[star-container]');
             for (var i = 0; i < data.point; i++) {
                 let star = document.createElement('div');
                 star.classList.add('star');

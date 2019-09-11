@@ -54,5 +54,4 @@ export interface IDaMonster_Com {
   battleDone(winner: "player" | "npc" | "monster", monsterId: number, monsterPoint: number): Promise<void>;
   actionStart(isNPC: boolean, cardId: number): Promise<void>;
   actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]): Promise<void>;
-  delayForNSec(sec?: number): Promise<void>;
 }

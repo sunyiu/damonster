@@ -1,6 +1,7 @@
 'use strict';
-import { ICard_com_data} from './idamonster'
+import { ICard_com_data } from './idamonster'
 import Card_com, { Card_com_events } from './card'
+import { resolve } from 'dns';
 
 export enum Deck_com_serve_direction {
     Up,
@@ -22,9 +23,14 @@ export default class Deck_com extends HTMLElement {
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    transform: perspective(1px) translateX(-50%) translateY(-50%);
-                    transition: margin-top .5s ease-in;
+                    transform: perspective(1px) translateX(-50%) translateY(-50%) scale(1);
+                    transition: margin-top .2s ease-in;
                     margin-top: 0;
+                    -webkit-transition: all .4s ease-in-out;
+                    transition: all .4s ease-in-out;
+                }
+                da-card.highlight{
+                    transform: perspective(1px) translateX(-50%) translateY(-50%) scale(1.5);       
                 }
                 da-card.serveUp{
                     margin-top: -25px;
@@ -66,7 +72,8 @@ export default class Deck_com extends HTMLElement {
 			</style>
             <!-- shadow DOM for your element -->
 			<div id="da-monster-deck-container">                            
-                <div id="card-container">                
+                <div id="card-container">
+                    <da-card last-card></da-card>                
                 </div>
                 <div id="available-monster-container">
                 </div>
@@ -94,18 +101,12 @@ export default class Deck_com extends HTMLElement {
 
         this.attachShadow({ mode: 'open' });
 
-        // Initialize declared properties
-        // for (let key in Deck_com.properties) {
-        //     this.props[key] = Deck_com.properties[key].value;
-        // }
+        const template: HTMLTemplateElement = <HTMLTemplateElement>document.createElement('template');
+        template.innerHTML = this.getTemplate({});
+        this.shadowRoot!.appendChild(template.content.cloneNode(true));
 
-        this.requestRender();
-
-        let container = this.shadowRoot!.getElementById('card-container'),
-            daCard = new Card_com();
-        container!.appendChild(daCard);
-
-        daCard.addEventListener(Card_com_events.Clicked, (e) => {
+        let daCard = this.shadowRoot!.querySelector('[last-card]') as Card_com;
+        daCard.addEventListener(Card_com_events.clicked, (e) => {
             this.dispatchEvent(new CustomEvent(Deck_com_events.Draw, { detail: null, bubbles: true, composed: true }));
         });
     }
@@ -114,20 +115,10 @@ export default class Deck_com extends HTMLElement {
         if (oldValue === newValue) {
             return;
         }
-
         this.props[name] = newValue;
     }
 
-    private requestRender(): void {
-        const template: HTMLTemplateElement = <HTMLTemplateElement>document.createElement('template');
-
-        template.innerHTML = this.getTemplate({});
-
-        this.shadowRoot!.appendChild(template.content.cloneNode(true));
-    }
-
-
-    //--------------------------------------------------//                    
+    //--------------------------------------------------//
     public Serve(id: any, point: any, cardType: any, heroType: any, action: any, direction: any): Promise<Card_com> {
         let cardContainer = this.shadowRoot!.getElementById('card-container'),
             daCard = new Card_com();
@@ -136,35 +127,51 @@ export default class Deck_com extends HTMLElement {
         daCard.set({ id: id, cardType: cardType, heroType: heroType, action: action, point: point });
         daCard.isFlip = false;
 
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
+            //has to be 50 delay to kick off the animation...
             setTimeout(() => {
-                let promises = [];
-                if (direction == Deck_com_serve_direction.Flip || direction == Deck_com_serve_direction.DownAndFlip) {
-                    promises.push(
-                        daCard.flip()
-                    );
-                }
+                const waitTime = 500,
+                    promises = [];
 
-                if (direction != Deck_com_serve_direction.Flip) {
-
-                    promises.push(new Promise((resolve, reject) => {
-                        const callback = (e: any) => {
-                               daCard.removeEventListener('webkitTransitionEnd', callback);
-                                resolve();
-                            }
-                        daCard.addEventListener('webkitTransitionEnd', callback);
-                        daCard.classList.add(direction == Deck_com_serve_direction.Up ? 'serveUp' : 'serveDown');
-                    }));
-                }
-
-                Promise.all(promises).then(() => {
-                    if (direction != Deck_com_serve_direction.Flip) {
-                        cardContainer!.removeChild(daCard);
+                promises.push(new Promise(resolve => {
+                    const callback = () => {
+                        daCard.removeEventListener('webkitTransitionEnd', callback);
+                        resolve();
                     }
-                    resolve(daCard);
-                })
-            }, 100);
-        });
+                    daCard.addEventListener('webkitTransitionEnd', callback);
+                    daCard.classList.add('highlight');
+                }));
+
+                switch (direction) {
+                    case Deck_com_serve_direction.Flip:
+                        promises.push(daCard.flip());
+                        return Promise.all(promises).then(() => { return resolve(daCard) });
+                    case Deck_com_serve_direction.Up:
+                        return Promise.all(promises).then(() => {               
+                            setTimeout(() => {
+                                const callback = (e: any) => {
+                                    daCard.removeEventListener('webkitTransitionEnd', callback);
+                                    resolve(daCard);
+                                };
+                                daCard.addEventListener('webkitTransitionEnd', callback);
+                                daCard.classList.add('serveUp');
+                            }, waitTime);
+                        });
+                    case Deck_com_serve_direction.DownAndFlip:
+                        promises.push(daCard.flip());
+                        return Promise.all(promises).then(() => {
+                            setTimeout(() => {
+                                const callback = (e: any) => {
+                                    daCard.removeEventListener('webkitTransitionEnd', callback);
+                                    resolve(daCard);
+                                };
+                                daCard.addEventListener('webkitTransitionEnd', callback);
+                                daCard.classList.add('serveDown');
+                            }, waitTime)
+                        });
+                }
+            }, 50);
+        })
     }
 
     public RemoveTop() {
