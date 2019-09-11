@@ -23,14 +23,11 @@ export default class Deck_com extends HTMLElement {
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    transform: perspective(1px) translateX(-50%) translateY(-50%) scale(1);
+                    transform: perspective(1px) translateX(-50%) translateY(-50%);
                     transition: margin-top .2s ease-in;
                     margin-top: 0;
                     -webkit-transition: all .4s ease-in-out;
                     transition: all .4s ease-in-out;
-                }
-                da-card.highlight{
-                    transform: perspective(1px) translateX(-50%) translateY(-50%) scale(1.5);       
                 }
                 da-card.serveUp{
                     margin-top: -25px;
@@ -122,10 +119,10 @@ export default class Deck_com extends HTMLElement {
     public Serve(id: any, point: any, cardType: any, heroType: any, action: any, direction: any): Promise<Card_com> {
         let cardContainer = this.shadowRoot!.getElementById('card-container'),
             daCard = new Card_com();
-
-        cardContainer!.appendChild(daCard);
         daCard.set({ id: id, cardType: cardType, heroType: heroType, action: action, point: point });
         daCard.isFlip = false;
+        daCard.setAttribute('with-animation', '');
+        cardContainer!.appendChild(daCard);
 
         return new Promise(resolve => {
             //has to be 50 delay to kick off the animation...
@@ -135,11 +132,11 @@ export default class Deck_com extends HTMLElement {
 
                 promises.push(new Promise(resolve => {
                     const callback = () => {
-                        daCard.removeEventListener('webkitTransitionEnd', callback);
+                        daCard.removeEventListener(Card_com_events.onAnimationDone, callback);
                         resolve();
                     }
-                    daCard.addEventListener('webkitTransitionEnd', callback);
-                    daCard.classList.add('highlight');
+                    daCard.addEventListener(Card_com_events.onAnimationDone, callback);
+                    daCard.setAttribute('card-size', 'large');
                 }));
 
                 switch (direction) {

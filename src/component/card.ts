@@ -4,11 +4,30 @@ import { DaCardType, ICard_com_data } from './idamonster';
 const template = document.createElement('template');
 template.innerHTML = `
 <style>
+    :host([card-size="normal"]) [da-card-container],
+    [da-card-container] {
+        /*0.7142857142857143 -- card ratio*/                    
+        width: 36px;
+        height: 50px;
+    }
+    :host([card-size="large"]) [da-card-container]{
+        width: 44px;
+        height: 62px;
+    }
+    :host([card-size="small"]) [da-card-container]{
+        width: 25px;
+        height: 35px;
+    }
+
+    :host([with-timer]){
+
+    }
+
     [da-card-container]{
         position: relative;
         display: inline-block;
-        -webkit-transition: all .4s ease-in-out;
-        transition: all .4s ease-in-out;
+        -webkit-transition: width .4s ease-in-out, height .4s ease-in-out;
+        transition: width .4s ease-in-out, height .4s ease-in-out;
     }
     [da-card-container] > div{
         display: inline-block;
@@ -19,6 +38,10 @@ template.innerHTML = `
         border: 1px solid #ccc;
         border-radius: 2px;
         font-size: 10pt;               
+    }
+    [da-card-container] div{
+        width: 100%;
+        height: 100%;
     }
 
     [da-card-container].flip [front]{
@@ -61,21 +84,18 @@ template.innerHTML = `
                                                                                             
     [context]{
         /*0.7142857142857143 -- card ratio*/                    
-        width: 36px;
-        height: 50px;                  
+        /*width: 36px;
+        height: 50px;                  */
         background-color: #7F7F7F;
         border-radius: 3px;
         position: relative;
         
         background-size: contain;
         background-repeat: no-repeat;
-        background-position: center;                    
+        background-position: center;   
     }                
     [front] [context]{
         background-color: lightblue;
-    }
-    :host([item-slot]) [front] [context]{
-        background-color: #ccc;
     }
                                     
     [back].card-h [context],
@@ -188,6 +208,7 @@ template.innerHTML = `
     [star-container]{
         display: flex;
         flex-direction: row-reverse;
+        display: none;
     }
     .star{
         width: 10px;
@@ -273,9 +294,12 @@ export default class Card_com extends HTMLElement {
     }
 
     public connectedCallback() {
-        this._container!.onclick = (e) => {
+        this._container.onclick = (e) => {
             this.dispatchEvent(new CustomEvent(Card_com_events.clicked, { detail: null, bubbles: true, composed: true }));
         };
+        this._container.addEventListener('webkitTransitionEnd', (e) =>{
+            this.dispatchEvent(new CustomEvent(Card_com_events.onAnimationDone, {detail: null, bubbles: true, composed: true}));
+        })
     }
 
     public disconnectedCallback() { }

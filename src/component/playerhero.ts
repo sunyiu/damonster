@@ -73,7 +73,21 @@ template.innerHTML = `
             
         }
     }
-    [item-container]{
+
+    [item-container] [item-card-slot]{
+        width: 24px;
+        height: 35px;
+        padding: 2px;
+        margin: 2px;
+        display: inline-block;
+        background-color: white;
+    }
+    [item-container] [item-card-slot] > div{
+        background-color: #ccc;
+        width: 100%;
+        height: 100%;
+    }
+    [item-container] da-card{
         transform: scale(0.7);
     }
     
@@ -116,14 +130,15 @@ template.innerHTML = `
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
                 <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
+                <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
             </div> 
             <div hero-container>                                       
                 <div hero-context></div>                                                                
             </div>
             <div item-container>
-                <da-card item-slot="empty"></da-card>
-                <da-card item-slot="empty"></da-card>
-                <da-card item-slot="empty"></da-card>
+                <div item-card-slot><div></div></div>
+                <div item-card-slot><div></div></div>
+                <div item-card-slot><div></div></div>
             </div>
         </div>                                       
     </div>
@@ -151,11 +166,16 @@ export default class Playerhero_com extends HTMLElement {
 
     public attributeChangedCallback(name: string, oldValue: any, newValue: any): void { }
 
-    public equip(daCard: Card_com): Promise<void> {
+    public equip(daCard: Card_com): Promise<void> {        
         const star = this._shadowRoot.querySelector('div[star].dim') as HTMLElement;
-        const itemCard = this._shadowRoot.querySelector('da-card[item-slot="empty"]') as Card_com;
+        const itemContainer = this._shadowRoot.querySelector('[item-container]') as HTMLElement;
+        const itemCardSlot = this._shadowRoot.querySelector('[item-card-slot]') as HTMLFormElement;
+        
+        daCard.setAttribute('card-size', 'small');
 
+        itemContainer.replaceChild(daCard, itemCardSlot);
         star.classList.remove('dim');
+
         return Promise.resolve();
     }
 

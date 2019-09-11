@@ -292,21 +292,11 @@ export default class Player_com extends HTMLElement {
       console.log("CARD NOT IN HAND!!!!! cannot remove");
     }
 
-    return new Promise(resolve => {
-      if (this._isNPC) {
-        return daCard.flip;
-      }
-      return Promise.resolve();
-    }).then(() => {
-      //delay for 0.5 sec
-      //TODO:: highlight the card.... animation!!!
-      return new Promise(resolve => {
-        setTimeout(() => { resolve() }, 500);
-      })
-    }).then(() => {
+
+    return (this._isNPC ? daCard.flip() : Promise.resolve()).then(() =>{
       this._handContainer.removeChild(daCard);
       return this.hero.equip(daCard);
-    })
+    });    
   }
 
   public EndAction() {
