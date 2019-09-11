@@ -7,16 +7,16 @@ template.innerHTML = `
     :host([card-size="normal"]) [da-card-container],
     [da-card-container] {
         /*0.7142857142857143 -- card ratio*/                    
-        width: 36px;
-        height: 50px;
+        width: 71px;
+        height: 100px;
     }
     :host([card-size="large"]) [da-card-container]{
-        width: 44px;
-        height: 62px;
+        width: 89px;
+        height: 125px;
     }
     :host([card-size="small"]) [da-card-container]{
-        width: 25px;
-        height: 35px;
+        width: 49px;
+        height: 70px;
     }
 
     :host([with-timer]){
@@ -38,8 +38,13 @@ template.innerHTML = `
         border: 1px solid #ccc;
         border-radius: 2px;
         font-size: 10pt;               
+        position: absolute;
+        top: 5px;
+        bottom: 5px;
+        left: 5px;
+        right: 5px;
     }
-    [da-card-container] div{
+    [da-card-container] > div > div{
         width: 100%;
         height: 100%;
     }
