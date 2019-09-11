@@ -74,6 +74,9 @@ template.innerHTML = `
     [front] [context]{
         background-color: lightblue;
     }
+    :host([item-slot]) [front] [context]{
+        background-color: #ccc;
+    }
                                     
     [back].card-h [context],
     [back].card-i [context]{

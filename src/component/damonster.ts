@@ -176,7 +176,7 @@ export default class DaMonster_Com extends HTMLElement
     let player = isNPC ? this.npc : this.player;
     return this.animation = this.animation
       .then(() => {
-        return player.equip(card.id);
+        return player.equip(card);
       });
   }
 

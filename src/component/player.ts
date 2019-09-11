@@ -285,8 +285,8 @@ export default class Player_com extends HTMLElement {
     return promise;
   }
 
-  public equip(cardId: number): Promise<void> {
-    let daCard = this._handContainer.querySelector(`da-card[id="${cardId}"]`) as Card_com;
+  public equip(card: ICard_com_data): Promise<void> {
+    let daCard = this._handContainer.querySelector(`da-card[id="${card.id}"]`) as Card_com;
 
     if (!daCard) {
       console.log("CARD NOT IN HAND!!!!! cannot remove");
@@ -305,7 +305,7 @@ export default class Player_com extends HTMLElement {
       })
     }).then(() => {
       this._handContainer.removeChild(daCard);
-      return this.hero.equip();
+      return this.hero.equip(daCard);
     })
   }
 

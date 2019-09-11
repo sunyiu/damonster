@@ -121,9 +121,9 @@ template.innerHTML = `
                 <div hero-context></div>                                                                
             </div>
             <div item-container>
-                <da-card></da-card>
-                <da-card></da-card>
-                <da-card></da-card>
+                <da-card item-slot="empty"></da-card>
+                <da-card item-slot="empty"></da-card>
+                <da-card item-slot="empty"></da-card>
             </div>
         </div>                                       
     </div>
@@ -151,8 +151,10 @@ export default class Playerhero_com extends HTMLElement {
 
     public attributeChangedCallback(name: string, oldValue: any, newValue: any): void { }
 
-    public equip(): Promise<void> {
+    public equip(daCard: Card_com): Promise<void> {
         const star = this._shadowRoot.querySelector('div[star].dim') as HTMLElement;
+        const itemCard = this._shadowRoot.querySelector('da-card[item-slot="empty"]') as Card_com;
+
         star.classList.remove('dim');
         return Promise.resolve();
     }
