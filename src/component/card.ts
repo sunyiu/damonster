@@ -7,15 +7,15 @@ template.innerHTML = `
     :host([card-size="normal"]) [da-card-container],
     [da-card-container] {
         /*0.7142857142857143 -- card ratio*/                    
-        width: 71px;
-        height: 100px;
+        width: 60px;     
+        height: 80px;  
     }
     :host([card-size="large"]) [da-card-container]{
-        width: 89px;
-        height: 125px;
+        width: 74px;
+        height: 100px;
     }
     :host([card-size="small"]) [da-card-container]{
-        width: 49px;
+        width: 53px;
         height: 70px;
     }
 
@@ -32,11 +32,9 @@ template.innerHTML = `
     [da-card-container] > div{
         display: inline-block;
         background-color: #fff;                    
-        float: none;                    
-        margin: 2px; 
-        padding: 2px;                   
+        float: none;                                      
         border: 1px solid #ccc;
-        border-radius: 2px;
+        border-radius: 5px;
         font-size: 10pt;               
         position: absolute;
         top: 5px;
@@ -45,8 +43,11 @@ template.innerHTML = `
         right: 5px;
     }
     [da-card-container] > div > div{
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        right: 4px;
     }
 
     [da-card-container].flip [front]{
@@ -197,9 +198,9 @@ template.innerHTML = `
     }                                                                         
     
     [da-card-container].selected > div{
-        border:2px solid red;
+        /*border:2px solid red;
         margin:1px;
-        padding:1px;
+        padding:1px;*/
     }
     
     [da-card-container].disabled [context]{

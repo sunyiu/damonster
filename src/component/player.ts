@@ -48,7 +48,6 @@ template.innerHTML = `
       transition: margin-right .5s ease-out, margin-left .5s ease-out; 
       margin-right: 0;
       margin-left: 0; 
-      transform: scale(1);
     }
     #da-player-container[type='player'] [hand-container] da-card.on-add{
       margin-right: -45px;
@@ -230,10 +229,10 @@ export default class Player_com extends HTMLElement {
   }
 
   public addHand(daCard: Card_com): Promise<void> {
-    daCard.style.transform = '';
     daCard.addEventListener(Card_com_events.clicked, () => {
       daCard.setAttribute('isSelected', 'isSelected');
     });
+    daCard.setAttribute('card-size', 'normal');
     daCard.classList.add('on-add')
     this._handContainer.prepend(daCard);
     return new Promise((resolve, reject) => {

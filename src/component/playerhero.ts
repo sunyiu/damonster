@@ -74,22 +74,26 @@ template.innerHTML = `
         }
     }
 
+    [item-container]{
+        display: flex;
+        align-items: center;
+    }
+
     [item-container] [item-card-slot]{
-        width: 24px;
-        height: 35px;
-        padding: 2px;
-        margin: 2px;
+        width: 32px;
+        height: 49px;
+        padding: 5px;
+        margin: 5px;
         display: inline-block;
         background-color: white;
+        border-radius: 5px;
     }
     [item-container] [item-card-slot] > div{
         background-color: #ccc;
         width: 100%;
         height: 100%;
     }
-    [item-container] da-card{
-        transform: scale(0.7);
-    }
+    [item-container] da-card{}
     
     [item-container] da-monster-card{
         display: block;
