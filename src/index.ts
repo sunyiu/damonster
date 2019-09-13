@@ -158,12 +158,8 @@ export function start(component: IDaMonster_Com) {
         break;
     }
   });
-  component.addEventListener(damonster_events.PlayerDoBattle, (e: any) => {
+  component.addEventListener(damonster_events.Battle, (e: any) => {
     game.Battle();
-    // this.animation = this.animation.then(() =>{
-    //     game.Battle();
-    //     return Promise.resolve();
-    // });
   });
   component.addEventListener(damonster_events.PlayerSkipAction, (e: any) => {
     game.player.SkipAction();

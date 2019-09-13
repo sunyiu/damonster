@@ -1,5 +1,8 @@
 "use strict";
 
+import { rejects } from "assert";
+import { DaActions } from "./idamonster";
+
 const template = document.createElement("template");
 template.innerHTML = `
 <style> 
@@ -24,10 +27,21 @@ template.innerHTML = `
       0% { transform: translateY(100%);}
       100% { transform: translateY(0); }
     }
-    @keyframes invade-loader{
-      5% { transform: scaleX(0);}
+    @keyframes loader{
+      0% { transform: scaleX(0);}
       100% { transform: scaleX(1);}
     }
+    
+    @keyframes action-on-background{
+      0% { transform: translateX(-100%);}
+      100% { transform: translateX(0); }
+    }
+    @keyframes action-on-msg{
+      0% { transform: translateX(100%);}
+      100% { transform: translateX(0); }
+
+    }
+
 
     [container] {
         position: absolute;
@@ -118,8 +132,39 @@ template.innerHTML = `
       background-color: rgba(255,0,0,0.5);
       z-index: 999;
     }
-    [content][invade].show [loader]{
-      animation-name: invade-loader;
+    [content][invade] [loader].start{
+      animation-name: loader;
+      animation-timing-function: linear;
+      animation-duration: 3.5s;
+    }
+
+    [content][action].show [background]{
+      animation-name: action-on-background;
+      animation-timing-function: ease-in;
+      animation-duration: 0.3s;
+    }
+    [content][action].show [msg-container]{
+      animation-name: action-on-msg;
+      animation-timing-function: ease-in;
+      animation-duration: 0.3s;
+    }
+    [content][action] [loader]{
+      position: absolute;
+      bottom: 0;
+      height:10px;
+      width: 100%;
+      background-color: rgba(255,0,0,1);
+      z-index: 999;          
+    }
+    [content][action].top [loader]{
+      bottom: none;
+      top: 0;
+    }
+    [content][action] [loader].hide{
+      display: none;
+    }
+    [content][action] [loader].start{
+      animation-name: loader;
       animation-timing-function: linear;
       animation-duration: 3.5s;
     }
@@ -143,53 +188,160 @@ export default class TableEffect_com extends HTMLElement {
   public static get observedAttributes(): string[] {
     return [];
   }
+  private _isWaiting: boolean = false;
+  public get isWaiting() {
+    return this._isWaiting;
+  }
 
   private _shadowRoot: ShadowRoot;
   private _content: HTMLElement;
+  private _background: HTMLElement;
+  private _msg: HTMLElement;
+  private _loader: HTMLElement;
+
   public constructor() {
     super();
     this._shadowRoot = this.attachShadow({ mode: "open" });
     this._shadowRoot.appendChild(template.content.cloneNode(true));
     this._content = this._shadowRoot.querySelector("[content]") as HTMLElement;
+    this._background = this._content.querySelector("[background]") as HTMLElement;
+    this._msg = this._content.querySelector("[msg]") as HTMLElement;
+    this._loader = this._content.querySelector('[loader]') as HTMLElement;
+  }
+
+  public cancelEffect() {
+    this.dispatchEvent(
+      new CustomEvent("cancel-effect", { bubbles: true, composed: true })
+    );
   }
 
   public switchPlayer(isNPC: boolean): Promise<void> {
-    const name = isNPC ? 'npc' : 'player';
-    const background = this._content.querySelector("[background]") as HTMLElement;
-    const msg = this._content.querySelector("[msg]") as HTMLElement;
-    this._content.setAttribute('switch-player', '');
-    msg.innerHTML = `${name}'s turn`.toUpperCase();
-    return new Promise(resolve =>{
-        const callback = () =>{
-          this._content.removeAttribute('switch-player');
-          this._content.className = '';
-          background.removeEventListener('webkitAnimationEnd', callback);
-          resolve();
-        }
-        background.addEventListener('webkitAnimationEnd', callback);
-        this._content.classList.add('show', isNPC ? 'npc' : 'player');
-    })
+    const name = isNPC ? "npc" : "player";
+    this._content.setAttribute("switch-player", "");
+    this._msg.innerHTML = `${name}'s turn`.toUpperCase();
+    return new Promise(resolve => {
+      const callback = () => {
+        this._content.removeAttribute("switch-player");
+        this._content.className = "";
+        this._background.removeEventListener("webkitAnimationEnd", callback);
+        resolve();
+      };
+      this._background.addEventListener("webkitAnimationEnd", callback);
+      this._content.classList.add("show", isNPC ? "npc" : "player");
+    });
   }
 
-  public actionStart(name: string): Promise<void>{
-    return Promise.resolve();
+  public actionStart(action: DaActions, withLoader: boolean, isLoaderTop?: boolean): Promise<void> {
+    let name = "";
+    switch (action) {
+      case DaActions.AtomicBomb:
+        name = "Atomic Bomob";
+        break;
+      case DaActions.Attack:
+        name = "attack";
+        break;
+      case DaActions.MindReading:
+        name = "mind reading";
+        break;
+      case DaActions.Provoke:
+        name = "provoke";
+        break;
+      case DaActions.Radar:
+        name = "radar";
+        break;
+      case DaActions.Retreat:
+        name = "retreat";
+        break;
+      case DaActions.Steal:
+        name = "steal";
+        break;
+      case DaActions.Stop:
+        name = "stop";
+        break;
+    }
+    this._isWaiting = true;
+    this._content.setAttribute("action", "");
+    this._msg.innerHTML = name;    
+    this._loader.className = '';
+    if (!withLoader){
+      this._loader.classList.add('hide');
+    }
+    if (isLoaderTop){
+      this._loader.classList.add('top');
+    }
+
+    return new Promise((resolve, rejects) => {
+      const animationCallback = () => {
+        this._background.removeEventListener("webkitAnimationEnd", animationCallback);
+        if (withLoader)
+          this._loader.classList.add('start');        
+         else{
+           resolve();
+         }
+      };
+      const loaderEnd = () =>{        
+        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);        
+        this.removeEventListener("cancel-effect", cancelCallback);
+        this._content.removeAttribute("action");
+        this._content.classList.remove("show");        
+        this._isWaiting = false;        
+        resolve();
+      };
+      const cancelCallback = () => {
+        this._isWaiting = false;
+        this._background.removeEventListener("webkitAnimationEnd", animationCallback);
+        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);                
+        this.removeEventListener("cancel-effect", cancelCallback);
+        this._content.removeAttribute("action");
+        this._content.classList.remove("show");
+        this._isWaiting = false;
+        rejects();
+      };
+
+      this._background.addEventListener("webkitAnimationEnd", animationCallback);
+      if (withLoader) {this._loader.addEventListener('webkitAnimationEnd', loaderEnd);}
+      this.addEventListener("cancel-effect", cancelCallback);
+      
+      this._content.classList.add("show");
+    });
   }
 
-  public monsterInvade(point: number): Promise<void>{
-    const background = this._content.querySelector("[background]") as HTMLElement;
-    const msg = this._content.querySelector("[msg]") as HTMLElement;
-    this._content.setAttribute('invade', '');
-    msg.innerHTML = 'MONSTER INVADE';
-    return new Promise(resolve =>{
-        const callback = () =>{
-          background.removeEventListener('webkitAnimationEnd', callback);
-          resolve();
-        }
-        background.addEventListener('webkitAnimationEnd', callback);
-        this._content.classList.add('show');
-    })    
-  }
+  public monsterInvade(point: number): Promise<void> {
+    this._isWaiting = true;
+    this._content.setAttribute("invade", "");
+    this._msg.innerHTML = "MONSTER INVADE";
+    this._loader.className = '';
+    return new Promise((resolve, rejects) => {
+      const animationCallback = () => {
+        this._background.removeEventListener("webkitAnimationEnd", animationCallback);
+        this._loader.classList.add('start');        
+      };
+      const loaderEnd = () =>{        
+        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);        
+        this.removeEventListener("cancel-effect", cancelCallback);
+        this._content.removeAttribute("invade");
+        this._content.classList.remove("show");        
+        this._isWaiting = false;        
+        resolve();
+      };
+      const cancelCallback = () => {
+        this._isWaiting = false;
+        this._background.removeEventListener("webkitAnimationEnd", animationCallback);
+        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);                
+        this.removeEventListener("cancel-effect", cancelCallback);
+        this._content.removeAttribute("invade");
+        this._content.classList.remove("show");
+        this._isWaiting = false;
+        rejects();
+      };
 
+      this._background.addEventListener("webkitAnimationEnd", animationCallback);
+      this._loader.addEventListener('webkitAnimationEnd', loaderEnd);
+      this.addEventListener("cancel-effect", cancelCallback);
+      
+      this._content.classList.add("show");
+    });
+  }
 
   public doneBattle(winner: any) {
     return new Promise((resolve, reject) => {

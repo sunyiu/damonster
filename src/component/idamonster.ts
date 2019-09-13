@@ -40,7 +40,7 @@ export enum damonster_events {
   PlayerEquipHero = "com_equip-hero",
   PlayerDoAction = "com_do-action",
   PlayerSkipAction = "com_action-done",
-  PlayerDoBattle = "com_do-battle"
+  Battle = "com_battle"
 }
 
 export interface IDaMonster_Com {

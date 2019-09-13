@@ -7,8 +7,7 @@ export enum Player_com_events {
   SetHero = "set-hero",
   EquipHero = "equip-hero",
   DoAction = "do-action",
-  SkipAction = "action-done",
-  DoBattle = "do-battle"
+  SkipAction = "action-done"
 }
 
 const template = document.createElement('template');
@@ -97,6 +96,13 @@ export default class Player_com extends HTMLElement {
     return this._hero;
   }
 
+  public get hasStopCard(): boolean{
+    return Array.from(this._hero.querySelectorAll('da-card')).some((c) => {
+      const daCard = c as Card_com;
+      return daCard.action && daCard.action == DaActions.Stop;
+    })
+  }
+
   private _shadowRoot: ShadowRoot;
   private _container: HTMLElement;
   private _handContainer: HTMLElement;
@@ -125,23 +131,13 @@ export default class Player_com extends HTMLElement {
     }
   }
 
-  private _actionTimer?: ReturnType<typeof setTimeout>;
   public onAction() {
-    const stopCard = this._handContainer.querySelector(`da-card[data-action="${DaActions.Stop}"`) as Card_com;
-    this._actionTimer = setTimeout(() => {
-      this.dispatchEvent(
-        new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true})
-      );
-    }, stopCard ? 5000: 1000);
-  }
-
-  public set isBattleOn(value: any) {
-    // let btn = this._shadowRoot.getElementById("battleBtn");
-    // if (value) {
-    //   btn!.classList.remove("hide");
-    // } else {
-    //   btn!.classList.add("hide");
-    // }
+    // const stopCard = this._handContainer.querySelector(`da-card[data-action="${DaActions.Stop}"`) as Card_com;
+    // this._actionTimer = setTimeout(() => {
+    //   this.dispatchEvent(
+    //     new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true})
+    //   );
+    // }, stopCard ? 5000: 1000);
   }
 
   private cardClicked(card: Card_com) {

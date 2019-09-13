@@ -1,5 +1,5 @@
 'use strict';
-import { DaCardType, ICard_com_data } from './idamonster';
+import { DaCardType, ICard_com_data, DaActions } from './idamonster';
 
 const template = document.createElement('template');
 template.innerHTML = `
@@ -286,6 +286,11 @@ export default class Card_com extends HTMLElement {
             return '';
         }
         return this._data.cardType;
+    }
+
+    public get action(): DaActions | undefined{
+        if (!this._data){return undefined};
+        return this._data.action;
     }
 
     private _data?: ICard_com_data;
