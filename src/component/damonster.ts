@@ -204,7 +204,7 @@ export default class DaMonster_Com extends HTMLElement
     let to = isNPC ? this.npc : this.player,
       from = isNPC ? this.player : this.npc;
     return this.animation = this.animation.then(() => {
-      return this.effect!.switchPlayer(isNPC ? "NPC" : "Player").then(() => {
+      return this.effect!.switchPlayer(isNPC).then(() => {
         to.hero.isActive = true;
         from.hero.isActive = false;
       });
