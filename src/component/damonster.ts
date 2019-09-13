@@ -212,6 +212,7 @@ export default class DaMonster_Com extends HTMLElement
   }
 
   monsterInvade(id: number, point: number, type: string, heroType: string, action: string): Promise<void> {
+
     return this.animation = this.animation
       .then(() => {
         return this.deck.Serve(
@@ -227,8 +228,7 @@ export default class DaMonster_Com extends HTMLElement
         return this.effect.monsterInvade(point);
       })
       .then(() => {
-        this.player.isBattleOn = true;
-        return Promise.resolve();
+        //battle
       });
   }
 
@@ -262,6 +262,10 @@ export default class DaMonster_Com extends HTMLElement
   }
 
   actionStart(isNPC: boolean, cardId: number): Promise<void> {
+    //check if during invade.. then cancel invade
+    if (this.effect.isInvade){
+    }
+
     if (isNPC) {
       let daCard = this.npc.GetCardById(cardId);
       return this.animation = this.animation
