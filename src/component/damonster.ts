@@ -104,16 +104,6 @@ export default class DaMonster_Com extends HTMLElement
         })
       );
     });
-    this._player.addEventListener(Player_com_events.SkipAction, (e: any) => {
-      this.dispatchEvent(
-        new CustomEvent(damonster_events.PlayerSkipAction, {
-          detail: e.detail,
-          bubbles: true,
-          composed: true
-        })
-      );
-    });
-
     this._deck = this.shadowRoot!.getElementById("deck") as _deck_com;
     this._deck.addEventListener(Deck_com_events.Draw, () => {
       this.dispatchEvent(
@@ -272,7 +262,15 @@ export default class DaMonster_Com extends HTMLElement
         return daCard.flip();
       }).then(() => {
         return this._effect.actionStart(daCard.action!, this._player.hasStopCard, false);
-      });        
+      }).then(() => {
+        this.dispatchEvent(
+          new CustomEvent(damonster_events.PlayerSkipAction, {
+            detail: null,
+            bubbles: true,
+            composed: true
+          })
+        );  
+      });
     }
     
     return this._effect.actionStart(daCard.action, true, true);

@@ -7,7 +7,7 @@ export enum Player_com_events {
   SetHero = "set-hero",
   EquipHero = "equip-hero",
   DoAction = "do-action",
-  SkipAction = "action-done"
+  //SkipAction = "action-done"
 }
 
 const template = document.createElement('template');
@@ -131,14 +131,14 @@ export default class Player_com extends HTMLElement {
     }
   }
 
-  public onAction() {
+  //public onAction() {
     // const stopCard = this._handContainer.querySelector(`da-card[data-action="${DaActions.Stop}"`) as Card_com;
     // this._actionTimer = setTimeout(() => {
     //   this.dispatchEvent(
     //     new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true})
     //   );
     // }, stopCard ? 5000: 1000);
-  }
+  //}
 
   private cardClicked(card: Card_com) {
     //if card selected.. play the action
