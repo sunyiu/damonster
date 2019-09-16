@@ -77,7 +77,7 @@ export function start(component: IDaMonster_Com) {
   game.AddEventListener(DaMonsterGameEvents.ActionStart, (player, card) => {
     return component.actionStart(player.isNPC, card.id);
   });
-  game.AddEventListener(DaMonsterGameEvents.ActionDone, (action: IPlayedAction, isStopped: boolean, cards: { id: number, isNPC: boolean }[]) => {
+  game.AddEventListener(DaMonsterGameEvents.ActionDone, (action: IPlayedAction) => {
     let args: any[] = [];
     ;
     switch (action.card.action) {
@@ -93,7 +93,7 @@ export function start(component: IDaMonster_Com) {
         args = [
           {
             isNPC: action.player.isNPC,   //from
-            cardId: action.result.id
+            cardId: action.result ? action.result.id : undefined
           }
         ];
         break;
@@ -120,11 +120,13 @@ export function start(component: IDaMonster_Com) {
         // };
         break;
     }
-
+    let cards: DaActionCard[] = [];
+    cards.push(action.card);
+    cards = cards.concat(action.stopCards)
     return component.actionDone(
       action.card.action,
-      cards,
-      isStopped,
+      cards.map(c => {return c.id;}),
+      action.isStopped,
       ...args);
   });
 
