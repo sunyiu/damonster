@@ -1,6 +1,6 @@
 "use strict";
 import { DaHeroTypes, DaActions, DaCardType, ICard_com_data } from './idamonster'
-import Card_com, { Card_com_events } from "./card"
+import Card_com, { ComCardSizes } from "./card"
 import Playerhero_com from "./playerhero"
 
 export enum Player_com_events {
@@ -13,72 +13,84 @@ export enum Player_com_events {
 const template = document.createElement('template');
 template.innerHTML = `
 <style>
-    #da-player-container{
-      position: absolute;
+  @keyframes on-add-right{
+    0% {margin-right: -45px;}
+    100% {margin-right: 0;}
+  }
+  @keyframes on-add-left{
+    0% {margin-left: -45px;}
+    100% {margin-left: 0;}
+  }    
+
+  #da-player-container{
+    position: absolute;
+    display: flex;
+    width: 100%;
+  }
+  #da-player-container[type='npc']{
+    bottom: 15px;
+    align-items: flex-end;
+  }
+  #da-player-container[type='player']{
+    top: 15px;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+  }
+  #da-player-container[type='npc'] da-monster-player-hero{
+    padding-right: 25px;
+  }
+  #da-player-container[type='player'] da-monster-player-hero{
+    padding-left: 25px;
+  }    
+
+  [hand-container]{
       display: flex;
-      width: 100%;
-    }
-    #da-player-container[type='npc']{
-      bottom: 15px;
-      align-items: flex-end;
-    }
-    #da-player-container[type='player']{
-      top: 15px;
-      flex-direction: row-reverse;
-      align-items: flex-start;
-    }
-    #da-player-container[type='npc'] da-monster-player-hero{
-      padding-right: 25px;
-    }
-    #da-player-container[type='player'] da-monster-player-hero{
-      padding-left: 25px;
-    }    
+      flex-wrap: wrap;
+      flex-grow: 1;
+      overflow: hidden                  
+  }
+  #da-player-container[type='player'] [hand-container]{
+    flex-direction: row-reverse;
+  }
+  #da-player-container [hand-container] da-card{
+    margin-right: 0;
+    margin-left: 0; 
+    animation-timing-function: ease-out;
+    animation-duration: .5s;
+    animation-fill-mode: forwards;
+    /*transition: margin-right .5s ease-out, margin-left .5s ease-out;*/ 
+  }
+  #da-player-container[type='player'] [hand-container] da-card.on-add{
+    animation-name: on-add-right
+  }
+  #da-player-container[type='npc'] [hand-container] da-card.on-add{
+    animation-name: on-add-left
+  }
 
-    [hand-container]{
-        display: flex;
-        flex-wrap: wrap;
-        flex-grow: 1;
-        overflow: hidden                  
-    }
-    #da-player-container[type='player'] [hand-container]{
-      flex-direction: row-reverse;
-    }
-    #da-player-container [hand-container] da-card{
-      transition: margin-right .5s ease-out, margin-left .5s ease-out; 
-      margin-right: 0;
-      margin-left: 0; 
-    }
-    #da-player-container[type='player'] [hand-container] da-card.on-add{
-      margin-right: -45px;
-    }
-    #da-player-container[type='npc'] [hand-container] da-card.on-add{
-      margin-left: -45px;
-    }
-
-    @media only screen and (max-width: 500px) {
-    }
-    
-    
-    button.hide{
-        display: none;
-    }
-    
-    
-    #monster-container{
-        position: absolute;
-        top: 0;
-        right: 0;
-        display: flex;
-    }
-    
-    #monster-container div.monster{
-        display: block;
-        width: 25px;
-        height: 25px;
-        background-size: contain;
-        background-image: url(images/monster.png);
-        background-repeat: no-repeat;
-    }                                                
+  @media only screen and (max-width: 500px) {
+  }
+  
+  
+  button.hide{
+      display: none;
+  }
+  
+  
+  #monster-container{
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+  }
+  
+  #monster-container div.monster{
+      display: block;
+      width: 25px;
+      height: 25px;
+      background-size: contain;
+      background-image: url(images/monster.png);
+      background-repeat: no-repeat;
+  }                                                
 
 
 </style>
@@ -97,7 +109,7 @@ export default class Player_com extends HTMLElement {
   }
 
   public get hasStopCard(): boolean{
-    return Array.from(this._hero.querySelectorAll('da-card')).some((c) => {
+    return Array.from(this._handContainer.querySelectorAll('da-card')).some((c) => {
       const daCard = c as Card_com;
       return daCard.action && daCard.action == DaActions.Stop;
     })
@@ -130,15 +142,6 @@ export default class Player_com extends HTMLElement {
       this._container.classList.remove("npc");
     }
   }
-
-  //public onAction() {
-    // const stopCard = this._handContainer.querySelector(`da-card[data-action="${DaActions.Stop}"`) as Card_com;
-    // this._actionTimer = setTimeout(() => {
-    //   this.dispatchEvent(
-    //     new CustomEvent(Player_com_events.SkipAction, {detail: null, bubbles: true, composed: true})
-    //   );
-    // }, stopCard ? 5000: 1000);
-  //}
 
   private cardClicked(card: Card_com) {
     //if card selected.. play the action
@@ -206,7 +209,7 @@ export default class Player_com extends HTMLElement {
       card.isFlip = !this._isNPC;
 
       if (!this._isNPC) {
-        card.addEventListener(Card_com_events.clicked, e => {
+        card.addEventListener('click', e => {
           this.cardClicked(card);
         });
       }
@@ -225,21 +228,19 @@ export default class Player_com extends HTMLElement {
   }
 
   public addHand(daCard: Card_com): Promise<void> {
-    daCard.addEventListener(Card_com_events.clicked, () => {
-      daCard.setAttribute('isSelected', 'isSelected');
+    daCard.addEventListener('click', () => {
+      this.cardClicked(daCard);
     });
-    daCard.setAttribute('card-size', 'normal');
-    daCard.classList.add('on-add')
+    daCard.size = ComCardSizes.normal;
     this._handContainer.prepend(daCard);
     return new Promise((resolve, reject) => {
       const callback = (e: any) => {
-        daCard.removeEventListener('webkitTransitionEnd', callback);
+        daCard.removeEventListener('webkitAnimationEnd', callback);
+        daCard.classList.remove('on-add');
         resolve();
       };
-      daCard.addEventListener('webkitTransitionEnd', callback);
-      setTimeout(() => {
-        daCard.classList.remove('on-add');
-      }, 10);
+      daCard.addEventListener('webkitAnimationEnd', callback);
+      daCard.classList.add('on-add');
     });
   }
 
@@ -270,7 +271,13 @@ export default class Player_com extends HTMLElement {
 
     let promise: Promise<void> = Promise.resolve();
     if (this._isNPC) {
-      promise = daCard.flip();
+      promise = new Promise(resolve => {
+        daCard.flip().then(() => {
+          setTimeout(() => {
+            resolve()
+          }, 1000);
+        });
+      });
     }
     promise = promise.then(() => {
       return this.removeHand(hero.id).then((c) => {
@@ -287,11 +294,20 @@ export default class Player_com extends HTMLElement {
       console.log("CARD NOT IN HAND!!!!! cannot remove");
     }
 
-
-    return (this._isNPC ? daCard.flip() : Promise.resolve()).then(() =>{
-      this._handContainer.removeChild(daCard);
-      return this.hero.equip(daCard);
-    });    
+    let promise: Promise<void> = Promise.resolve();
+    if (this._isNPC){
+      promise = new Promise(resolve => {
+        daCard.flip().then(() => {
+          setTimeout(() => { resolve();}, 1000);
+        });
+      })
+    }
+    promise = promise.then(() => {
+      return this.removeHand(card.id).then((c) =>{
+        return this.hero.equip(c);
+      })
+    });
+    return promise;    
   }
 
   public EndAction() {

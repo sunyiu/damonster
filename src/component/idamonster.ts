@@ -53,5 +53,5 @@ export interface IDaMonster_Com {
   monsterInvade(id: number, point: number, type: string, heroType: string, action: string): Promise<void>;
   battleDone(winner: "player" | "npc" | "monster", monsterId: number, monsterPoint: number): Promise<void>;
   actionStart(isNPC: boolean, cardId: number): Promise<void>;
-  actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]): Promise<void>;
+  actionDone(action: DaActions, cardIds: number[], isStopped: boolean, ...args: any[]): Promise<void>;
 }

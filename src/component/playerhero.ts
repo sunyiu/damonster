@@ -196,10 +196,6 @@ export default class Playerhero_com extends HTMLElement {
 
     public set(heroType: DaHeroTypes, point: number): Promise<void> {
         let heroContainer = this.shadowRoot!.querySelector('div[hero-container]') as HTMLElement
-        //itemContainer = this.shadowRoot!.getElementById('item-container'),
-        //starContainer = this.shadowRoot!.getElementById('star-container');
-        //pointContainer = this.shadowRoot!.getElementById('point-container'),
-
         heroContainer!.classList.add(heroType);
         const star = this._shadowRoot.querySelector('div[star].dim') as HTMLElement;
         star.classList.remove('dim');

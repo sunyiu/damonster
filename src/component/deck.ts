@@ -1,6 +1,6 @@
 'use strict';
 import { ICard_com_data } from './idamonster'
-import Card_com, { Card_com_events } from './card'
+import Card_com, { ComCardSizes } from './card'
 import { resolve } from 'dns';
 
 export enum Deck_com_serve_direction {
@@ -103,7 +103,7 @@ export default class Deck_com extends HTMLElement {
         this.shadowRoot!.appendChild(template.content.cloneNode(true));
 
         let daCard = this.shadowRoot!.querySelector('[last-card]') as Card_com;
-        daCard.addEventListener(Card_com_events.clicked, (e) => {
+        daCard.addEventListener('click', (e) => {
             this.dispatchEvent(new CustomEvent(Deck_com_events.Draw, { detail: null, bubbles: true, composed: true }));
         });
     }
@@ -130,14 +130,7 @@ export default class Deck_com extends HTMLElement {
                 const waitTime = 500,
                     promises = [];
 
-                promises.push(new Promise(resolve => {
-                    const callback = () => {
-                        daCard.removeEventListener(Card_com_events.onAnimationDone, callback);
-                        resolve();
-                    }
-                    daCard.addEventListener(Card_com_events.onAnimationDone, callback);
-                    daCard.setAttribute('card-size', 'large');
-                }));
+                promises.push(daCard.toSize(ComCardSizes.large));
 
                 switch (direction) {
                     case Deck_com_serve_direction.Flip:

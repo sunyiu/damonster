@@ -1,6 +1,4 @@
 "use strict";
-
-import { rejects } from "assert";
 import { DaActions } from "./idamonster";
 
 const template = document.createElement("template");
@@ -39,9 +37,15 @@ template.innerHTML = `
     @keyframes action-on-msg{
       0% { transform: translateX(100%);}
       100% { transform: translateX(0); }
-
     }
-
+    @keyframes action-off-background{
+      0% { transform: translateX(0);}
+      100% { transform: translateX(100%); }
+    }
+    @keyframes action-off-msg{
+      0% { transform: translateX(0);}
+      100% { transform: translateX(-100%); }
+    }
 
     [container] {
         position: absolute;
@@ -54,7 +58,6 @@ template.innerHTML = `
     }
         
     [content]{
-        display: block;
         position: relative;
         width: 100%;
         height: 100%;
@@ -76,11 +79,11 @@ template.innerHTML = `
     }
     [background]{
         z-index: 1;
-        background-color: rgba(0,0,0,0.8);
+        background-color: rgba(255,255,255,0.6);
     }
     [msg-container]{
         z-index: 99;
-        background-color: rgba(255,255,255,0.8);
+        background-color: rgba(255,255,255,0.6);
     }
     [msg]{
         position: absolute;
@@ -89,18 +92,31 @@ template.innerHTML = `
         transform: perspective(1px) translateY(-50%);
         text-align: center;
     }
+    [content] [loader]{
+      position: absolute;
+      width: 100%;
+      background-color: rgba(255,0,0,1);
+      z-index: 999;
+      display: none;
+    }
+    [content] [loader].start{
+      animation-name: loader;
+      animation-timing-function: linear;
+      animation-duration: 3.5s;
+      display: block;
+    }
 
     [content][switch-player].npc.show  [background],
     [content][switch-player].player.show  [msg-container]{
         animation-name: up-down;
         animation-timing-function: linear;
-        animation-duration: 2.5s;
+        animation-duration: 2.25s;
     }
     [content][switch-player].npc.show  [msg-container],
     [content][switch-player].player.show  [background]{
         animation-name: down-up;
         animation-timing-function: linear;
-        animation-duration: 2.5s;
+        animation-duration: 2.25s;
     }
     
     [content][invade] [background]{
@@ -125,51 +141,42 @@ template.innerHTML = `
         animation-duration: 0.3s;
     }
     [content][invade] [loader]{
-      position: absolute;
-      bottom: 0;
+      top: 0;
       height: 100%;
-      width: 100%;
-      background-color: rgba(255,0,0,0.5);
-      z-index: 999;
-    }
-    [content][invade] [loader].start{
-      animation-name: loader;
-      animation-timing-function: linear;
-      animation-duration: 3.5s;
     }
 
-    [content][action].show [background]{
+    [content][action].show [background]
+    {
       animation-name: action-on-background;
       animation-timing-function: ease-in;
       animation-duration: 0.3s;
     }
-    [content][action].show [msg-container]{
+    [content][action].show [msg-container]
+    {
       animation-name: action-on-msg;
       animation-timing-function: ease-in;
       animation-duration: 0.3s;
     }
+    [content][action].show.off [background]
+    {
+      animation-name: action-off-background;
+      animation-timing-function: ease-in;
+      animation-duration: 0.3s;
+    }
+    [content][action].show.off [msg-container]
+    {
+      animation-name: action-off-msg;
+      animation-timing-function: ease-in;
+      animation-duration: 0.3s;
+    }
     [content][action] [loader]{
-      position: absolute;
       bottom: 0;
-      height:10px;
-      width: 100%;
-      background-color: rgba(255,0,0,1);
-      z-index: 999;          
+      height:10px;     
     }
     [content][action].top [loader]{
       bottom: none;
       top: 0;
     }
-    [content][action] [loader].hide{
-      display: none;
-    }
-    [content][action] [loader].start{
-      animation-name: loader;
-      animation-timing-function: linear;
-      animation-duration: 3.5s;
-    }
-
-
                                                                                                                                                                                         
 </style>
 <!-- shadow DOM for your element -->
@@ -270,22 +277,27 @@ export default class TableEffect_com extends HTMLElement {
       this._loader.classList.add('top');
     }
 
-    return new Promise((resolve, rejects) => {
+    return new Promise((resolve, reject) => {
       const animationCallback = () => {
-        this._background.removeEventListener("webkitAnimationEnd", animationCallback);
+        if (this._content.classList.contains('off')){
+          this._isWaiting = false;
+          this._background.removeEventListener("webkitAnimationEnd", animationCallback); 
+          this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);               
+          this.removeEventListener("cancel-effect", cancelCallback);  
+          this._content.removeAttribute("action");
+          this._content.className = ''; 
+          resolve();
+          return;
+        }
         if (withLoader)
           this._loader.classList.add('start');        
-         else{
-           resolve();
-         }
+         else
+          setTimeout(() => {
+            this._content.classList.add('off'); 
+          }, 1000);
       };
-      const loaderEnd = () =>{        
-        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);        
-        this.removeEventListener("cancel-effect", cancelCallback);
-        this._content.removeAttribute("action");
-        this._content.classList.remove("show");        
-        this._isWaiting = false;        
-        resolve();
+      const loaderEnd = () =>{              
+        this._content.classList.add('off');               
       };
       const cancelCallback = () => {
         this._isWaiting = false;
@@ -293,9 +305,8 @@ export default class TableEffect_com extends HTMLElement {
         this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);                
         this.removeEventListener("cancel-effect", cancelCallback);
         this._content.removeAttribute("action");
-        this._content.classList.remove("show");
-        this._isWaiting = false;
-        rejects();
+        this._content.className = '';
+        reject();
       };
 
       this._background.addEventListener("webkitAnimationEnd", animationCallback);

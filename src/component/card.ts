@@ -1,33 +1,70 @@
 'use strict';
 import { DaCardType, ICard_com_data, DaActions } from './idamonster';
 
+export enum ComCardSizes{
+    normal,
+    small,
+    large
+}
+
 const template = document.createElement('template');
 template.innerHTML = `
 <style>
-    :host([card-size="normal"]) [da-card-container],
+    @keyframes enlarge{
+        0% {width: 60px; height: 80px;}
+        100% {width: 74px; height: 100px;}
+    }
+    @keyframes smaller{
+        0% {width: 60px; height: 80px;}
+        100% {width: 53px; height: 70px;}
+    }
     [da-card-container] {
         /*0.7142857142857143 -- card ratio*/                    
         width: 60px;     
         height: 80px;  
     }
-    :host([card-size="large"]) [da-card-container]{
+    [da-card-container].enlarge{
+        animation-name: enlarge;
+    }
+    [da-card-container].smaller{
+        animation-name: smaller;
+    }
+    [da-card-container].large{
         width: 74px;
         height: 100px;
     }
-    :host([card-size="small"]) [da-card-container]{
+    [da-card-container].small{
         width: 53px;
         height: 70px;
     }
 
-    :host([with-timer]){
-
+    @keyframes flip-front{
+        0% {transform:  rotateY(0);}
+        100% {transform: rotateY(179deg);} 
+    }
+    @keyframes flip-back{
+        0% {transform:  rotateY(-179deg);}
+        100% {transform: rotateY(0);}        
+    }
+    [da-card-container].flip [front]{
+        animation-name: flip-front;
+    }
+    [da-card-container].flip [back]{
+        animation-name: flip-back;
+    }
+    [da-card-container].flipped [front]{
+        transform: rotateY(179deg);
+    }
+    [da-card-container].flipped [back]{
+        transform: rotateY(0);
     }
 
     [da-card-container]{
         position: relative;
         display: inline-block;
-        -webkit-transition: width .4s ease-in-out, height .4s ease-in-out;
-        transition: width .4s ease-in-out, height .4s ease-in-out;
+        animation-timing-function: ease-in-out;
+        animation-duration: .5s;
+        animation-fill-mode: forwards;
     }
     [da-card-container] > div{
         display: inline-block;
@@ -50,28 +87,22 @@ template.innerHTML = `
         right: 4px;
     }
 
-    [da-card-container].flip [front]{
-        z-index: 80;
-        -webkit-transform: rotateY(179deg);
-        transform: rotateY(179deg);
-    }            
-    [da-card-container].flip [back]{
-        z-index: 90;
-        -webkit-transform: rotateX(0) rotateY(0);
-        transform: rotateX(0) rotateY(0);
+    [front],
+    [back]{
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+        animation-timing-function: ease-in-out;
+        animation-duration: .5s;
+        animation-fill-mode: forwards;
     }
                                 
     [front]{
-        position: relative;                    
-        z-index: 80;
-        -webkit-transform: rotateX(0) rotateY(0);
-        transform: rotateX(0) rotateY(0);
-        -webkit-transform-style: preserve-3d;
-        transform-style: preserve-3d;
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
-        -webkit-transition: all .4s ease-in-out;
-        transition: all .4s ease-in-out;
+        position: relative;                    
+        z-index: 80;
+        -webkit-transform: rotateY(0);
+        transform: rotateY(0);
     }
     [back]{
         position: absolute;
@@ -80,14 +111,8 @@ template.innerHTML = `
         z-index: 70;
         -webkit-transform: rotateY(-179deg);
         transform: rotateY(-179deg);
-        -webkit-transform-style: preserve-3d;
-        transform-style: preserve-3d;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        -webkit-transition: all .4s ease-in-out;
-        transition: all .4s ease-in-out;
     }
-                                                                                            
+
     [context]{
         /*0.7142857142857143 -- card ratio*/                    
         /*width: 36px;
@@ -189,7 +214,6 @@ template.innerHTML = `
         background-image: url(images/mindreading.png);
     }*/                                                                               
     
-    
     [back].card-m [context]{
         background-color: #000;    
         background-image: url(images/GodzillaSilhouetteT.png);
@@ -240,10 +264,9 @@ template.innerHTML = `
 </div>
 `;
 
-export enum Card_com_events {
-    clicked = 'clicked',
-    onAnimationDone = 'on-animation-done'
-}
+// export enum Card_com_events {
+//     clicked = 'clicked'
+// }
 
 export default class Card_com extends HTMLElement {
     static get observedAttributes() { return ['is-selected']; }
@@ -260,13 +283,28 @@ export default class Card_com extends HTMLElement {
     // }
 
     public get isFlip() {
-        return this._container.classList.contains('flip');
+        return this._container.classList.contains('flipped');
     }
     public set isFlip(value: boolean) {
         if (value) {
-            this._container.classList.add('flip');
+            this._container.classList.add('flipped');
         } else {
-            this._container.classList.remove('flip');
+            this._container.classList.remove('flipped');
+        }
+    }
+    public set size(size: ComCardSizes){
+        switch(size){
+            case ComCardSizes.normal:
+                this._container.classList.remove('large', 'small');
+                break;
+            case ComCardSizes.large:
+                this._container.classList.remove('small');
+                this._container.classList.add('large');
+                break;
+            case ComCardSizes.small:
+                this._container.classList.remove('large');
+                this._container.classList.add('small');
+                break;
         }
     }
 
@@ -305,12 +343,9 @@ export default class Card_com extends HTMLElement {
     }
 
     public connectedCallback() {
-        this._container.onclick = (e) => {
-            this.dispatchEvent(new CustomEvent(Card_com_events.clicked, { detail: null, bubbles: true, composed: true }));
-        };
-        this._container.addEventListener('webkitTransitionEnd', (e) =>{
-            this.dispatchEvent(new CustomEvent(Card_com_events.onAnimationDone, {detail: null, bubbles: true, composed: true}));
-        })
+        // this._container.onclick = (e) => {
+        //     this.dispatchEvent(new CustomEvent(Card_com_events.clicked, { detail: null, bubbles: true, composed: true }));
+        // };
     }
 
     public disconnectedCallback() { }
@@ -364,12 +399,36 @@ export default class Card_com extends HTMLElement {
     public flip(): Promise<void> {
         return new Promise((resolve, reject) => {
             const callback = (e: any) => {
-                    this._container.removeEventListener('webkitTransitionEnd', callback);
+                    this._container.removeEventListener('webkitAnimationEnd', callback);
+                    this._container.classList.remove('flip');
+                    this._container.classList.add('flipped');
                     resolve();
                 }
-            this._container.addEventListener('webkitTransitionEnd', callback);
+            this._container.addEventListener('webkitAnimationEnd', callback);
             this._container.classList.toggle('flip');
         });
+    }
+
+    public toSize(size: ComCardSizes): Promise<void>{
+        if (this._container.classList.contains('large') || this._container.classList.contains('small')){
+            throw 'size change can only be enlarge or smaller from normal size!!!';
+        }
+        const className = size == ComCardSizes.large ? 'enlarge' : 'smaller';
+        const toName = size == ComCardSizes.large ? 'large' : 'small';
+        return new Promise((resolve) => {
+            const callback = (e: any) => {
+                this._container.removeEventListener('webkitAnimationEnd', callback);
+                this._container.classList.remove(className);
+                this._container.classList.add(toName);
+                resolve();
+            }
+        this._container.addEventListener('webkitAnimationEnd', callback);
+        this._container.classList.add(className);
+        });
+    }
+
+    public highlight(): Promise<void>{
+        return Promise.resolve();
     }
 
     // public remove() {

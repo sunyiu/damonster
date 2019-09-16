@@ -261,29 +261,36 @@ export default class DaMonster_Com extends HTMLElement
       return this._animation = this._animation.then(() =>{
         return daCard.flip();
       }).then(() => {
-        return this._effect.actionStart(daCard.action!, this._player.hasStopCard, false);
-      }).then(() => {
-        this.dispatchEvent(
-          new CustomEvent(damonster_events.PlayerSkipAction, {
-            detail: null,
-            bubbles: true,
-            composed: true
+        return this._effect.actionStart(daCard.action!, this._player.hasStopCard, false)
+          .then(() => {
+            this.dispatchEvent(
+              new CustomEvent(damonster_events.PlayerSkipAction, {
+                detail: null,
+                bubbles: true,
+                composed: true
+              })
+            )
           })
-        );  
+          .catch(() => {  
+            //action cancelled.... by stop action..
+          });
       });
     }
     
     return this._effect.actionStart(daCard.action, true, true);
   }
   
-  actionDone(action: DaActions, cards: { id: number; isNPC: boolean }[], isStopped: boolean, ...args: any[]): Promise<void> {
+  actionDone(action: DaActions, cardIds: number[], isStopped: boolean, ...args: any[]): Promise<void> {
     //remove all played card
     this._animation = this._animation.then(() => {
       let cardRemovalPromises: any[] = [];
-      cards.forEach((r: { id: number; isNPC: boolean }) => {
-        let _player = r.isNPC ? this._npc : this._player;
-        cardRemovalPromises.push(_player.removeHand(r.id));
-      });
+      cardIds.forEach(id => {
+        if (this._player.GetCardById(id)){
+          cardRemovalPromises.push(this._player.removeHand(id));
+        }else{
+          cardRemovalPromises.push(this._npc.removeHand(id));
+        }
+      })
       return Promise.all(cardRemovalPromises);
     }).then(() =>{
       return Promise.resolve();

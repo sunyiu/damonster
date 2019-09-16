@@ -4,6 +4,7 @@ import { DaCard, DaCardType } from './card'
 import { DaActionCard, DaActions } from "./actioncard"
 import { DaNpc } from "./npc"
 import { promises } from "dns"
+import { Playerhero_com } from "src/component"
 
 
 export enum DaMonsterGameEvents {
@@ -19,6 +20,7 @@ export enum DaMonsterGameEvents {
 export interface IPlayedAction {
 	player: DaPlayer,
 	card: DaActionCard,
+	stopCards: DaActionCard[],
 	args: any[],
 	isStopped: boolean,
 	result?: any
@@ -28,7 +30,7 @@ export interface IPlayedAction {
 export class DaMonsterGame {
 	public monsterCard?: DaCard;
 	public availableMonsters: DaCard[] = [];
-	public playedActions: IPlayedAction[] = [];
+	public playedAction?: IPlayedAction;
 
 	private _deck: DaDeck = new DaDeck();
 
@@ -161,24 +163,32 @@ export class DaMonsterGame {
 
 			p.AddEventListener(DaPlayerEvents.StartAction, (card, ...args) => {
 				console.log('%s play an action %s with args %o', p.name, card.name, args);
-
-				// if (this.playedActions.length > 0 && (card.action != DaActions.Stop || card.action != DaActions.Retreat)) {
-				// 	throw new Error("Cannot play another action when there is a pending action (only stop and retreat can)!!!!");
-				// }
-
-				if (this.playedActions.length == 0 && card.action == DaActions.Stop) {
-					throw new Error("No pending action to stop!!!!");
+				//Only STOP, after an action started
+				if (card.action == DaActions.Stop){
+					if (!this.playedAction){
+						throw "No pending action to stop!!!";
+					}
+					this.playedAction.stopCards.push(card);
+					this.playedAction.isStopped = !this.playedAction.isStopped;
+				}else{
+					if (this.playedAction){
+						throw "Only stop can be played when there is an action pending";
+					}
+					this.playedAction = {
+						player: p,
+						card: card,
+						stopCards: [],
+						args: args,
+						isStopped: false
+					} 
 				}
-				if (this.playedActions.length > 0 && card.action != DaActions.Stop){
-					throw new Error("Only stop can be play once an action has started");
-				}
 
-				this.playedActions.push({
-					player: p,
-					card: card,
-					args: args,
-					isStopped: false
-				});
+				let callbacks = this._callbacks[DaMonsterGameEvents.ActionStart];
+				if (callbacks) {
+					callbacks.forEach((c) => {
+						c.call(null, p, card);
+					})
+				}
 
 				this._players.forEach((player) => {
 					if (player !== p) {
@@ -190,19 +200,10 @@ export class DaMonsterGame {
 						player.isActionDone = true;
 					}
 				})
-
-				let callbacks = this._callbacks[DaMonsterGameEvents.ActionStart];
-				if (callbacks) {
-					callbacks.forEach((c) => {
-						c.call(null, p, card);
-					})
-				}
 			});
 
 			p.AddEventListener(DaPlayerEvents.EndAnAction, (player) => {
-				if (this._players.every((p) => {
-					return p.isActionDone;
-				})) {
+				if (this._players.every((p) => {return p.isActionDone;})) {
 					this.ExeCardAction();
 				}
 			});
@@ -431,31 +432,37 @@ export class DaMonsterGame {
 		let player = this._players.find((p) => { return !p.isNPC; }) as DaPlayer;
 		player.isActive = true;
 
+		//--FOR TESTING ONLY!!!!
+		//Steal -> npc
 		let npc = this._players.find((p) => { return p.isNPC}) as DaNpc;
-		if (!npc.hand.some((c) => {return (c as DaActionCard).action == DaActions.Steal})){
+			if (!npc.hand.some((c) => {return (c as DaActionCard).action == DaActions.Steal})){
 		npc.hand.push(cards.skill.find((c) => { return c.action == DaActions.Steal;}) as DaCard);
+		}
+		//stop -> player
+		if (!player.hand.some(c => { return (c as DaActionCard).action == DaActions.Stop})){
+			player.hand.push(cards.skill.find((c) => {return c.action == DaActions.Stop;}) as DaCard);
 		}
 	}
 
 	ExeCardAction() {
-		let isStopped = this.playedActions.filter((a) => {return a.card.action == DaActions.Stop;}).length % 2 == 1,
-			cards = this.playedActions.map((a) => { return { id: a.card.id, isNPC: a.player.isNPC }; }),
-			playAction = this.playedActions[0],		
-			promises: Promise<void>[] = [];
-
-		if (!isStopped){
-			playAction.result = playAction.card.Play(playAction.player, ...playAction.args);
+		if (!this.playedAction){
+			throw "No played action to exec!!!";
 		}
-			
+
+		if (!this.playedAction.isStopped){
+			this.playedAction.result = this.playedAction.card.Play(this.playedAction.player, ...this.playedAction.args);
+		}
+
+		let promises: Promise<void>[] = [];
 		let callbacks = this._callbacks[DaMonsterGameEvents.ActionDone];
 		if (callbacks) {
 			callbacks.forEach((c) => {
-				promises.push(c.call(null, playAction, isStopped, cards));
+				promises.push(c.call(null, this.playedAction));
 			})
 		}
-				
+
 		Promise.all(promises).then(() =>{
-			this.playedActions = [];	
+			this.playedAction = undefined;	
 			//check for monster card...
 			// //can be monster invade -> atomic bomb (next player)
 			// //or action -> provoke....			
