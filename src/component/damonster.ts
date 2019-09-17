@@ -251,6 +251,7 @@ export default class DaMonster_Com extends HTMLElement
   actionStart(isNPC: boolean, cardId: number): Promise<void> {
     if (this._effect.isWaiting){
       this._effect.cancelEffect();
+      return Promise.resolve();
     }
     const daCard = isNPC ? this._npc.GetCardById(cardId) : this._player.GetCardById(cardId) as Card_com;
     if (!daCard.action) {
@@ -270,14 +271,15 @@ export default class DaMonster_Com extends HTMLElement
                 composed: true
               })
             )
-          })
-          .catch(() => {  
-            //action cancelled.... by stop action..
+          }).catch(() =>{
+            //play stop animation!!!!
           });
       });
     }
     
-    return this._effect.actionStart(daCard.action, true, true);
+    return this._animation = this._animation.then(() => {
+      return this._effect.actionStart(daCard.action!, false);
+    });
   }
   
   actionDone(action: DaActions, cardIds: number[], isStopped: boolean, ...args: any[]): Promise<void> {

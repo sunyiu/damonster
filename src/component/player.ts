@@ -132,7 +132,7 @@ export default class Player_com extends HTMLElement {
     if (!type) {
       throw "Player type (data-type) is needed!!!!";
     }
-
+    this._hero.setAttribute('type', type);
     this._container.setAttribute('type', type);
     if (type == "npc") {
       this._isNPC = true;

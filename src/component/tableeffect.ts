@@ -286,6 +286,7 @@ export default class TableEffect_com extends HTMLElement {
           this.removeEventListener("cancel-effect", cancelCallback);  
           this._content.removeAttribute("action");
           this._content.className = ''; 
+          this._loader.className = '';
           resolve();
           return;
         }
@@ -306,6 +307,7 @@ export default class TableEffect_com extends HTMLElement {
         this.removeEventListener("cancel-effect", cancelCallback);
         this._content.removeAttribute("action");
         this._content.className = '';
+        this._loader.className = '';
         reject();
       };
 

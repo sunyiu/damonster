@@ -17,8 +17,11 @@ template.innerHTML = `
     div[hero-item-container]{
         position: relative;
         display: flex;
-        align-items: center;
-        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: flex-end;
+    }
+    :host([type='npc']) div[hero-item-container]{
+        flex-direction: row-reverse;
     }
     
     div[hero-context]{
@@ -114,6 +117,7 @@ template.innerHTML = `
     
     div[star-container]{
         display: flex;
+        justify-content: center;
     }
     div[star]{
         width: 15px;
@@ -123,26 +127,50 @@ template.innerHTML = `
     div[star].dim{
         fill: rgba(88, 88,88,1);
     }                                                                                                                   
-                                                                                                        
+    
+    [trophy-container] div[trophy]{
+        width: 25px;
+        height: 25px;
+        background: url(./images/trophy.png);
+        margin: 5px;
+        background-size: contain;
+        background-position: right;
+        background-repeat: no-repeat;
+        display: inline-block;
+        margin-bottom: 0;
+    }
+    [trophy-container] div[monster-killed]{
+        font-size: 15px;
+        display: inline-block;
+        font-family: 'Bowlby One SC', cursive; 
+        margin-right: 5px;
+    }
     
 </style>
 <!-- shadow DOM for your element -->
     <div da-hero-container>
-        <div monster-container></div>
         <div hero-item-container>
-            <div star-container>
-                <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
-                <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
-                <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
-                <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
-            </div> 
-            <div hero-container>                                       
-                <div hero-context></div>                                                                
+            <div hero-container>  
+                <div star-container>
+                    <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
+                    <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
+                    <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
+                    <div star class='dim'><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"></path></svg></div>
+                </div>                                      
+                <div hero-context></div> 
+            </div>
+                <div trophy-container>
+                    <div trophy></div>
+                    <div monster-killed>x 0</div>
+                </div>                                                               
             </div>
             <div item-container>
                 <div item-card-slot><div></div></div>
                 <div item-card-slot><div></div></div>
                 <div item-card-slot><div></div></div>
+            </div>
+            <div monster-container>
+                <div></div>
             </div>
         </div>                                       
     </div>
