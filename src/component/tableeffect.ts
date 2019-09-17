@@ -79,11 +79,11 @@ template.innerHTML = `
     }
     [background]{
         z-index: 1;
-        background-color: rgba(255,255,255,0.6);
+        background-color: rgba(255,255,255,0.75);
     }
     [msg-container]{
         z-index: 99;
-        background-color: rgba(255,255,255,0.6);
+        background-color: rgba(255,255,255,0.75);
     }
     [msg]{
         position: absolute;
@@ -95,7 +95,7 @@ template.innerHTML = `
     [content] [loader]{
       position: absolute;
       width: 100%;
-      background-color: rgba(255,0,0,1);
+      background-color: rgba(255,0,0,0.8);
       z-index: 999;
       display: none;
     }
@@ -216,14 +216,16 @@ export default class TableEffect_com extends HTMLElement {
     this._loader = this._content.querySelector('[loader]') as HTMLElement;
   }
 
-  public cancelEffect() {
-    this.dispatchEvent(
-      new CustomEvent("cancel-effect", { bubbles: true, composed: true })
-    );
+  public cancelEffect(): Promise<void> {
+    return new Promise(resolve => {
+      this.dispatchEvent(
+        new CustomEvent("cancel-effect", { detail: {resolve}, bubbles: true, composed: true })
+      );
+    });
   }
 
   public switchPlayer(isNPC: boolean): Promise<void> {
-    const name = isNPC ? "npc" : "player";
+    const name = isNPC ? "npc" : "your";
     this._content.setAttribute("switch-player", "");
     this._msg.innerHTML = `${name}'s turn`.toUpperCase();
     return new Promise(resolve => {
@@ -300,15 +302,18 @@ export default class TableEffect_com extends HTMLElement {
       const loaderEnd = () =>{              
         this._content.classList.add('off');               
       };
-      const cancelCallback = () => {
+      const cancelCallback = (e: any) => {
         this._isWaiting = false;
         this._background.removeEventListener("webkitAnimationEnd", animationCallback);
-        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);                
+        this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);               
         this.removeEventListener("cancel-effect", cancelCallback);
         this._content.removeAttribute("action");
-        this._content.className = '';
-        this._loader.className = '';
         reject();
+        setTimeout(() => {
+          this._content.className = '';
+          this._loader.className = '';
+          e.detail.resolve();
+        }, 200);
       };
 
       this._background.addEventListener("webkitAnimationEnd", animationCallback);
@@ -357,19 +362,7 @@ export default class TableEffect_com extends HTMLElement {
   }
 
   public doneBattle(winner: any) {
-    return new Promise((resolve, reject) => {
-      let content = this.shadowRoot!.getElementById("da-effect-content"),
-        callback = (e: any) => {
-          content!.removeEventListener("webkitAnimationEnd", callback);
-          content!.innerHTML = "";
-          content!.classList.remove("rollout_up");
-          content!.classList.add("hide");
-          resolve();
-        };
-
-      content!.addEventListener("webkitAnimationEnd", callback);
-      content!.classList.add("rollout_up");
-    });
+    return Promise.resolve();
   }
 
   //   public switchPlayer(player: any): Promise<void> {

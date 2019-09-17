@@ -368,8 +368,7 @@ export class DaMonsterGame {
 		}
 
 		let maxPointPlayer: DaPlayer | undefined,
-			winner: DaPlayer |  DaCard,
-			isPlayerWin = false;
+			winner: DaPlayer |  DaCard;
 		this._players.forEach((p: DaPlayer) => {
 			//if equal point, active player win.....
 			if (p.hero) {
@@ -393,7 +392,6 @@ export class DaMonsterGame {
 			console.log('player win!!!!!');
 			//check for each player
 			winner = maxPointPlayer;
-			isPlayerWin = true;
 			maxPointPlayer.monsterKilled.push(this.monsterCard);
 		}
 

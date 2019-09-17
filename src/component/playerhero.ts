@@ -180,6 +180,7 @@ export default class Playerhero_com extends HTMLElement {
 
     private _shadowRoot: ShadowRoot;
     private _container: HTMLElement;
+    private _monsterKilled: number = 0;
 
     public set isActive(value: boolean) {
         if (value) {
@@ -228,6 +229,12 @@ export default class Playerhero_com extends HTMLElement {
         const star = this._shadowRoot.querySelector('div[star].dim') as HTMLElement;
         star.classList.remove('dim');
         return Promise.resolve();
+    }
+
+    public killAMonster(){
+        const monsterKilled = this.shadowRoot!.querySelector('[monster-killed]') as HTMLElement;
+        this._monsterKilled++;
+        monsterKilled.innerHTML = `x ${this._monsterKilled}`;
     }
 }
 

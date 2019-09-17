@@ -309,23 +309,6 @@ export default class Player_com extends HTMLElement {
     });
     return promise;    
   }
-
-  public EndAction() {
-    // let playBtn = this._shadowRoot.getElementById('playBtn');
-    // if (c.isSelected){
-    //         playBtn!.classList.remove('hide');
-    // }else{
-    //     playBtn!.classList.add('hide');
-    // }
-  }
-
-  public KillAMonster() {
-    const container = this._shadowRoot.getElementById("monster-container") as HTMLElement;
-    let monster = document.createElement("div");
-    monster.classList.add("monster");
-    container.append(monster);
-    return Promise.resolve();
-  }
 }
 
 customElements.define('da-monster-player', Player_com);

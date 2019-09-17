@@ -232,7 +232,7 @@ export default class DaMonster_Com extends HTMLElement
         })
         .then(() => {
           console.log("com::damonster -- kill a monster");
-          return _player.KillAMonster();
+          return _player.hero.killAMonster();
         });
     } else {
       return this._animation = this._animation.then(() => {
@@ -249,13 +249,15 @@ export default class DaMonster_Com extends HTMLElement
   }
 
   actionStart(isNPC: boolean, cardId: number): Promise<void> {
-    if (this._effect.isWaiting){
-      this._effect.cancelEffect();
-      return Promise.resolve();
-    }
     const daCard = isNPC ? this._npc.GetCardById(cardId) : this._player.GetCardById(cardId) as Card_com;
     if (!daCard.action) {
       throw "ACTION IS NOT DEFINED IN ACTION CARD!!!!";
+    }
+
+    if (this._effect.isWaiting){
+      return this._animation = this._effect.cancelEffect().then(() => {
+          return this._effect.actionStart(daCard.action!, false);
+      });
     }
 
     if (isNPC){
@@ -272,7 +274,7 @@ export default class DaMonster_Com extends HTMLElement
               })
             )
           }).catch(() =>{
-            //play stop animation!!!!
+            //player response to action....
           });
       });
     }
