@@ -128,7 +128,7 @@ template.innerHTML = `
       background-size: contain;
       background-position: right 10px;
       background-color: inherit;
-      color: white;
+      color: gray;
     }
     [content][invade].show  [background]{
         animation-name: invade-background;
@@ -177,14 +177,26 @@ template.innerHTML = `
       bottom: none;
       top: 0;
     }
+
+    [star-container]{
+      z-index: 99;
+      fill: yellow;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      text-align: center;
+    }
                                                                                                                                                                                         
 </style>
 <!-- shadow DOM for your element -->
 <div container>    
     <div content>
-        <div background></div>
-        <div msg-container>
-            <div msg></div>
+        <div background>
+        </div>
+        <div star-container>  
+        </div>
+        <div msg-container>    
+          <div msg></div>
         </div>
         <div loader></div>
     </div>
@@ -227,7 +239,7 @@ export default class TableEffect_com extends HTMLElement {
   public switchPlayer(isNPC: boolean): Promise<void> {
     const name = isNPC ? "npc" : "your";
     this._content.setAttribute("switch-player", "");
-    this._msg.innerHTML = `${name}'s turn`.toUpperCase();
+    this._msg.innerHTML = `${name} turn`.toUpperCase();
     return new Promise(resolve => {
       const callback = () => {
         this._content.removeAttribute("switch-player");
@@ -327,8 +339,14 @@ export default class TableEffect_com extends HTMLElement {
   public monsterInvade(point: number): Promise<void> {
     this._isWaiting = true;
     this._content.setAttribute("invade", "");
-    this._msg.innerHTML = "MONSTER INVADE";
+    this._msg.innerHTML = "INVADE";
     this._loader.className = '';
+
+    const starContainer = this._shadowRoot.querySelector('[star-container') as HTMLElement;
+    for(var i=0; i<point; i++){
+      starContainer.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="25px" height="25px" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>';
+    }
+
     return new Promise((resolve, rejects) => {
       const animationCallback = () => {
         this._background.removeEventListener("webkitAnimationEnd", animationCallback);
@@ -338,7 +356,8 @@ export default class TableEffect_com extends HTMLElement {
         this._loader.removeEventListener('webkitAnimationEnd', loaderEnd);        
         this.removeEventListener("cancel-effect", cancelCallback);
         this._content.removeAttribute("invade");
-        this._content.classList.remove("show");        
+        this._content.classList.remove("show");     
+        starContainer.innerHTML = '';   
         this._isWaiting = false;        
         resolve();
       };
@@ -349,6 +368,7 @@ export default class TableEffect_com extends HTMLElement {
         this.removeEventListener("cancel-effect", cancelCallback);
         this._content.removeAttribute("invade");
         this._content.classList.remove("show");
+        starContainer.innerHTML = '';
         this._isWaiting = false;
         rejects();
       };

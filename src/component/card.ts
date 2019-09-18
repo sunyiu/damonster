@@ -237,8 +237,6 @@ template.innerHTML = `
     
     [star-container]{
         display: flex;
-        flex-direction: row-reverse;
-        display: none;
     }
     .star{
         width: 10px;
@@ -385,13 +383,13 @@ export default class Card_com extends HTMLElement {
                 break;
         }
 
-        if (data.point) {
-            let starContainer = this.shadowRoot!.querySelector('[star-container]');
+        if (data.point && data.cardType === DaCardType.Monster) {
+            let starContainer = this.shadowRoot!.querySelector('[star-container]') as HTMLElement;
             for (var i = 0; i < data.point; i++) {
                 let star = document.createElement('div');
                 star.classList.add('star');
                 star.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>';
-                starContainer!.appendChild(star);
+                starContainer.appendChild(star);
             }
         }
     }
